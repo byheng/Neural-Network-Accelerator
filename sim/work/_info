@@ -1,0 +1,61 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dF:/FPGA/accelerator_core/sim
+T_opt
+!s110 1732612907
+V4nX1W=P1IB<hQmRg9TWXU1
+04 15 4 work conv_control_tb fast 0
+=2-047c16d2c882-6745932b-17d-299ec
+o-quiet -auto_acc_if_foreign -work work
+Z1 tCvgOpt 0
+n@_opt
+OL;O;10.7;67
+vaxi_ram
+!s110 1732612904
+!i10b 1
+!s100 ^5A^1[Am^:<m`4`l?0cjG3
+IkK0@A4oZNH12AQ?M?1JKf3
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+R0
+w1732612881
+8F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v
+FF:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v
+L0 35
+Z3 OL;L;10.7;67
+r1
+!s85 0
+31
+!s108 1732612904.000000
+!s107 F:\FPGA\accelerator_core\sim\tb\..\..\parameters.v|F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v|
+!s90 -reportprogress|300|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v|
+!i113 0
+Z4 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R1
+vconv_control_tb
+!s110 1732612815
+!i10b 1
+!s100 [F1k`7PhVPC<<<lfo7ZM=3
+I_5a>Q8m;EWV:H4KCGY1J53
+R2
+R0
+w1732612805
+8./tb/simulation_tb.v
+F./tb/simulation_tb.v
+L0 10
+R3
+r1
+!s85 0
+31
+!s108 1732612815.000000
+!s107 .\tb\..\..\parameters.v|./tb/simulation_tb.v|./tb/simulation_AXI_memory.v|
+!s90 -reportprogress|300|./tb/simulation_AXI_memory.v|./tb/simulation_tb.v|
+!i113 0
+R4
+R1

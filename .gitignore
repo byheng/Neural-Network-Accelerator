@@ -1,0 +1,8 @@
+script/*.pkl
+script/*.bin
+script/*.npy
+script/memory_patch.txt
+script/memory.npy
+script/WeightAndBias.bin
+script/picture.bin
+script/order.txt

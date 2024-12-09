@@ -1,0 +1,217 @@
+m255
+K4
+z2
+!s11f vlog 2020.4 2020.10, Oct 13 2020
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dF:/FPGA/ziguang/total_project/ipcore
+vpre
+Z1 !s110 1731423360
+!i10b 1
+!s100 QIE^e?2VL3GZGEEg[<Xhf0
+Z2 !s11b Dg1SIo80bB@j0V0VzS_@n1
+IBYI]A5mCi@=fIHoiWW]?A2
+R0
+w1679566042
+8./pre.v
+F./pre.v
+!i122 30
+L0 1 94
+Z3 VDg1SIo80bB@j0V0VzS_@n1
+Z4 OL;L;2020.4;71
+r1
+!s85 0
+31
+Z5 !s108 1731423360.000000
+!s107 ./pre.v|
+!s90 -reportprogress|300|./pre.v|
+!i113 0
+Z6 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+Z7 tCvgOpt 0
+vram_based_fifo_bias_buffer
+R1
+!i10b 1
+!s100 5_:i?Zd0[Mo8_6BLPEzLb0
+R2
+I;>n1<=QPK?mniJCP:mS_[0
+R0
+w1731336534
+8./bias_buffer/Ram_based_fifo_bias_buffer.v
+F./bias_buffer/Ram_based_fifo_bias_buffer.v
+!i122 27
+Z8 L0 10 176
+R3
+R4
+r1
+!s85 0
+31
+R5
+!s107 .\bias_buffer\..\..\source\parameters.v|./bias_buffer/Ram_based_fifo_bias_buffer.v|
+!s90 -reportprogress|300|./bias_buffer/Ram_based_fifo_bias_buffer.v|
+!i113 0
+R6
+R7
+vram_based_fifo_feature_buffer
+R1
+!i10b 1
+!s100 PT0SE?oRcAlaIOkhAQhgH3
+R2
+IE?JHIDUiCjEIA8O4PGVhQ1
+R0
+w1731378730
+8./feature_buffer/Ram_based_fifo_feature_buffer.v
+F./feature_buffer/Ram_based_fifo_feature_buffer.v
+!i122 28
+L0 10 185
+R3
+R4
+r1
+!s85 0
+31
+R5
+!s107 .\feature_buffer\..\..\source\parameters.v|./feature_buffer/Ram_based_fifo_feature_buffer.v|
+!s90 -reportprogress|300|./feature_buffer/Ram_based_fifo_feature_buffer.v|
+!i113 0
+R6
+R7
+vram_based_fifo_return_buffer
+R1
+!i10b 1
+!s100 ZXMSgE9IbB[@ETK=TKYjA3
+R2
+ICKo2:T`nN57^Sm<4^WUE:2
+R0
+w1731378303
+8./return_buffer/Ram_based_fifo_return_buffer.v
+F./return_buffer/Ram_based_fifo_return_buffer.v
+!i122 31
+L0 10 171
+R3
+R4
+r1
+!s85 0
+31
+R5
+!s107 .\return_buffer\..\..\source\parameters.v|./return_buffer/Ram_based_fifo_return_buffer.v|
+!s90 -reportprogress|300|./return_buffer/Ram_based_fifo_return_buffer.v|
+!i113 0
+R6
+R7
+vram_based_fifo_rgb888_buffer
+Z9 !s110 1731423361
+!i10b 1
+!s100 G5geKcanBch8cTI3P9<^Q0
+R2
+IC<7L2gNS<AG8NB5J97TBK0
+R0
+w1731409849
+8./rgb888_fifo/Ram_based_fifo_rgb888_buffer.v
+F./rgb888_fifo/Ram_based_fifo_rgb888_buffer.v
+!i122 32
+L0 10 159
+R3
+R4
+r1
+!s85 0
+31
+Z10 !s108 1731423361.000000
+!s107 .\rgb888_fifo\..\..\source\parameters.v|./rgb888_fifo/Ram_based_fifo_rgb888_buffer.v|
+!s90 -reportprogress|300|./rgb888_fifo/Ram_based_fifo_rgb888_buffer.v|
+!i113 0
+R6
+R7
+vram_based_fifo_upsample_buffer
+R9
+!i10b 1
+!s100 5VW=PN9kC>B3YbO5X<25l2
+R2
+IaM>HibTjPV9]eI9_3dne?3
+R0
+w1731422480
+8./upsample_buffer/Ram_based_fifo_upsample_buffer.v
+F./upsample_buffer/Ram_based_fifo_upsample_buffer.v
+!i122 34
+L0 10 204
+R3
+R4
+r1
+!s85 0
+31
+R10
+!s107 .\upsample_buffer\..\..\source\parameters.v|./upsample_buffer/Ram_based_fifo_upsample_buffer.v|
+!s90 -reportprogress|300|./upsample_buffer/Ram_based_fifo_upsample_buffer.v|
+!i113 0
+R6
+R7
+vram_based_fifo_weight_buffer
+R9
+!i10b 1
+!s100 B3ZYFg38z@XmX[c^^5iSU0
+R2
+I008]JW7Uhi9nR6if0bSd`0
+R0
+w1731337037
+8./weight_buffer/Ram_based_fifo_weight_buffer.v
+F./weight_buffer/Ram_based_fifo_weight_buffer.v
+!i122 35
+R8
+R3
+R4
+r1
+!s85 0
+31
+R10
+!s107 .\weight_buffer\..\..\source\parameters.v|./weight_buffer/Ram_based_fifo_weight_buffer.v|
+!s90 -reportprogress|300|./weight_buffer/Ram_based_fifo_weight_buffer.v|
+!i113 0
+R6
+R7
+vsimulation_mac
+R1
+!i10b 1
+!s100 _kJEBW>PC`WcP=cz=ibCd2
+R2
+ILz?Yl=a<JjAj8cA`Gkdib2
+R0
+w1731316625
+8./MAC/simulation_mac.v
+F./MAC/simulation_mac.v
+!i122 29
+L0 8 67
+R3
+R4
+r1
+!s85 0
+31
+R5
+!s107 ./MAC/simulation_mac.v|
+!s90 -reportprogress|300|./MAC/simulation_mac.v|
+!i113 0
+R6
+R7
+vsimulation_ram
+R9
+!i10b 1
+!s100 [Q<:UHEElDm=iXLaCI5_z0
+R2
+ILFj16JM2j^T`>P:f236bb3
+R0
+w1731382525
+8./simulation_ram.v
+F./simulation_ram.v
+!i122 33
+L0 8 140
+R3
+R4
+r1
+!s85 0
+31
+R10
+!s107 ./simulation_ram.v|
+!s90 -reportprogress|300|./simulation_ram.v|
+!i113 0
+R6
+R7
