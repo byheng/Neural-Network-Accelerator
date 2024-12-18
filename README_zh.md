@@ -53,3 +53,6 @@
 - **todo**
   
   完成在xilinx 19EG上的部署，并完成ddr中静态图片的推理。我将尝试完善电路设计，使其能达到300M时钟的速度。
+
+## 引用
+- [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)
