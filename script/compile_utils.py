@@ -355,13 +355,16 @@ def NonMaximumSuppression(box, score, iou_threshold=0.5):
     return keep
 
 
-def ShowPicture(boxes, label, image, imageName):
-    img = image.copy()
+def ShowPicture(boxes, label, image, imageName, save=False):
+    img = image.copy() * 255
+    img = img.astype(np.uint8)
     for i in range(boxes.shape[0]):
         lp = (int(boxes[i, 0]), int(boxes[i, 1]))
         rb = (int(boxes[i, 2]), int(boxes[i, 3]))
         cv2.rectangle(img, lp, rb, (0, 255, 0), 2)
         cv2.putText(img, label_dict[label[i]], (lp[0], lp[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+    if save:
+        cv2.imwrite(imageName + ".png", img)
     cv2.imshow(imageName, img)
     cv2.waitKey(0)
 

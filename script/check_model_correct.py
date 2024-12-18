@@ -84,8 +84,8 @@ class Yolov8MemoryChecker(object):
     def PostProcessing(self):
         box, label, box_nms, label_nms = self.model.ReturnNetworkOutput()
         image = self.fixImage()
-        ShowPicture(box, label, image, "before nms")
-        ShowPicture(box_nms, label_nms, image, "after nms")
+        # ShowPicture(box, label, image, "before nms")
+        ShowPicture(box_nms, label_nms, image, "after nms", True)
 
 
 if __name__ == '__main__':
