@@ -115,6 +115,7 @@ wire [31:0] 	return_addr;
 wire [15:0] 	return_patch_num;
 wire [2:0]  	padding_size;
 wire [31:0] 	weight_data_length;
+wire            activate;
 
 get_order u_get_order(
 	.system_clk               	( system_clk                ),
@@ -137,7 +138,8 @@ get_order u_get_order(
 	.return_addr              	( return_addr               ),
 	.return_patch_num         	( return_patch_num          ),
 	.padding_size             	( padding_size              ),
-	.weight_data_length       	( weight_data_length        )
+	.weight_data_length       	( weight_data_length        ),
+	.activate                 	( activate                  )
 );
 
 accelerator_control u_accelerator_control(
@@ -163,6 +165,7 @@ accelerator_control u_accelerator_control(
 	.return_patch_num         	( return_patch_num          ),
 	.padding_size             	( padding_size              ),
 	.weight_data_length       	( weight_data_length        ),
+	.activate					( activate                  ),
 	.m00_axi_araddr           	( s_axi_araddr            	),
 	.m00_axi_arlen            	( s_axi_arlen             	),
 	.m00_axi_arsize           	( s_axi_arsize            	),

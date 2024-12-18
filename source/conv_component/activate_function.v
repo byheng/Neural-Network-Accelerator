@@ -22,7 +22,8 @@ module activate_function #(
     output                          act_data_valid,
     input  [3:0]                    fea_in_quant_size,
     input  [3:0]                    fea_out_quant_size,
-    input  [3:0]                    weight_quant_size
+    input  [3:0]                    weight_quant_size,
+    input                           activate
 );
 
 reg [MAC_OUTPUT_WIDTH-1:0]  activate_reg[7:0];
@@ -37,12 +38,22 @@ generate
         assign data_for_act_depacked[i] = data_for_act[i*MAC_OUTPUT_WIDTH+:MAC_OUTPUT_WIDTH];
         if (ACTIVATE_TYPE == 0) begin
             always @(posedge system_clk or negedge rst_n) begin
-                activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? 'h0 : data_for_act_depacked[i];
+                if (activate) begin
+                    activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? 36'h0 : data_for_act_depacked[i];
+                end
+                else begin
+                    activate_reg[i] <= data_for_act_depacked[i];
+                end
             end
         end
         else if (ACTIVATE_TYPE == 1) begin
             always @(posedge system_clk or negedge rst_n) begin
-                activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? {{3{data_for_act[MAC_OUTPUT_WIDTH-1]}}, data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1:3]} : data_for_act_depacked[i];
+                if (activate) begin
+                    activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? {{3{data_for_act[MAC_OUTPUT_WIDTH-1]}}, data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1:3]} : data_for_act_depacked[i];
+                end
+                else begin
+                    activate_reg[i] <= data_for_act_depacked[i];
+                end
             end
         end
     end
@@ -62,27 +73,27 @@ generate
     for (i=0; i<8; i=i+1) begin : cut_down_gen
         always @(posedge system_clk or negedge rst_n) begin
             if (!rst_n) begin
-                quant_reg[i] <= 'h0;
+                quant_reg[i] <= 16'h0;
             end
             else begin
                 case (quant_size)
-                    0: quant_reg[i]  <= activate_reg[i][0+:FEATURE_WIDTH];
-                    1: quant_reg[i]  <= activate_reg[i][1+:FEATURE_WIDTH];
-                    2: quant_reg[i]  <= activate_reg[i][2+:FEATURE_WIDTH];
-                    3: quant_reg[i]  <= activate_reg[i][3+:FEATURE_WIDTH];
-                    4: quant_reg[i]  <= activate_reg[i][4+:FEATURE_WIDTH];
-                    5: quant_reg[i]  <= activate_reg[i][5+:FEATURE_WIDTH];
-                    6: quant_reg[i]  <= activate_reg[i][6+:FEATURE_WIDTH];
-                    7: quant_reg[i]  <= activate_reg[i][7+:FEATURE_WIDTH];
-                    8: quant_reg[i]  <= activate_reg[i][8+:FEATURE_WIDTH];
-                    9: quant_reg[i]  <= activate_reg[i][9+:FEATURE_WIDTH];
-                    10: quant_reg[i] <= activate_reg[i][10+:FEATURE_WIDTH];
-                    11: quant_reg[i] <= activate_reg[i][11+:FEATURE_WIDTH];
-                    12: quant_reg[i] <= activate_reg[i][12+:FEATURE_WIDTH];
-                    13: quant_reg[i] <= activate_reg[i][13+:FEATURE_WIDTH];
-                    14: quant_reg[i] <= activate_reg[i][14+:FEATURE_WIDTH];
-                    15: quant_reg[i] <= activate_reg[i][15+:FEATURE_WIDTH];
-                    default: quant_reg[i] <= 'h0;
+                    0: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][1 +:(FEATURE_WIDTH-1)]};
+                    1: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][2 +:(FEATURE_WIDTH-1)]};
+                    2: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][3 +:(FEATURE_WIDTH-1)]};
+                    3: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][4 +:(FEATURE_WIDTH-1)]};
+                    4: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][5 +:(FEATURE_WIDTH-1)]};
+                    5: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][6 +:(FEATURE_WIDTH-1)]};
+                    6: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][7 +:(FEATURE_WIDTH-1)]};
+                    7: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][8 +:(FEATURE_WIDTH-1)]};
+                    8: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][9 +:(FEATURE_WIDTH-1)]};
+                    9: quant_reg[i]  <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][10 +:(FEATURE_WIDTH-1)]};
+                    10: quant_reg[i] <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][11+:(FEATURE_WIDTH-1)]};
+                    11: quant_reg[i] <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][12+:(FEATURE_WIDTH-1)]};
+                    12: quant_reg[i] <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][13+:(FEATURE_WIDTH-1)]};
+                    13: quant_reg[i] <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][14+:(FEATURE_WIDTH-1)]};
+                    14: quant_reg[i] <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][15+:(FEATURE_WIDTH-1)]};
+                    15: quant_reg[i] <= {activate_reg[i][MAC_OUTPUT_WIDTH-1], activate_reg[i][16+:(FEATURE_WIDTH-1)]};
+                    default: quant_reg[i] <= 16'h0;
                 endcase
             end 
         end

@@ -10,7 +10,8 @@
 module feature_row_Cache #(
     parameter FEATURE_WIDTH     = `FEATURE_WIDTH,
     parameter PE_CORE_NUM       = `PE_CORE_NUM,
-    parameter FETURE_DATA_WIDTH = `PE_CORE_NUM * `FEATURE_WIDTH
+    parameter FETURE_DATA_WIDTH = `PE_CORE_NUM * `FEATURE_WIDTH,
+    parameter POOL_DATA_WIDTH   = 5 * `FEATURE_WIDTH
 )(
     input                           system_clk            ,
     input                           rst_n                 ,
@@ -19,6 +20,7 @@ module feature_row_Cache #(
     input                           feature_output_valid  ,
     // output data path
     output[FETURE_DATA_WIDTH*3-1:0] feature_cache_data    ,
+    output[POOL_DATA_WIDTH*8-1:0]   pool_cache_data       ,
     output                          feature_cache_valid   ,
     // input control signal
     input                           rebuild_structure     ,
@@ -55,7 +57,7 @@ generate
         else begin
             assign feature_data_cache_in[i] = (rebuild_structure) ? {feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_cache_out[i-8][2*FEATURE_WIDTH-1:FEATURE_WIDTH]} : {feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_depacked[i]};
         end
-        assign feature_cache_data[(i+1)*FEATURE_WIDTH*3-1:i*FEATURE_WIDTH*3] = {feature_data_cache_out[i], feature_data_depacked[i]};
+        assign feature_cache_data[(i+1)*FEATURE_WIDTH*3-1:i*FEATURE_WIDTH*3] = {feature_data_depacked[i], feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_cache_out[i][2*FEATURE_WIDTH-1:FEATURE_WIDTH]};
     end
 endgenerate
 
@@ -64,6 +66,7 @@ assign feature_cache_valid = feature_output_valid;
 // just for debug
 wire [FEATURE_WIDTH*3-1:0] feature_cache_data_depacked[PE_CORE_NUM-1:0];
 wire [FEATURE_WIDTH-1:0] feature_cache_data_depacked_line[2:0];
+wire [FEATURE_WIDTH-1:0] feature_cache_data_depacked_line2[2:0];
 generate if (`debug == 1)
     for (i=0; i<PE_CORE_NUM; i=i+1) begin : gen_depack_cache_data
         assign feature_cache_data_depacked[i] = feature_cache_data[(i+1)*FEATURE_WIDTH*3-1:i*FEATURE_WIDTH*3];
@@ -71,7 +74,18 @@ generate if (`debug == 1)
 
     for (i=0; i<3; i=i+1) begin : gen_depack_cache_data_line
         assign feature_cache_data_depacked_line[i] = feature_cache_data_depacked[0][i*FEATURE_WIDTH+:FEATURE_WIDTH];
+        assign feature_cache_data_depacked_line2[i] = feature_cache_data_depacked[8][i*FEATURE_WIDTH+:FEATURE_WIDTH];
     end
 endgenerate
+
+// 5-row pool cache output
+wire [POOL_DATA_WIDTH-1:0] pool_cache_data_depacked[7:0];
+generate
+    for (i=0; i<8; i=i+1) begin : gen_depack_pool_data
+        assign pool_cache_data_depacked[i] = {feature_data_cache_out[8+i][2*FEATURE_WIDTH-1:FEATURE_WIDTH], feature_data_cache_out[8+i][FEATURE_WIDTH-1:0], feature_data_cache_out[i][2*FEATURE_WIDTH-1:FEATURE_WIDTH], feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_depacked[i]};
+        assign pool_cache_data[i*POOL_DATA_WIDTH+:POOL_DATA_WIDTH] = pool_cache_data_depacked[i];
+    end
+endgenerate
+
 
 endmodule

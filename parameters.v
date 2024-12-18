@@ -26,9 +26,12 @@
 `define MEM_ADDR_WIDTH      32 // 4GB内存地址位宽                                                         
 `define MEM_DATA_WIDTH      512     
 
+// MAXPOOL 参数
+`define MAXPOOL_SIZE        5  // 最大池化核大小   
+
 // DDR 地址参数
 `define DDR_PICTURE_ADDR    32'h00000000
 `define DDR_WEIGHT_ADDR     32'h01000000 // DDR 权重首地址   
-`define WEIGHT_MAX_SIZE     32'h01000000 // 权重最大容量     16MB
+`define WEIGHT_MAX_SIZE     32'h01800000 // 权重最大容量     24MB
 
 `endif

@@ -1,13 +1,27 @@
 from enum import Enum
 import numpy as np
 import torch
-from torch.nn.functional import conv2d
+from torch.nn.functional import conv2d, pad, max_pool2d, upsample, interpolate
+import cv2
+
+label_dict = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+              "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+              "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+              "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+              "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+              "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+              "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard",
+              "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+              "teddy bear", "hair drier", "toothbrush"]
 
 
 class OrderType(Enum):
     IDLE = 0
     CONVOLUTION = 1
     ADD = 2
+    MAXPOOL = 3
+    UPSAMPLE = 4
+    MEMCPY = 5
 
 
 def IdMapping(Id):
@@ -26,7 +40,9 @@ def IdMapping(Id):
                    "return_addr": 12,
                    "return_patch_num": 13,
                    "padding_size": 14,
-                   "weight_data_length": 15
+                   "weight_data_length": 15,
+                   "activate": 16,
+                   "id": 17
                    }
     if isinstance(Id, int):
         for key, value in MappingDict.items():
@@ -86,7 +102,11 @@ class NameGenerator(object):
 def reorderPosition(list1, list2, list3):
     first_element = list2[0]
     first_index = list1.index(first_element)
-
+    shift_index = 0
+    for item in list2:
+        if item != first_element:
+            if list1.index(item) < first_index:
+                shift_index += 1
     # 构建索引映射
     index_map = {value: i for i, value in enumerate(list1)}
 
@@ -99,8 +119,9 @@ def reorderPosition(list1, list2, list3):
     rest3 = [list3[index_map[item]] for item in rest1]
 
     # 确保第一个元素位置不变
-    new_list1 = rest1[:first_index] + [first_element] + subset1 + rest1[first_index:]
-    new_list3 = rest3[:first_index] + [list3[index_map[first_element]]] + subset3 + rest3[first_index:]
+    new_list1 = rest1[:first_index - shift_index] + [first_element] + subset1 + rest1[first_index - shift_index:]
+    new_list3 = rest3[:first_index - shift_index] + [list3[index_map[first_element]]] + subset3 + rest3[
+                                                                                                  first_index - shift_index:]
 
     return new_list1, new_list3
 
@@ -135,6 +156,7 @@ def deQuant(x, bit):
     if isinstance(x, torch.Tensor):
         x = x.detach().cpu().numpy()
     scale = 2 ** bit
+    x = x.astype(np.float32)
     return x / scale
 
 
@@ -145,19 +167,13 @@ def MakePictureBin(picture):
         f.write(picture.tobytes())
 
 
-def CompareConvResult(simulation_result, input_data, w, b, stride, quant):
+def CompareConvResult(simulation_result, input_data, w, b, stride, quant, activate):
     input_data = torch.from_numpy(input_data.astype(np.int64))
-    (out_c, in_c, _, _) = w.shape
-    z = np.zeros([out_c, in_c, 3, 3], dtype=w.dtype)
-    z[:, :, 1, 1] = w.squeeze()
-    w = z
     w = torch.from_numpy(w.astype(np.int64))
     b = torch.from_numpy(b.astype(np.int64))
 
-
-
     out = conv2d(input_data, weight=w, bias=b, stride=stride + 1, padding=1)
-    conv_out_ac = torch.relu(out).detach().cpu().numpy()
+    conv_out_ac = torch.relu(out).detach().cpu().numpy() if activate else out.detach().cpu().numpy()
     conv_out_ac_quant = conv_out_ac // pow(2, quant)
     conv_out_ac_quant = conv_out_ac_quant.astype(np.int16)
     conv_out = out.detach().cpu().numpy()
@@ -166,6 +182,37 @@ def CompareConvResult(simulation_result, input_data, w, b, stride, quant):
     is_zero = np.array_equal(conv_out_ac_quant, np.zeros_like(conv_out_ac_quant))
 
     return conv_out_ac_quant, correct, is_zero
+
+
+def ComparePoolResult(simulation_result, input_data, stride):
+    input_data = torch.from_numpy(input_data.astype(np.int64))
+
+    out = max_pool2d(input_data, kernel_size=5, stride=stride + 1, padding=2)
+    pool_out = out.detach().cpu().numpy()
+
+    correct = np.array_equal(pool_out, simulation_result)
+    is_zero = np.array_equal(pool_out, np.zeros_like(pool_out))
+
+    return pool_out, correct, is_zero
+
+
+def CompareUpSampleResult(simulation_result, input_data):
+    input_data = torch.from_numpy(input_data.astype(np.float32)).unsqueeze(0)
+
+    out = interpolate(input_data, scale_factor=2, mode='nearest').squeeze()
+    upsample_out = out.detach().cpu().numpy().astype(np.int32)
+
+    correct = np.array_equal(upsample_out, simulation_result)
+    is_zero = np.array_equal(upsample_out, np.zeros_like(upsample_out))
+
+    return upsample_out, correct, is_zero
+
+
+def CompareAddResult(simulation_result, input_data):
+    output_data = input_data[0] + input_data[1]
+    correct = np.array_equal(output_data, simulation_result)
+    is_zero = np.array_equal(output_data, np.zeros_like(output_data))
+    return output_data, correct, is_zero
 
 
 def GetConvDataFromMemory(memory, shape, first_addr, length):
@@ -180,6 +227,143 @@ def GetConvDataFromMemory(memory, shape, first_addr, length):
     output = output[:, :h * w].reshape(c, h, w)
 
     return output
+
+
+def ReshapeData(data, shape):
+    assert len(shape) == 3
+    (c, w, h) = shape
+    c_i = np.ceil(c / 8).astype(np.int64) * 8
+    output = data.reshape(-1).reshape(c_i // 8, -1, 8).transpose(0, 2, 1).reshape(c_i, -1)[:c, :]
+    output = output[:, :h * w].reshape(c, h, w)
+
+    return output
+
+
+def HalfSpiltArray(input_data):
+    (c, _, _) = input_data.shape
+    return input_data[:c // 2, :, :], input_data[c // 2:, :, :]
+
+
+def SelectValidBox(box, cls, anchor, stride, conf=0.20):
+    logit = np.log(conf / (1 - conf))
+    # 当cls输出的最大值小于logit时，则可排除
+    b_max = cls.max(axis=0)
+    b_valid = b_max > logit
+    box_valid = box[:, b_valid]
+    cls_valid = Sigmoid(cls[:, b_valid])
+    anchor_valid = anchor[b_valid, :]
+    stride_valid = stride[b_valid, :]
+    return box_valid, cls_valid, anchor_valid, stride_valid
+
+
+def MakeAnchors(box, cls, strides=(8, 16, 32)):
+    anchor_points, stride_list = [], []
+    for i, stride in enumerate(strides):
+        _, h, w = box[i].shape
+        sx = np.arange(start=0, stop=w, dtype=box[i].dtype) + 0.5
+        sy = np.arange(start=0, stop=h, dtype=box[i].dtype) + 0.5
+        sy, sx = np.meshgrid(sy, sx, indexing="ij")
+        anchor_points.append(np.stack((sx, sy), axis=-1).reshape(-1, 2))
+        stride_list.append(np.full((h * w, 1), stride, dtype=box[i].dtype))
+        box[i] = box[i].reshape(_, -1)
+        cls[i] = cls[i].reshape(cls[i].shape[0], -1)
+    return np.concatenate(anchor_points), np.concatenate(stride_list), box, cls
+
+
+def Softmax(data, dim):
+    max_values = np.max(data, axis=dim, keepdims=True)
+    exp_data = np.exp(data - max_values)
+
+    sum_exp = np.sum(exp_data, axis=dim, keepdims=True)
+    return exp_data / sum_exp
+
+
+def Sigmoid(data):
+    return 1 / (1 + np.exp(-data))
+
+
+def DFL(box, reg_max, anchor, stride, xywh=False):
+    assert box.shape[0] == 4 * reg_max, "Error: first dim should be 4 * reg_max"
+    box = box.reshape(4, reg_max, -1)
+    # softmax
+    box_softmax = Softmax(box, dim=1)
+    # conv DFL
+    kernel = np.arange(16).reshape(1, 16, 1)
+    result = np.sum(box_softmax * kernel, axis=1, keepdims=True).squeeze()
+    # depacked to xywh
+    result = result.transpose(1, 0)
+    lt, rb = (result[:, :2], result[:, 2:])
+    x1y1 = anchor - lt
+    x2y2 = anchor + rb
+    if xywh:
+        c_xy = (x1y1 + x2y2) / 2
+        wh = x2y2 - x1y1
+        box_xywh = np.concatenate((c_xy, wh), axis=1) * stride
+        return box_xywh
+    else:
+        box = np.concatenate((x1y1, x2y2), axis=1) * stride
+        return box
+
+
+def NonMaximumSuppression(box, score, iou_threshold=0.5):
+    """
+    实现非极大抑制（NMS）。
+
+    参数：
+    - boxes: numpy.ndarray, 形状为 (N, 4)，每一行表示一个边界框 [x1, y1, x2, y2]。
+    - scores: numpy.ndarray, 形状为 (N,)，每个边界框的置信分数。
+    - iou_threshold: float, IOU 阈值，超过此值的框会被抑制。
+
+    返回：
+    - keep: list，保留的边界框索引。
+    """
+    if len(box) == 0:
+        return []
+
+    # 计算每个框的面积
+    x1, y1, x2, y2 = box[:, 0], box[:, 1], box[:, 2], box[:, 3]
+    areas = (x2 - x1 + 1) * (y2 - y1 + 1)
+
+    # 按置信分数降序排序
+    order = score.argsort()[::-1]
+
+    keep = []  # 存储保留下来的边界框索引
+
+    while order.size > 0:
+        # 当前分数最高的框
+        i = order[0]
+        keep.append(box[i, :])
+
+        # 计算当前框与其他框的 IOU
+        xx1 = np.maximum(x1[i], x1[order[1:]])
+        yy1 = np.maximum(y1[i], y1[order[1:]])
+        xx2 = np.minimum(x2[i], x2[order[1:]])
+        yy2 = np.minimum(y2[i], y2[order[1:]])
+
+        # 计算交集面积
+        inter_width = np.maximum(0, xx2 - xx1 + 1)
+        inter_height = np.maximum(0, yy2 - yy1 + 1)
+        intersection = inter_width * inter_height
+
+        # 计算 IOU（交并比）
+        iou = intersection / (areas[i] + areas[order[1:]] - intersection)
+
+        # 保留 IOU 小于阈值的框
+        inds = np.where(iou <= iou_threshold)[0]
+        order = order[inds + 1]
+
+    return keep
+
+
+def ShowPicture(boxes, label, image, imageName):
+    img = image.copy()
+    for i in range(boxes.shape[0]):
+        lp = (int(boxes[i, 0]), int(boxes[i, 1]))
+        rb = (int(boxes[i, 2]), int(boxes[i, 3]))
+        cv2.rectangle(img, lp, rb, (0, 255, 0), 2)
+        cv2.putText(img, label_dict[label[i]], (lp[0], lp[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+    cv2.imshow(imageName, img)
+    cv2.waitKey(0)
 
 
 if __name__ == "__main__":

@@ -18,7 +18,8 @@ module accelerator_control #(
     parameter WEIGHT_WIDTH      = `WEIGHT_WIDTH,
     parameter FETURE_DATA_WIDTH = `PE_CORE_NUM * `FEATURE_WIDTH,
     parameter WEIGHT_DATA_WIDTH = `PE_CORE_NUM * WEIGHT_WIDTH,
-    parameter MAC_OUTPUT_WIDTH  = `MAC_OUTPUT_WIDTH
+    parameter MAC_OUTPUT_WIDTH  = `MAC_OUTPUT_WIDTH,
+    parameter POOL_DATA_WIDTH   = 5 * `FEATURE_WIDTH
 )
 (
     input                           system_clk,
@@ -46,6 +47,7 @@ module accelerator_control #(
 	input  [15:0]           		return_patch_num,
 	input  [2:0]            		padding_size,
 	input  [31:0]					weight_data_length,
+	input                           activate,
     // AXI-signal for ddr port
     // AXI-4 Only read
     output  [MEM_ADDR_WIDTH-1:0]    m00_axi_araddr,     // 操控
@@ -87,8 +89,13 @@ module accelerator_control #(
 // local parameter declaration
 localparam [2:0] WAIT_TASK_BEGIN         = 3'd0,
                  WAIT_ORDER              = 3'd1,
-                 WAIT_CONVOLUTION_FINISH = 3'd2;
-localparam [2:0] CONVOLUTION = 3'd1;
+                 WAIT_CONVOLUTION_FINISH = 3'd2,
+				 WAIT_ADD_FINISH         = 3'd3,
+				 WAIT_OPERATOR_FINISH    = 3'd4;
+localparam [2:0] CONVOLUTION = 3'd1,
+				 ADD         = 3'd2,
+				 POOL        = 3'd3,
+				 UPSAMPLE    = 3'd4;
 
 localparam [2:0] WAIT_CONVOLUTION_BEGIN  = 3'd0,
 				 CHANGE_WEIGHT_BIAS      = 3'd1,
@@ -99,10 +106,24 @@ localparam [2:0] WAIT_CONVOLUTION_BEGIN  = 3'd0,
 				 CHECK_OUTPUT_PATCH_NUM  = 3'd6,
                  CONVOLUTION_FINISH      = 3'd7;
 
+localparam [1:0] WAIT_ADD_BEGIN          = 2'd0,
+				 WAIT_ADD_DONE           = 2'd1,
+				 WAIT_A_RETURN_FINISH    = 2'd2,
+				 ADD_FINISH              = 2'd3;
+
+localparam [2:0] WAIT_BEGIN         	 = 3'd0,
+				 LOAD_FEATURE            = 3'd1,
+				 WAIT_COMPUTE_DONE       = 3'd2,
+				 WAIT_S_RETURN_FINISH    = 3'd3,
+				 CHECK_IN_PATCH_NUM      = 3'd4,
+				 OPERTOR_FINISH          = 3'd5;
+
 
 // variables declaration
 reg  [2:0]                      task_state;
 reg  [2:0]                      convolution_state;
+reg  [1:0]	                    add_state;
+reg  [2:0]						single_operator_state;
 wire                            feature_buffer_1_valid;
 wire                            feature_buffer_2_valid;
 wire                            feature_buffer_1_ready;
@@ -131,12 +152,10 @@ wire                            weight_and_bias_ready;
 reg  [1:0]						change_weight_bias;
 reg  [7:0]						input_patch_cnt;
 reg  [7:0]						output_patch_cnt;
-wire                            convolution_calculate_begin;	
-wire                            convolution_calculate_finish;
+reg                             compute_begin;	
+wire                            compute_finish;
 reg                             return_req;	
-reg      						pull_out_req;
 wire                            return_finish;
-wire                            pull_finish;
 reg                             load_feature_begin;
 reg                             free_feature_read_addr;
 reg                             refresh_return_addr;
@@ -148,13 +167,30 @@ wire                            bias_or_adder_feature;
 wire                            convolution_valid;
 wire                            feature_valid;
 wire                            refresh_req;
-reg                             pull_where;
-wire                            pull_ready;
-wire                            direct_out;
-wire [MAC_OUTPUT_WIDTH*8-1:0]   data_to_act_func;
-wire                            data_to_act_func_valid;
-wire                            output_buffer_done;
+reg                             direct_out;
+reg                             output_buffer_done;
 wire                            adder_pulse;
+wire [FETURE_DATA_WIDTH/2-1:0]  feature_x1_in;
+wire [FETURE_DATA_WIDTH/2-1:0]  feature_x2_in;
+wire [FETURE_DATA_WIDTH/2-1:0]  feature_upsample;
+wire [FETURE_DATA_WIDTH/2-1:0]  feature_add_data_out;
+wire                            feature_add_data_valid;
+wire [3:0]						return_select;
+wire                            convolution_working;
+wire                            add_layer_working;
+wire                            pool_layer_working;
+wire                            upsample_working;
+wire [POOL_DATA_WIDTH*8-1:0]	pool_cache_data;
+wire [FEATURE_WIDTH*8-1:0]		pool_data_out;
+wire [FEATURE_WIDTH*8-1:0] 		unsample_feature;
+wire [9:0]						col_size_for_cache;
+wire [2:0]						kernel_size;
+wire                            upsample_ready;
+wire                            unsample_feature_valid;
+wire                            upsample_buffer_empty;
+wire                            single_operator_buffer_done;
+
+integer i;
 
 /*------------------------------- accelerator control logic ------------------------------*/
 // ------------------- task state machine -------------------
@@ -175,6 +211,15 @@ always@(posedge system_clk or negedge rst_n) begin
                         CONVOLUTION: begin
                             task_state <= WAIT_CONVOLUTION_FINISH;
                         end
+						ADD: begin
+							task_state <= WAIT_ADD_FINISH;
+						end
+						POOL: begin
+							task_state <= WAIT_OPERATOR_FINISH;
+						end
+						UPSAMPLE: begin
+							task_state <= WAIT_OPERATOR_FINISH;
+						end
                     endcase
                 end
                 else if (task_finish) begin
@@ -187,6 +232,18 @@ always@(posedge system_clk or negedge rst_n) begin
                     task_state <= WAIT_ORDER;
                 end
             end
+
+			WAIT_ADD_FINISH: begin
+				if (add_state == ADD_FINISH) begin
+					task_state <= WAIT_ORDER;
+				end
+			end
+
+			WAIT_OPERATOR_FINISH: begin
+				if (single_operator_state == OPERTOR_FINISH) begin
+					task_state <= WAIT_ORDER;
+				end
+			end
         endcase
     end
 end
@@ -215,7 +272,7 @@ always@(posedge system_clk or negedge rst_n) begin
 			end
 
 			WAIT_CALCULATION_DONE: begin
-				if (convolution_calculate_finish) begin
+				if (compute_finish) begin
 					convolution_state <= CHECK_INPUT_PATCH_NUM;
 				end
 			end
@@ -251,6 +308,82 @@ always@(posedge system_clk or negedge rst_n) begin
     end
 end
 
+/*-------------------------------- add layer state machine --------------------------*/
+always@(posedge system_clk or negedge rst_n) begin
+    if (!rst_n) begin
+        add_state <= 2'b00;
+    end
+    else begin
+		case (add_state)
+			WAIT_ADD_BEGIN: begin
+				if (task_state == WAIT_ADD_FINISH) begin
+					add_state <= WAIT_ADD_DONE;
+				end
+			end
+			WAIT_ADD_DONE: begin
+				if (compute_finish) begin
+					add_state <= WAIT_A_RETURN_FINISH;
+				end
+			end
+
+			WAIT_A_RETURN_FINISH: begin
+				if (return_finish) begin
+					add_state <= ADD_FINISH;
+				end
+			end
+
+			ADD_FINISH: begin
+				add_state <= WAIT_ADD_BEGIN;
+			end
+		endcase
+	end
+end
+
+/*-------------------------------- pool layer state machine --------------------------*/
+always@(posedge system_clk or negedge rst_n) begin
+    if (!rst_n) begin
+        single_operator_state <= WAIT_BEGIN;
+    end
+    else begin
+		case (single_operator_state)
+			WAIT_BEGIN: begin
+				if (task_state == WAIT_OPERATOR_FINISH) begin
+					single_operator_state <= LOAD_FEATURE;
+				end
+			end
+
+			LOAD_FEATURE: begin
+				single_operator_state <= WAIT_COMPUTE_DONE;
+			end
+
+			WAIT_COMPUTE_DONE: begin
+				if (compute_finish) begin
+					single_operator_state <= WAIT_S_RETURN_FINISH;
+				end
+			end
+
+			WAIT_S_RETURN_FINISH: begin
+				if (return_finish) begin
+					single_operator_state <= CHECK_IN_PATCH_NUM;
+				end
+			end
+
+			CHECK_IN_PATCH_NUM: begin
+				if (input_patch_cnt == feature_input_patch_num) begin
+					single_operator_state <= OPERTOR_FINISH;
+				end
+				else begin
+					single_operator_state <= LOAD_FEATURE;
+				end
+			end
+
+			OPERTOR_FINISH: begin
+				single_operator_state <= WAIT_BEGIN;
+			end
+		endcase
+	end
+end
+
 always@(posedge system_clk or negedge rst_n) begin
     if (!rst_n) begin
 		change_weight_bias<= 2'b0;
@@ -274,13 +407,16 @@ always@(posedge system_clk or negedge rst_n) begin
     if (!rst_n) begin
         input_patch_cnt <= 8'd0;
 	end
-	else if (convolution_state == WAIT_CONVOLUTION_BEGIN) begin
-		input_patch_cnt <= 8'd0;
-	end 
-	else if ((convolution_state == WAIT_CALCULATION_DONE) & convolution_calculate_finish) begin
+	// else if (convolution_state == WAIT_CONVOLUTION_BEGIN) begin
+	// 	input_patch_cnt <= 8'd0;
+	// end 
+	else if ((convolution_state == WAIT_CALCULATION_DONE) & compute_finish) begin
 		input_patch_cnt <= input_patch_cnt + 8'd1;
 	end
-	else if ((convolution_state == CHECK_INPUT_PATCH_NUM) && (input_patch_cnt == feature_input_patch_num)) begin
+	else if ((single_operator_state == WAIT_S_RETURN_FINISH) & return_finish) begin
+		input_patch_cnt <= input_patch_cnt + 8'd1;
+	end
+	else if ((convolution_state == WAIT_RETURN_FINISH) | (single_operator_state == OPERTOR_FINISH)) begin
 		input_patch_cnt <= 8'd0;
 	end
 end
@@ -301,7 +437,13 @@ always@(posedge system_clk or negedge rst_n) begin
 	if (!rst_n) begin
 		load_feature_begin <= 0;
 	end
-	else if (change_weight_bias) begin
+	else if (change_weight_bias) begin	// convolution begin
+		load_feature_begin <= 1;
+	end
+	else if ((add_state == WAIT_ADD_BEGIN) & (task_state == WAIT_ADD_FINISH)) begin	// add begin
+		load_feature_begin <= 1;
+	end
+	else if (single_operator_state == LOAD_FEATURE) begin
 		load_feature_begin <= 1;
 	end
 	else begin
@@ -316,6 +458,12 @@ always@(posedge system_clk or negedge rst_n) begin
 	else if ((convolution_state == CHECK_INPUT_PATCH_NUM) && (input_patch_cnt == feature_input_patch_num)) begin
 		free_feature_read_addr <= 1;
 	end
+	else if (add_state == ADD_FINISH) begin
+		free_feature_read_addr <= 1;
+	end
+	else if (single_operator_state == OPERTOR_FINISH) begin
+		free_feature_read_addr <= 1;
+	end
 	else begin
 		free_feature_read_addr <= 0;
 	end
@@ -325,10 +473,13 @@ always@(posedge system_clk or negedge rst_n) begin
 	if (!rst_n) begin
         return_req <= 0;
 	end
-	// else if ((convolution_state == CHECK_INPUT_PATCH_NUM) && (input_patch_cnt == feature_input_patch_num) && (~direct_out)) begin
-	// 	return_req <= 1;
-	// end
-	else if ((convolution_state == CHANGE_WEIGHT_BIAS) && (direct_out)) begin
+	else if ((convolution_state == CHANGE_WEIGHT_BIAS) && (input_patch_cnt == feature_input_patch_num - 1)) begin
+		return_req <= 1;
+	end
+	else if ((add_state == WAIT_ADD_BEGIN) & (task_state == WAIT_ADD_FINISH)) begin  // add begin
+		return_req <= 1;
+	end
+	else if (single_operator_state == LOAD_FEATURE) begin
 		return_req <= 1;
 	end
 	else begin
@@ -338,21 +489,15 @@ end
 
 always@(posedge system_clk or negedge rst_n) begin
 	if (!rst_n) begin
-		pull_out_req <= 0;
-	end
-	// else if ((convolution_state == CHECK_INPUT_PATCH_NUM) && (input_patch_cnt == feature_input_patch_num) && !direct_out) begin
-	// 	pull_out_req <= 1;
-	// end
-	else begin
-		pull_out_req <= 0;
-	end
-end
-
-always@(posedge system_clk or negedge rst_n) begin
-	if (!rst_n) begin
 		refresh_return_addr <= 0;
 	end
-	else if (return_req & output_patch_cnt == 0) begin
+	else if (return_req & output_patch_cnt == 0 & (convolution_state != WAIT_CONVOLUTION_BEGIN)) begin
+		refresh_return_addr <= 1;
+	end
+	else if ((add_state == WAIT_ADD_BEGIN) & (task_state == WAIT_ADD_FINISH)) begin
+		refresh_return_addr <= 1;
+	end
+	else if ((single_operator_state == LOAD_FEATURE) & (input_patch_cnt == 0)) begin
 		refresh_return_addr <= 1;
 	end
 	else begin
@@ -362,31 +507,67 @@ end
 
 always@(posedge system_clk or negedge rst_n) begin
 	if (!rst_n) begin
-		pull_where <= 0;
+		direct_out <= 0;
 	end
-	else if (return_req) begin
-		pull_where <= 1;
-	end
-	else if (return_finish) begin
-		pull_where <= 0;
+	else if (convolution_state == CHANGE_WEIGHT_BIAS) begin
+		if (input_patch_cnt == feature_input_patch_num - 1) begin
+			direct_out <= 1;
+		end
+		else begin
+			direct_out <= 0;
+		end
 	end
 end
+
+always@(posedge system_clk or negedge rst_n) begin
+	if (!rst_n) begin
+		compute_begin <= 0;
+	end
+	else if ((convolution_state == WAIT_BIAS_WEIGHT_READY) & weight_and_bias_ready) begin
+		compute_begin <= 1;
+	end
+	else if ((add_state == WAIT_ADD_BEGIN) & (task_state == WAIT_ADD_FINISH)) begin
+		compute_begin <= 1;
+	end
+	else if (single_operator_state == LOAD_FEATURE) begin
+		compute_begin <= 1;
+	end
+	else begin
+		compute_begin <= 0;
+	end
+end
+
+always@(posedge system_clk or negedge rst_n) begin
+	if (!rst_n) begin
+		output_buffer_done <= 0;
+	end
+	else if (convolution_state == WAIT_RETURN_FINISH) begin
+		output_buffer_done <= 1;
+	end
+	else if (add_state == WAIT_A_RETURN_FINISH) begin
+		output_buffer_done <= 1;
+	end
+	else if ((single_operator_state == WAIT_S_RETURN_FINISH) & single_operator_buffer_done) begin
+		output_buffer_done <= 1;
+	end
+	else begin
+		output_buffer_done <= 0;
+	end
+end
+
 
 // assign signals
 assign weight            = weight_bias_output_data;
 assign weight_valid      = weight_bias_output_valid[7:0];
 assign bias              = weight_bias_output_data;
 assign bias_valid        = weight_bias_output_valid[8];
-assign return_data       = act_data;
-assign return_data_valid = act_data_valid;
-
-assign convolution_calculate_begin = (convolution_state == WAIT_BIAS_WEIGHT_READY) & weight_and_bias_ready;
 
 assign calculate_finish = (task_state == WAIT_ORDER) | (task_state == WAIT_TASK_BEGIN);
 
-assign feature_output_ready = (task_state == WAIT_CONVOLUTION_FINISH) ? return_buffer_ready : 1'b0;
+assign feature_output_ready = (direct_out & convolution_working) ? return_buffer_ready : 
+							  (upsample_working) ? upsample_ready : 1'b1;
 
-assign rebuild_structure = 1'b0;
+assign rebuild_structure = pool_layer_working ? 1'b1 : 1'b0;
 
 assign bias_or_adder_feature = (input_patch_cnt == 0) ? 1'b1 : 1'b0;
 
@@ -394,11 +575,24 @@ assign feature_valid = convolution_valid;
 
 assign refresh_req = |change_weight_bias;
 
-assign pull_ready = return_buffer_ready;
+assign data_for_act = feature_out;
+assign data_for_act_valid = direct_out & feature_valid;
 
-assign direct_out = (input_patch_cnt == feature_input_patch_num - 1);
+// split data for adder layer
+assign feature_x1_in = feature_output_data[FETURE_DATA_WIDTH/2-1:0];					// lower 8 channel feature for adder x1
+assign feature_x2_in = feature_output_data[FETURE_DATA_WIDTH-1:FETURE_DATA_WIDTH/2];    // upper 8 channel feature for adder x2
+assign feature_upsample = feature_output_data[FETURE_DATA_WIDTH/2-1:0];
 
-assign output_buffer_done = (direct_out) ? (convolution_state == WAIT_RETURN_FINISH) : pull_finish;
+assign convolution_working = (convolution_state != WAIT_CONVOLUTION_BEGIN);
+assign add_layer_working = (add_state != WAIT_ADD_BEGIN);
+assign pool_layer_working = (single_operator_state != WAIT_BEGIN) & (order == POOL);
+assign upsample_working = (single_operator_state != WAIT_BEGIN) & (order == UPSAMPLE);
+
+assign return_select = {upsample_working, pool_layer_working, add_layer_working, convolution_working};
+
+assign kernel_size = pool_layer_working ? 5 : 3; 
+
+assign single_operator_buffer_done = (upsample_working) ? upsample_buffer_empty : 1'b1;
 
 // instantiate
 read_ddr_control u_read_ddr_control(
@@ -439,8 +633,9 @@ read_ddr_control u_read_ddr_control(
 feature_buffer u_feature_buffer(
 	.system_clk             	( system_clk              	  	),
 	.rst_n                  	( rst_n                   	  	),
-	.calculate_begin        	( convolution_calculate_begin 	),
-	.calculate_finish       	( convolution_calculate_finish	),
+	.compute_begin        	    ( compute_begin           		),
+	.compute_finish       	    ( compute_finish				),
+	.load_feature_begin			( load_feature_begin			),
 	.row_size               	( row_size                		),
 	.col_size               	( col_size                		),
 	.stride                 	( stride                  		),
@@ -455,18 +650,22 @@ feature_buffer u_feature_buffer(
 	.feature_output_valid   	( feature_output_valid    		),
 	.feature_output_ready   	( feature_output_ready    		),
 	.convolution_valid			( convolution_valid				),
-	.adder_pulse				( adder_pulse					)	
+	.pool_data_valid			( pool_data_valid				),
+	.adder_pulse				( adder_pulse					),
+	.col_size_for_cache			( col_size_for_cache			),
+	.kernel_size				( kernel_size					)
 );
 
 feature_row_Cache u_feature_row_Cache(
-	.system_clk           	( system_clk            ),
-	.rst_n                	( rst_n                 ),
-	.feature_output_data  	( feature_output_data   ),
-	.feature_output_valid 	( feature_output_valid  ),
-	.feature_cache_data   	( feature_cache_data    ),
-	.feature_cache_valid  	( feature_cache_valid   ),
-	.rebuild_structure    	( rebuild_structure     ),
-	.col_size             	( col_size              )
+	.system_clk           	( system_clk            					  ),
+	.rst_n                	( rst_n                 					  ),
+	.feature_output_data  	( feature_output_data   					  ),
+	.feature_output_valid 	( feature_output_valid & (convolution_working | pool_layer_working)  ),
+	.feature_cache_data   	( feature_cache_data    					  ),
+	.pool_cache_data		( pool_cache_data       					  ),
+	.feature_cache_valid  	( feature_cache_valid   					  ),
+	.rebuild_structure    	( rebuild_structure     					  ),
+	.col_size             	( col_size_for_cache              			  )
 );
 
 Weight_buffer u_Weight_buffer(
@@ -491,7 +690,7 @@ convolution_core u_convolution_core(
 	.bias_valid            	( bias_valid             ),
 	.adder_feature         	( adder_feature          ),
 	.bias_or_adder_feature 	( bias_or_adder_feature  ),
-	.pulse                 	( feature_cache_valid    ),
+	.pulse                 	( feature_cache_valid & convolution_working ),
 	.feature_out           	( feature_out            )
 );
 
@@ -499,12 +698,6 @@ Output_buffer u_Output_buffer(
 	.system_clk         	( system_clk          ),
 	.rst_n              	( rst_n               ),
 	.refresh_req        	( refresh_req         ),
-	.pull_out_req       	( pull_out_req        ),
-	.pull_finish        	( pull_finish         ),
-	.pull_where         	( pull_where          ),
-	.pull_ready         	( pull_ready          ),
-	.data_for_act       	( data_for_act        ),
-	.data_for_act_valid 	( data_for_act_valid  ),
 	.adder_pulse        	( adder_pulse         ),
 	.adder_feature      	( adder_feature       ),
 	.feature_in         	( feature_out         ),
@@ -514,13 +707,14 @@ Output_buffer u_Output_buffer(
 activate_function u_activate_function(
 	.system_clk         	( system_clk          	),
 	.rst_n              	( rst_n               	),
-	.data_for_act       	( data_to_act_func    	),
-	.data_for_act_valid 	( data_to_act_func_valid),
+	.data_for_act       	( data_for_act    		),
+	.data_for_act_valid 	( data_for_act_valid	),
 	.act_data           	( act_data            	),
 	.act_data_valid     	( act_data_valid      	),
 	.fea_in_quant_size  	( fea_in_quant_size   	),
 	.fea_out_quant_size 	( fea_out_quant_size  	),
-	.weight_quant_size  	( weight_quant_size   	)
+	.weight_quant_size  	( weight_quant_size   	),
+	.activate				( activate				)
 );
 
 return_buffer u_return_buffer(
@@ -555,16 +749,53 @@ return_buffer u_return_buffer(
 	.m00_axi_bready      	( m00_axi_bready       )
 );
 
-act_feature_arbitra act_feature_arbitra_inst(
-    .system_clk   					( system_clk			),
-    .rst_n        					( rst_n					),
-    .direct_out   					( direct_out			),
-    .data_from_output_buffer 		( data_for_act			),
-    .data_from_output_buffer_valid	( data_for_act_valid	),
-    .data_from_conv_core 			( feature_out			),
-    .data_from_conv_core_valid		( feature_valid			),
-    .data_to_act_func				( data_to_act_func  	),
-    .data_to_act_func_valid			( data_to_act_func_valid)
+feature_add u_feature_add(
+	.system_clk             	( system_clk              ),
+	.rst_n                  	( rst_n                   ),
+	.feature_x1_in          	( feature_x1_in			  ),
+	.feature_x2_in          	( feature_x2_in			  ),
+	.feature_x_valid_in     	( feature_output_valid    ),
+	.feature_data_out       	( feature_add_data_out    ),
+	.feature_data_valid_out 	( feature_add_data_valid  )
 );
+
+return_data_arbitra  u_return_data_arbitra(
+	.system_clk        	( system_clk         	),
+	.rst_n             	( rst_n              	),
+	.select            	( return_select         ),
+	.data1             	( act_data           	),
+	.data1_valid       	( act_data_valid     	),
+	.data2             	( feature_add_data_out	),
+	.data2_valid       	( feature_add_data_valid),
+	.data3				( pool_data_out			),
+	.data3_valid		( pool_data_valid		),
+	.data4				( unsample_feature		),
+	.data4_valid		( unsample_feature_valid),
+	.return_data       	( return_data        	),
+	.return_data_valid 	( return_data_valid  	)
+);
+
+pool_array pool_array_u(
+    .DSP_clk		( system_clk 	  	  ),
+    .rst_n			( rst_n      	  	  ), 
+    .feature		( pool_cache_data 	  ),      
+    .pulse			( feature_cache_valid & pool_layer_working ),
+    .feature_out	( pool_data_out 	  )
+);
+
+upsample u_upsample(
+	.system_clk             	( system_clk              ),
+	.rst_n                  	( rst_n                   ),
+	.feature                	( feature_upsample        ),
+	.feature_valid          	( feature_output_valid & upsample_working ),
+	.feature_ready          	( upsample_ready          ),
+	.col_size               	( col_size                ),
+	.row_size               	( row_size                ),
+	.unsample_feature       	( unsample_feature        ),
+	.unsample_feature_valid 	( unsample_feature_valid  ),
+	.output_ready           	( return_buffer_ready     ),
+	.upsample_buffer_empty  	( upsample_buffer_empty   )
+);
+
 
 endmodule

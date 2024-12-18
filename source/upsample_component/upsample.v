@@ -5,20 +5,24 @@
 */
 `timescale 1ns/100fs
 
-`include "../../../parameters.v"
+`include "../../parameters.v"
 
-module upsample (
-    input                 system_clk,
-    input                 rst_n,
-    input [7:0]           feature,
-    input                 feature_valid,
-    output                feature_ready,
-    input [9:0]           col_size,
-    input [9:0]           row_size,
-    output[7:0]           unsample_feature,
-    output reg            unsample_feature_valid,
-    input                 output_ready,
-    output reg            channel_ready
+module upsample #(
+    parameter FEATURE_WIDTH = `FEATURE_WIDTH,
+    parameter PE_ARRAY_SIZE = `PE_ARRAY_SIZE,
+    parameter FEATURE_TOTAL_WIDTH = FEATURE_WIDTH*PE_ARRAY_SIZE
+)(
+    input                           system_clk,
+    input                           rst_n,
+    input [FEATURE_TOTAL_WIDTH-1:0] feature,
+    input                           feature_valid,
+    output                          feature_ready,
+    input [9:0]                     col_size,
+    input [9:0]                     row_size,
+    output[FEATURE_TOTAL_WIDTH-1:0] unsample_feature,
+    output reg                      unsample_feature_valid,
+    input                           output_ready,
+    output                          upsample_buffer_empty
 );
 
 wire          o_almost_full;
@@ -26,26 +30,35 @@ wire          o_empty;
 wire          o_almost_empty;
 reg           change_point;
 reg  [10:0]   cnt;
-wire [10:0]   double_col_size;
+reg  [10:0]   double_col_size;
 wire          ready_for_output;
 
 assign feature_ready = ~o_almost_full;
-assign double_col_size = col_size << 1;
+assign upsample_buffer_empty = o_empty;
 
-ram_based_fifo_upsample_buffer u_ram_based_fifo_upsample_buffer(
-    .system_clk             ( system_clk          ),
-    .rst_n                  ( rst_n               ),
-    .i_wren                 ( feature_valid       ),
-    .i_wrdata               ( {feature, feature}  ),
-    .o_full                 (                     ),
-    .o_almost_full          ( o_almost_full       ),
-    .i_rden                 ( unsample_feature_valid),
-    .o_rddata               ( unsample_feature    ),
-    .o_empty                ( o_empty             ),
-    .o_almost_empty         ( o_almost_empty      ),
-    .change_point           ( change_point        ),
-    .almost_empty_threshold ( double_col_size     ),
-    .ready_for_output       ( ready_for_output    )
+always @(posedge system_clk or negedge rst_n) begin
+    if (!rst_n) begin
+        double_col_size <= 0;
+    end
+    else begin
+        double_col_size <= col_size << 1;
+    end
+end
+
+ram_based_upsample_fifo ram_based_upsample_fifo_inst(                  	
+    .system_clk             ( system_clk             ),       
+    .rst_n                  ( rst_n                  ),                                            
+    .i_wren                 ( feature_valid          ),     
+    .i_wrdata               ( {feature, feature}     ),              
+    .o_full                 (                        ),     
+    .o_almost_full          ( o_almost_full          ),     
+    .i_rden                 ( unsample_feature_valid ),     
+    .o_rddata               ( unsample_feature       ),             
+    .o_empty                ( o_empty                ),     
+    .o_almost_empty         ( o_almost_empty         ),     
+    .change_point           ( change_point           ),
+    .almost_empty_threshold ( double_col_size        ),
+    .ready_for_output       ( ready_for_output       )
 );
 
 always @(posedge system_clk or negedge rst_n) begin
@@ -85,20 +98,16 @@ reg [9:0]   row_cnt;
 always @(posedge system_clk or negedge rst_n) begin
     if (!rst_n) begin
         row_cnt <= 0;
-        channel_ready <= 1'b0;
     end
     else if (change_point) begin
         if (row_cnt == ((row_size<<1) - 1)) begin
-            channel_ready <= 1'b1;
             row_cnt <= 0;
         end
         else begin
-            channel_ready <= 1'b0;
             row_cnt <= row_cnt + 1;
         end
     end
     else begin
-        channel_ready <= 1'b0;
         row_cnt <= row_cnt;
     end
 end

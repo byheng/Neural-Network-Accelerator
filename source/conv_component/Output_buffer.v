@@ -15,13 +15,6 @@ module Output_buffer #(
     input                                  rst_n        ,
     // refresh buffer   
     input                                  refresh_req  ,
-    input                                  pull_out_req ,
-    output                                 pull_finish  ,
-    input                                  pull_where   ,   // 1: To activate, 0: To adder_feature
-
-    input                                  pull_ready   ,
-    output[MAC_OUTPUT_WIDTH*8-1:0]         data_for_act ,
-    output                                 data_for_act_valid,
 
     input                                  adder_pulse  ,
     output[MAC_OUTPUT_WIDTH*8-1:0]         adder_feature,
@@ -33,8 +26,6 @@ module Output_buffer #(
 reg [14:0]  uram_write_addr;
 reg [14:0]  uram_read_addr;
 wire[71:0]  uram_read_data[3:0]; 
-reg         pull_flag;
-reg [2:0]   pull_flag_reg;
 
 genvar i;
 generate
@@ -104,36 +95,14 @@ always @(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
         uram_read_addr <= 0;
     end
-    else if (refresh_req | pull_out_req) begin
+    else if (refresh_req) begin
         uram_read_addr <= 0;
-    end
-    else if (pull_flag & pull_ready) begin
-        uram_read_addr <= uram_read_addr + 1;
     end
     else if (adder_pulse) begin
         uram_read_addr <= uram_read_addr + 1;
     end
 end
 
-always @(posedge system_clk or negedge rst_n) begin
-    if (~rst_n) begin
-        pull_flag <= 0;
-    end
-    else if (pull_out_req) begin
-        pull_flag <= 1;
-    end
-    else if (uram_read_addr == uram_write_addr - 1) begin
-        pull_flag <= 0;
-    end
-end
-
-always @(posedge system_clk or negedge rst_n) begin
-    pull_flag_reg <= {pull_flag_reg[1:0], pull_flag};
-end
-
-assign pull_finish = ~pull_flag;
-assign data_for_act = {uram_read_data[3], uram_read_data[2], uram_read_data[1], uram_read_data[0]};
 assign adder_feature = {uram_read_data[3], uram_read_data[2], uram_read_data[1], uram_read_data[0]};
-assign data_for_act_valid = (pull_where) ? pull_flag_reg[2] & pull_ready : 1'b0;
 
 endmodule

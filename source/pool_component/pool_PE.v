@@ -5,23 +5,22 @@
 */
 `timescale 1ns/100fs
 
-`include "../../../parameters.v"
+`include "../../parameters.v"
 
 module pool_PE #(
-    parameter DATA_WIDTH        = `MAC_PE_DATA_WIDTH,
-    parameter MAC_OUTPUT_WIDTH  = `MAC_OUTPUT_WIDTH
+    parameter FEATURE_WIDTH    = `FEATURE_WIDTH
 )
 (
-    input                    DSP_clk,
-    input                    rst_n,
-    input                    pulse,     // enable output
-    input  [DATA_WIDTH-1:0]  x1_,        // x1_
-    input  [DATA_WIDTH-1:0]  x2_,        // x2_
-    output [DATA_WIDTH-1:0]  out        // output data
+    input                           DSP_clk,
+    input                           rst_n,
+    input                           pulse,     // enable output
+    input signed[FEATURE_WIDTH-1:0] x1_,       // x1_
+    input signed[FEATURE_WIDTH-1:0] x2_,       // x2_
+    output signed[FEATURE_WIDTH-1:0]out        // output data
 );
 
 // ouput data
-reg [DATA_WIDTH-1:0] out_reg;
+reg [FEATURE_WIDTH-1:0] out_reg;
 always @(posedge DSP_clk or negedge rst_n) begin
     if (~rst_n) begin
         out_reg <= 'd0;

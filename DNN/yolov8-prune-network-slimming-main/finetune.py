@@ -16,8 +16,8 @@ def train_model(opt):
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default="./ultralytics/weights/pruned.pt", help='path to model weights')
-    parser.add_argument('--data', type=str, default='./ultralytics/cfg/datasets/VOC.yaml', help='dataset.yaml path')
+    parser.add_argument('--weights', type=str, default="./ultralytics/weights/prune/pruned.pt", help='path to model weights')
+    parser.add_argument('--data', type=str, default='./ultralytics/cfg/datasets/coco.yaml', help='dataset.yaml path')
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
     parser.add_argument('--imgsz', type=int, default=640, help='image size')
     parser.add_argument('--batch', type=int, default=16, help='batch size')

@@ -29,7 +29,9 @@ module get_order(
 	output [31:0]           return_addr					,
 	output [15:0]           return_patch_num			,
 	output [2:0]            padding_size				,
-	output [31:0]			weight_data_length			
+	output [31:0]			weight_data_length			,
+	output                  activate   					,
+	output [31:0]			id
 );
 
 parameter LAYER_NUM = 0;
@@ -42,8 +44,8 @@ initial begin
 	task_start <= 0;
 end
 
-reg [32*32-1:0] order_data_array[63:0];
-reg [5:0]       order_addr;
+reg [32*32-1:0] order_data_array[127:0];
+reg [6:0]       order_addr;
 wire[32*32-1:0] order_data;
 wire[31:0]      order_data_depacked[31:0];
 reg             calculate_finish_r1, calculate_finish_r2;
@@ -94,6 +96,8 @@ assign stride					= order_data_depacked[11];
 assign return_addr				= order_data_depacked[12];	
 assign return_patch_num		   	= order_data_depacked[13];	
 assign padding_size				= order_data_depacked[14];	       
-assign weight_data_length		= order_data_depacked[15];	                 	     	           
+assign weight_data_length		= order_data_depacked[15];	 
+assign activate					= order_data_depacked[16];	
+assign id						= order_data_depacked[17];	                	     	           
 
 endmodule

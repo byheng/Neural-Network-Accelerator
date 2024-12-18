@@ -56,12 +56,13 @@ generate
 endgenerate
 
 wire [MAC_OUTPUT_WIDTH-1:0]                 bias_add;   
-assign bias_add = bias_or_adder_feature? {{`MAC_OVERFLOW_WIDTH{1'b0}}, bias_reg} : adder_feature;
+assign bias_add = bias_or_adder_feature? {{`MAC_OVERFLOW_WIDTH{bias_reg[BIAS_WIDTH-1]}}, bias_reg} : adder_feature;
 
 
 /*----------------- PE array ---------------------*/
 wire [MAC_OUTPUT_WIDTH-1:0] output_array [PE_ARRAY_TOTAL_SIZE-1:0];
 wire [47:0]                 PCOUT [PE_ARRAY_TOTAL_SIZE-1:0];
+reg  [MAC_OUTPUT_WIDTH-1:0] flow_reg1[2:0], flow_reg2[2:0], flow_reg3[2:0];
 reg  [MAC_OUTPUT_WIDTH-1:0] adder1, adder2, adder3;
 
 genvar i, j;
@@ -75,7 +76,7 @@ generate
                     .rst_n      ( rst_n                                            ),
                     .pulse      ( pulse                                            ),
                     .w          ( weight_array[index]                              ),
-                    .x          ( feature_in[(j+1)*FEATURE_WIDTH-1:j*FEATURE_WIDTH]),
+                    .x          ( feature_in[(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]),
                     .b          ( 36'd0                                            ),
                     .PCIN       ( 48'd0                                            ), 
                     .out        ( output_array[index]                              ),
@@ -88,7 +89,7 @@ generate
                     .rst_n      ( rst_n                                            ),
                     .pulse      ( pulse                                            ),
                     .w          ( weight_array[index]                              ),
-                    .x          ( feature_in[(j+1)*FEATURE_WIDTH-1:j*FEATURE_WIDTH]),
+                    .x          ( feature_in[(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]),
                     .b          ( 36'd0                                            ),
                     .PCIN       ( 48'd0                                            ), 
                     .out        ( output_array[index]                              ),
@@ -101,7 +102,7 @@ generate
                     .rst_n      ( rst_n                                            ),
                     .pulse      ( pulse                                            ),
                     .w          ( weight_array[index]                              ),
-                    .x          ( feature_in[(j+1)*FEATURE_WIDTH-1:j*FEATURE_WIDTH]),
+                    .x          ( feature_in[(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]),
                     .b          ( 36'd0                                            ),
                     .PCIN       ( 48'd0                                            ), 
                     .out        ( output_array[index]                              ),
@@ -114,7 +115,7 @@ generate
                     .rst_n      ( rst_n                                            ),
                     .pulse      ( pulse                                            ),
                     .w          ( weight_array[index]                              ),
-                    .x          ( feature_in[(j+1)*FEATURE_WIDTH-1:j*FEATURE_WIDTH]),
+                    .x          ( feature_in[(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]),
                     .b          ( 36'd0                                            ),
                     .PCIN       ( PCOUT[index-1]                                   ), 
                     .out        ( output_array[index]                              ),
@@ -126,8 +127,22 @@ generate
 endgenerate
 
 always @(posedge DSP_clk or negedge rst_n) begin
-    adder1 <= $signed(output_array[2] + output_array[5]);
-    adder2 <= $signed(output_array[8] + bias_add);
+    flow_reg1[0] <= output_array[2];
+    flow_reg1[1] <= output_array[5];
+    flow_reg1[2] <= output_array[8];
+
+    flow_reg2[0] <= flow_reg1[0];
+    flow_reg2[1] <= flow_reg1[1];
+    flow_reg2[2] <= flow_reg1[2];
+
+    // flow_reg3[0] <= flow_reg2[0];
+    // flow_reg3[1] <= flow_reg2[1];
+    // flow_reg3[2] <= flow_reg2[2];
+end
+
+always @(posedge DSP_clk or negedge rst_n) begin
+    adder1 <= $signed(flow_reg2[0] + flow_reg2[1]);
+    adder2 <= $signed(flow_reg2[2] + bias_add);
     adder3 <= $signed(adder1 + adder2);
 end
 

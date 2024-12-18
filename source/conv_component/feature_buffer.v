@@ -17,8 +17,9 @@ module feature_buffer #(
 (
     input                           system_clk            ,
     input                           rst_n                 ,
-    input                           calculate_begin       ,
-    output                          calculate_finish      ,
+    input                           compute_begin         ,
+    output                          compute_finish        ,
+    input                           load_feature_begin    ,
     input [9:0]                     row_size              ,
     input [9:0]                     col_size              ,
     input                           stride                ,
@@ -36,7 +37,10 @@ module feature_buffer #(
     input                           feature_output_ready  ,
     // calculate data valid signal
     output                          convolution_valid     ,
-    output                          adder_pulse
+    output                          pool_data_valid       ,
+    output                          adder_pulse           ,
+    output [9:0]                    col_size_for_cache    ,
+    output [2:0]                    kernel_size
 );
 
 wire [FEATURE_WIDTH*8-1:0] feature_data_expand[3:0];
@@ -49,13 +53,37 @@ wire [7:0]                 feature_buffer_2_empty;
 reg  [9:0]                 row_cnt;
 reg  [9:0]                 col_cnt;
 reg                        calculate_keep, calculate_keep_r1;
-reg                        padding_en;
+reg                        padding_flag;
+wire                       padding_en;
 reg                        padding_en_reg;
-reg                        fifo_rd_en;
+reg                        fifo_flag;
+wire                       fifo_rd_en;
 reg                        fifo_rd_en_reg;
 wire                       fifo_empty;
 wire [FEATURE_WIDTH-1:0]   fifo_output_data[PE_CORE_NUM-1:0];
-wire                       calculate_finish_signal;
+wire                       compute_finish_signal;
+wire                       fifo_rst;
+wire [15:0]                wr_rst_busy;
+wire [15:0]                rd_rst_busy;
+reg  [9:0]                 row_plus_padding;
+reg  [9:0]                 col_plus_padding;
+reg  [3:0]                 padding_size_double;    
+reg  [2:0]                 kernel_size_miner;
+
+always@(posedge system_clk or negedge rst_n) begin
+    if(~rst_n) begin
+        row_plus_padding <= 0;
+        col_plus_padding <= 0;
+        padding_size_double <= 0;
+        kernel_size_miner <= 0;
+    end
+    else begin
+        row_plus_padding <= row_size + padding_size;
+        col_plus_padding <= col_size + padding_size;
+        padding_size_double <= padding_size << 1;
+        kernel_size_miner <= kernel_size - 1;
+    end
+end
 
 /*------------------------分配输入数据---------------------*/
 genvar i;
@@ -75,12 +103,14 @@ generate
     end
 endgenerate
 
+assign fifo_rst = (~rst_n) | load_feature_begin;
+
 // patch 1的fifo
 generate
     for (i=0;i<8;i=i+1) begin: feature_buffer_1_fifo
         feature_buffer_fifo feature_buffer_fifo_inst(
             .clk               (system_clk),
-            .srst              ((~rst_n) & calculate_begin),
+            .srst              (fifo_rst),
             .din               (feature_buffer_1_data[i]),
             .wr_en             (feature_buffer_1_valid),
             .rd_en             (fifo_rd_en),
@@ -88,8 +118,8 @@ generate
             .full              (),
             .almost_full       (),
             .empty             (feature_buffer_1_empty[i]),
-            .wr_rst_busy       (),
-            .rd_rst_busy       (),
+            .wr_rst_busy       (wr_rst_busy[i]),
+            .rd_rst_busy       (rd_rst_busy[i]),
             .prog_full         (feature_buffer_1_almost_full[i])
         );
     end
@@ -101,7 +131,7 @@ generate
     for (i=0;i<8;i=i+1) begin: feature_buffer_2_fifo
         feature_buffer_fifo feature_buffer_fifo_inst(
             .clk               (system_clk),
-            .srst              ((~rst_n) & calculate_begin),
+            .srst              (fifo_rst),
             .din               (feature_buffer_2_data[i]),
             .wr_en             (feature_buffer_2_valid),
             .rd_en             (fifo_rd_en),
@@ -109,8 +139,8 @@ generate
             .full              (),
             .almost_full       (feature_buffer_2_almost_full[i]),
             .empty             (feature_buffer_2_empty[i]),
-            .wr_rst_busy       (),
-            .rd_rst_busy       ()
+            .wr_rst_busy       (wr_rst_busy[8+i]),
+            .rd_rst_busy       (rd_rst_busy[8+i])
         );      
     end
 endgenerate
@@ -131,16 +161,16 @@ always@(posedge system_clk or negedge rst_n) begin
         col_cnt        <= 10'h3ff;
         calculate_keep <= 0;
     end
-    else if (calculate_begin) begin
+    else if (compute_begin) begin
         row_cnt        <= 0;
-        col_cnt        <= 1;
+        col_cnt        <= 0;
         calculate_keep <= 1;
     end
     else if (calculate_keep) begin
         if (fifo_rd_en | padding_en) begin
-            if (col_cnt == col_size + (padding_size<<1) - 1) begin
+            if (col_cnt == col_size + padding_size_double - 1) begin
                 col_cnt <= 0;
-                if (row_cnt == row_size + (padding_size<<1) - 1) begin
+                if (row_cnt == row_size + padding_size_double - 1) begin
                     row_cnt         <= row_cnt;
                     calculate_keep  <= 0;
                 end
@@ -158,44 +188,44 @@ end
 always@(posedge system_clk) begin
     calculate_keep_r1 <= calculate_keep;
 end
-assign calculate_finish_signal = calculate_keep_r1 & ~calculate_keep;
+assign compute_finish_signal = calculate_keep_r1 & ~calculate_keep;
 
 always@(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
-        padding_en <= 0;
+        padding_flag <= 0;
     end
     else if (calculate_keep) begin
-        if ((row_cnt<padding_size)||(row_cnt>=row_size+padding_size)||(col_cnt<padding_size)||(col_cnt>=col_size+padding_size))begin
-            padding_en <= 1;
+        if ((row_cnt<padding_size)||(row_cnt>=row_plus_padding)||(col_cnt<padding_size)||(col_cnt>=col_plus_padding))begin
+            padding_flag <= 1;
         end
         else begin
-            padding_en <= 0;
+            padding_flag <= 0;
         end
     end
     else begin
-        padding_en <= 0;
+        padding_flag <= 0;
     end
 end
 
 always@(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
-        fifo_rd_en <= 0;
+        fifo_flag <= 0;
     end
     else if (calculate_keep) begin
         if ((row_cnt<padding_size)||(row_cnt>=row_size+padding_size)||(col_cnt<padding_size)||(col_cnt>=col_size+padding_size)) begin
-            fifo_rd_en <= 0;
-        end
-        else if (~fifo_empty & feature_output_ready) begin
-            fifo_rd_en <= 1;
+            fifo_flag <= 0;
         end
         else begin
-            fifo_rd_en <= 0;
+            fifo_flag <= 1;
         end
     end
     else begin
-        fifo_rd_en <= 0;
+        fifo_flag <= 0;
     end
 end
+
+assign padding_en = ((row_cnt<padding_size) | (row_cnt>=row_plus_padding) | (col_cnt<padding_size) | (col_cnt>=col_plus_padding)) & feature_output_ready & calculate_keep;
+assign fifo_rd_en = (row_cnt>=padding_size) & (row_cnt<row_plus_padding) & (col_cnt>=padding_size) & (col_cnt<col_plus_padding) & feature_output_ready & calculate_keep & (~fifo_empty);
 
 // padding 和 fifo_rd_en 都打一拍，因为fifo不是fwft模式
 always@(posedge system_clk or negedge rst_n) begin
@@ -213,49 +243,65 @@ end
 assign feature_output_valid = fifo_rd_en_reg | padding_en_reg;
 
 // 计算何时数据为有效数据，对于卷积而言，一般是从(kernel_size-1, kernel_size-1)开始为有效数据
-reg convolution_valid_reg;
+wire        convolution_valid_wire;
+reg         convolution_valid_reg;
+reg         convolution_valid_flag;
 always@(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
-        convolution_valid_reg <= 0;
+        convolution_valid_flag <= 0;
     end
-    else if (row_cnt >= (CONV_KERNEL_SIZE-1) && col_cnt >= (CONV_KERNEL_SIZE-1)) begin
-        convolution_valid_reg <= (stride) ? (feature_output_valid & ~row_cnt[0] & ~col_cnt[0]) : feature_output_valid;
+    else if (row_cnt >= kernel_size_miner && col_cnt >= kernel_size_miner) begin
+            convolution_valid_flag <= (stride) ? (~row_cnt[0] & ~col_cnt[0]) : 1'b1;
     end
     else begin
-        convolution_valid_reg <= 0;
+        convolution_valid_flag <= 1'b0;
     end
 end
+
+// always@(posedge system_clk or negedge rst_n) begin
+//     if(~rst_n) begin
+//         convolution_valid_reg <= 0;
+//     end
+//     else begin
+//         convolution_valid_reg <= convolution_valid_flag & feature_output_valid;
+//     end
+// end
+
+assign convolution_valid_wire = convolution_valid_flag & feature_output_valid;
 
 // 由于卷积计算部件需要延迟10拍，所以这里的convolution_valid需要延迟10拍
-reg [9:0]   convolution_valid_delay;
+reg [10:0]   convolution_valid_delay;
 always@(posedge system_clk or negedge rst_n) begin
-    convolution_valid_delay <= {convolution_valid_delay[8:0], convolution_valid_reg};
+    convolution_valid_delay <= {convolution_valid_delay[9:0], convolution_valid_wire};
 end
 
-assign convolution_valid = convolution_valid_delay[9];
+assign convolution_valid = convolution_valid_delay[10];
 
 // 因此，calculate_finish信号也需要延迟10拍
-reg [9:0]   calculate_finish_delay;
+reg [11:0]   compute_finish_delay;
 always@(posedge system_clk or negedge rst_n) begin
-    calculate_finish_delay <= {calculate_finish_delay[8:0], calculate_finish_signal};
+    compute_finish_delay <= {compute_finish_delay[10:0], compute_finish_signal};
 end
 
-assign calculate_finish = calculate_finish_delay[9];
+assign compute_finish = compute_finish_delay[11];
 
 // 计算何时数据为adder_feature有效数据，adder_feature一般从图的左上角开始
-reg adder_feature_valid_reg;
+reg [2:0]adder_feature_valid_reg;
 always@(posedge system_clk or negedge rst_n) begin
-    if(~rst_n) begin
+    if (!rst_n) begin
         adder_feature_valid_reg <= 0;
-    end
-    else if (row_cnt <= (row_size-(padding_size<<1)+1) && col_cnt <= (col_size-(padding_size<<1)+1)) begin
-        adder_feature_valid_reg <= 1;
     end
     else begin
-        adder_feature_valid_reg <= 0;
+        adder_feature_valid_reg[0] <= convolution_valid_wire;
+        adder_feature_valid_reg[1] <= adder_feature_valid_reg[0];
+        adder_feature_valid_reg[2] <= adder_feature_valid_reg[1];
     end
 end
 
-assign adder_pulse = convolution_valid_reg;
+assign adder_pulse = adder_feature_valid_reg[0];
+
+assign pool_data_valid = convolution_valid_delay[3];
+
+assign col_size_for_cache = col_size + padding_size_double - 2;
 
 endmodule

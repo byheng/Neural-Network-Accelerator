@@ -25,6 +25,9 @@ module ram_base_shift_register_for_cache #(
 
 reg [9:0]   wr_addr;
 reg [9:0]   rd_addr;
+reg                       wr_en_reg;
+wire[FEATURE_WIDTH*2-1:0] rd_data_wire;
+reg [FEATURE_WIDTH*2-1:0] rd_data_reg;
 
 always @(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
@@ -46,7 +49,22 @@ shift_register_ram shift_register_ram_inst (
     .clkb       (system_clk),
     .enb        (1'b1      ),
     .addrb      (rd_addr   ),
-    .doutb      (rd_data   )
+    .doutb      (rd_data_wire   )
 );
+
+always @(posedge system_clk or negedge rst_n) begin
+    wr_en_reg <= wr_en;
+end
+
+always @(posedge system_clk or negedge rst_n) begin
+    if(~rst_n) begin
+        rd_data_reg <= 0;
+    end 
+    else if (wr_en_reg) begin
+        rd_data_reg <= rd_data_wire;
+    end
+end
+
+assign rd_data = (~wr_en_reg & wr_en) ? rd_data_reg : rd_data_wire; 
 
 endmodule 

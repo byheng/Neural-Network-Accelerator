@@ -1,8 +1,21 @@
 import torch
+from torch import nn
 from ultralytics import YOLO
 from ultralytics.nn.modules import *
 from ultralytics.nn.quant_dorefa import input_dict, output_dict
 import pickle
+from ultralytics.nn.modules import (
+    SPPF,
+    Bottleneck,
+    Bottleneck_Q,
+    Conv,
+    Conv_Q,
+    Conv2d_Q,
+    C2f,
+    Concat,
+    Detect_Q
+)
+from torch.nn import Upsample
 
 
 def CalculateWeightsScale(weight, w_bit):
@@ -15,6 +28,32 @@ def CalculateWeightsScale(weight, w_bit):
 
 
 model = YOLO('./runs/detect/640-16bit-onlyweight/weights/best.pt')
+# model = YOLO('./ultralytics/weights/yolov8n_relu.pt')
+# model.val(data="./ultralytics/cfg/datasets/coco.yaml")
+# model = torch.load("./ultralytics/weights/yolov8n.pt")
+# model_list = model['model']
+# for m in model_list.modules():
+#     if isinstance(m, torch.nn.Sequential):
+#         for idx in range(len(m)):
+#             if isinstance(m[idx], Conv):
+#                 m[idx].act = nn.ReLU(inplace=True)
+#             elif isinstance(m[idx], C2f):
+#                 m[idx].cv1.act = nn.ReLU(inplace=True)
+#                 bottle_neck_list = m[idx].m
+#                 for bottle_neck in bottle_neck_list:
+#                     bottle_neck.cv1.act = nn.ReLU(inplace=True)
+#                     bottle_neck.cv2.act = nn.ReLU(inplace=True)
+#                 m[idx].cv2.act = nn.ReLU(inplace=True)
+#             elif isinstance(m[idx], Bottleneck):
+#                 m[idx].cv1.act = nn.ReLU(inplace=True)
+#                 m[idx].cv2.act = nn.ReLU(inplace=True)
+#             elif isinstance(m[idx], SPPF):
+#                 m[idx].cv1.act = nn.ReLU(inplace=True)
+#                 m[idx].cv2.act = nn.ReLU(inplace=True)
+# model['model'] = model_list
+# torch.save(model, "./ultralytics/weights/yolov8n_relu.pt")
+# model.val(data="./ultralytics/cfg/datasets/coco.yaml")
+
 # model_dict = list(model.model.model)
 #
 # modelList = []
@@ -80,13 +119,49 @@ model = YOLO('./runs/detect/640-16bit-onlyweight/weights/best.pt')
 #         newLayerDict['scale'] = weight_scale
 #         newLayerDict['out_channel'] = layer.cv2.conv.out_channels
 #         modelList.append(newLayerDict)
+#     elif isinstance(layer, Upsample):
+#         newLayerDict = {'module': "UPSAMPLE"}
+#         modelList.append(newLayerDict)
+#     elif isinstance(layer, Concat):
+#         newLayerDict = {'module': "CONCAT",
+#                         'layer_list': layer.f}
+#         modelList.append(newLayerDict)
+#     elif isinstance(layer, Detect_Q):
+#         newLayerDict = {'module': "DETECT_Q",
+#                         'layer_list': layer.f}
+#         weight_list = []
+#         bias_list = []
+#         weight_scale = []
+#         for i in range(3):
+#             for j in range(3):
+#                 ll = layer.cv2[i][j].conv if hasattr(layer.cv2[i][j], "conv") else layer.cv2[i][j]
+#                 scale, weight = CalculateWeightsScale(ll.weight, ll.w_bit)
+#                 bias = ll.bias.detach().cpu().numpy()
+#                 weight_list.append(weight)
+#                 weight_scale.append(scale)
+#                 bias_list.append(bias)
+#         for i in range(3):
+#             for j in range(3):
+#                 ll = layer.cv3[i][j].conv if hasattr(layer.cv3[i][j], "conv") else layer.cv3[i][j]
+#                 scale, weight = CalculateWeightsScale(ll.weight, ll.w_bit)
+#                 bias = ll.bias.detach().cpu().numpy()
+#                 weight_list.append(weight)
+#                 weight_scale.append(scale)
+#                 bias_list.append(bias)
+#         newLayerDict['quantWeight'] = weight_list
+#         newLayerDict['bias'] = bias_list
+#         newLayerDict['scale'] = weight_scale
+#         newLayerDict['reg_max'] = layer.reg_max
+#         newLayerDict['class'] = layer.nc
+#         modelList.append(newLayerDict)
+#
 #
 # with open('modelList.pkl', 'wb') as f:
 #     pickle.dump(modelList, f)
 
 results = model.predict("/home/hipeson/hzq/ultralytics2/datasets/coco/images/test2017/000000000063.jpg",
                         save=True, device=0)
-with open('input_list.pkl', 'wb') as file:
-    pickle.dump(input_dict, file)
-with open('output_list.pkl', 'wb') as file:
-    pickle.dump(output_dict, file)
+# with open('input_list.pkl', 'wb') as file:
+#     pickle.dump(input_dict, file)
+# with open('output_list.pkl', 'wb') as file:
+#     pickle.dump(output_dict, file)

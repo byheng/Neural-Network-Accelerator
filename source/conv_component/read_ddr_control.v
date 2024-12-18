@@ -221,7 +221,7 @@ always @(posedge system_clk or negedge rst_n) begin
             feature_patch_base_addr <= feature_patch_base_addr + (feature_patch_num<<13);
         end
         else begin
-            feature_patch_base_addr <= feature_patch_base_addr + feature_patch_num<<12;
+            feature_patch_base_addr <= feature_patch_base_addr + (feature_patch_num<<12);
         end
     end
 end

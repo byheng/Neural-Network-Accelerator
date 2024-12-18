@@ -29,7 +29,7 @@ module Weight_buffer #(
 );
 // local parameter
 localparam [1:0] IDLE = 2'b00, CHANGE_WEIGHT=2'b01, CHANGE_BIAS=2'b10, CHANGE_WEIGHT_AND_BIAS=2'b11;
-parameter WEIGHT_CNT = 0; //438
+parameter WEIGHT_CNT = 0; //12586
 
 // variables declaration
 reg [1:0]                   state;
