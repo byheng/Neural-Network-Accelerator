@@ -51,8 +51,10 @@ This project aims to implement an acceleration circuit for convolutional neural 
 ![image](./script/after_nms.png)
 
 - **todo**
+
+  1. The current way of loading instructions is through rom. Next, it will be modified to axi_lite.
   
-  Complete the deployment on xilinx 19EG, and complete the inference of the static pictures in ddr. In 19EG, I will try to perfect the circuit design so that it can reach 300MHz。
+  2. Complete the deployment on xilinx 19EG, and complete the inference of the static pictures in ddr. In 19EG, I will try to perfect the circuit design so that it can reach 300MHz。
 
 ## Reference
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)
