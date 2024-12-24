@@ -50,11 +50,13 @@
 
 ![image](./script/after_nms.png)
 
-- **todo**
+- **2024-12-24**
 
-  1. 目前加载指令的方式是通过rom。接下来修改为axi_lite。
+  加载指令的方式修改为通过axi_lite接口读写寄存器，并完成modelsim仿真。仿真过程中使用BFM模拟CPU调度axi_lite接口读写寄存器的过程。
+
+- **todo**
   
-  2. 完成在xilinx 19EG上的部署，并完成ddr中静态图片的推理。我将尝试完善电路设计，使其能达到300M时钟的速度。
+  1. 完成在xilinx 19EG上的部署，并完成ddr中静态图片的推理。我将尝试完善电路设计，使其能达到300M时钟的速度。
 
 ## 引用
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)
