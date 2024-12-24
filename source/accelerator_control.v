@@ -65,6 +65,8 @@ module accelerator_control #(
     input                           m00_axi_bvalid,
     output                          m00_axi_bready,
 	// AXI-lite interface for setup parameters
+	input							s00_axi_aclk,	
+	input                           s00_axi_aresetn,
 	input 	[AXIL_ADDR_WIDTH-1:0] 	s00_axi_awaddr,
 	input 	[2 : 0] 				s00_axi_awprot,
 	input 	 						s00_axi_awvalid,
@@ -820,6 +822,8 @@ upsample u_upsample(
 );
 
 get_order get_order_inst(
+	.system_clk					( system_clk			  ),
+	.rst_n						( rst_n				  	  ),
 	.task_start					( task_start			  ),	
 	.task_finish				( task_finish			  ),
 	.calculate_finish			( calculate_finish		  ),
@@ -842,8 +846,8 @@ get_order get_order_inst(
 	.weight_data_length			( weight_data_length      ),
 	.activate   				( activate				  ),
 	.id							( ), 
-	.s00_axi_aclk				( system_clk			  ),
-	.s00_axi_aresetn			( rst_n		  			  ),
+	.s00_axi_aclk				( s00_axi_aclk			  ),
+	.s00_axi_aresetn			( s00_axi_aresetn		  ),
 	.s00_axi_awaddr				( s00_axi_awaddr		  ),
 	.s00_axi_awprot				( s00_axi_awprot		  ),
 	.s00_axi_awvalid			( s00_axi_awvalid		  ),

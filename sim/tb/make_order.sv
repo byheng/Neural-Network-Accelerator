@@ -12,8 +12,8 @@ module make_order #(
     parameter AXIL_DATA_WIDTH    = 32,
     parameter AXIL_ADDR_WIDTH    = 8
 )(
-    input   logic                           system_clk,
-    input   logic                           rst_n,
+    input   logic                           m00_axi_aclk,
+    input   logic                           m00_axi_aresetn,
     output  logic [AXIL_ADDR_WIDTH-1:0]     m00_axi_awaddr,
     output  logic [2 : 0]                   m00_axi_awprot,
     output  logic                           m00_axi_awvalid,
@@ -40,8 +40,8 @@ assign m00_axi_arprot = 3'b000;
 axi_lite_if axi();
 axi_lite_BFM bfm;
 
-assign axi.ACLK         = system_clk;
-assign axi.ARESETn      = rst_n;
+assign axi.ACLK         = m00_axi_aclk;
+assign axi.ARESETn      = m00_axi_aresetn;
 assign m00_axi_awaddr   = axi.AWADDR;
 assign m00_axi_awvalid  = axi.AWVALID;
 assign axi.AWREADY      = m00_axi_awready;
@@ -86,7 +86,7 @@ initial begin
         // 判断是否可以写入
         if (addr == 8'h48) begin
             bfm.axi_read(8'h4c, rdata);
-            @ (posedge system_clk);
+            @ (posedge m00_axi_aclk);
             while (rdata == 0) begin
                 bfm.axi_read(8'h4c, rdata);
             end
@@ -100,6 +100,6 @@ initial begin
     $fclose(file);
     instruction_finish = 1;
     $display("All instructions have been sent.");
-  end
+end
 
 endmodule

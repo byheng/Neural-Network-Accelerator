@@ -10,6 +10,15 @@
 module conv_control_tb ();
 
 reg system_clk, rst_n;
+reg m_axi_aclk, m_axi_aresetn;
+initial begin
+    m_axi_aclk = 0;
+    forever #10 m_axi_aclk = ~m_axi_aclk;
+end
+initial begin
+    m_axi_aresetn = 0;
+    #20 m_axi_aresetn = 1;
+end
 initial begin
     system_clk = 0;
     forever #5 system_clk = ~system_clk;
@@ -156,6 +165,8 @@ accelerator_control u_accelerator_control(
     .m00_axi_bresp                ( s_axi_bresp     ),
     .m00_axi_bvalid               ( s_axi_bvalid    ),
     .m00_axi_bready               ( s_axi_bready    ),
+    .s00_axi_aclk                 ( m_axi_aclk      ),
+    .s00_axi_aresetn              ( m_axi_aresetn   ),
     .s00_axi_awaddr               ( m_axi_awaddr    ),
     .s00_axi_awprot               ( m_axi_awprot    ),
     .s00_axi_awvalid              ( m_axi_awvalid   ),
@@ -178,8 +189,8 @@ accelerator_control u_accelerator_control(
 );
 
 make_order make_order_inst(
-    .system_clk         ( system_clk    ),
-    .rst_n              ( rst_n         ),
+    .m00_axi_aclk       ( m_axi_aclk    ),
+    .m00_axi_aresetn    ( m_axi_aresetn ),
     .m00_axi_awaddr     ( m_axi_awaddr  ),
     .m00_axi_awprot     ( m_axi_awprot  ),
     .m00_axi_awvalid    ( m_axi_awvalid ),

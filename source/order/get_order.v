@@ -9,6 +9,8 @@ module get_order #
 )
 (
 	// Users to add ports here
+	input                   system_clk					,
+	input                   rst_n						,
 	output                  task_start					,	
 	output                  task_finish					,
 	input  				 	calculate_finish			,
@@ -137,8 +139,10 @@ set_accelerator_reg_axi # (
 
 	// Add user logic here
 Cache_order Cache_order_inst(
-    .clk                        (s00_axi_aclk				),
-	.rst_n                      (s00_axi_aresetn			),
+    .axi_clk                    (s00_axi_aclk				),
+	.axi_rst_n                  (s00_axi_aresetn			),
+	.system_clk                 (system_clk					),
+	.rst_n                      (rst_n						),
     .order_in_ready             (order_in_ready				),
     .order_out_ready            (),
     .push_order_en              (push_order_en				),
@@ -184,13 +188,13 @@ Cache_order Cache_order_inst(
 );
 // User logic ends
 // 取finish的上升沿得到下一次计算的申请信号
-always @(posedge s00_axi_aclk) begin
+always @(posedge system_clk) begin
 	calculate_finish_r1 <= calculate_finish;
 end
 assign next_calculate_application = ~calculate_finish_r1 & calculate_finish;
 // 保持申请信号直到下一次指令读出
-always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
-	if (~s00_axi_aresetn) begin
+always @(posedge system_clk or negedge rst_n) begin
+	if (~rst_n) begin
 		next_calculate_application_r <= 1'b0;
 	end
 	else if(next_calculate_application | task_start) begin
@@ -201,7 +205,7 @@ always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
 	end
 end
 // order valid打一拍作为calculate start信号
-always @(posedge s00_axi_aclk) begin
+always @(posedge system_clk) begin
 	calculate_start <= order_valid_r;
 end
 endmodule

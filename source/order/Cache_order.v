@@ -6,7 +6,9 @@
 `timescale 1ns/100fs
 
 module Cache_order(
-    input                   clk                        ,
+    input                   axi_clk                    ,
+    input                   axi_rst_n                  ,
+    input                   system_clk                 ,
     input                   rst_n                      ,
     output                  order_in_ready             ,
     output                  order_out_ready            ,
@@ -68,8 +70,10 @@ assign order_in_ready = ~order_fifo_almost_full;
 assign order_fifo_in = {x_id, x_activate, x_weight_data_length, x_return_addr, x_return_patch_num, x_padding_size, x_stride, x_fea_out_quant_size, x_fea_in_quant_size, x_weight_quant_size, x_col_size, x_row_size, x_feature_patch_num, x_feature_double_patch, x_feature_output_patch_num, x_feature_input_patch_num, x_feature_input_base_addr, x_order};
 
 order_cache order_cache_inst (
-    .clk            (clk),
-    .srst           (~rst_n),
+    .wr_clk         (axi_clk),
+    .wr_rst         (~axi_rst_n),
+    .rd_clk         (system_clk),
+    .rd_rst         (~rst_n),
     .din            (order_fifo_in),
     .wr_en          (push_order_en),
     .rd_en          (pop_order_en),
@@ -81,11 +85,11 @@ order_cache order_cache_inst (
 
 assign order_valid = pop_order_en & ~order_fifo_empty;
 
-always @(posedge clk) begin
+always @(posedge system_clk) begin
     order_valid_r <= order_valid;
 end
 
-always @(posedge clk) begin
+always @(posedge system_clk) begin
     if (order_valid_r) begin
         {id, activate, weight_data_length, return_addr, return_patch_num, padding_size, stride, fea_out_quant_size, fea_in_quant_size, weight_quant_size, col_size, row_size, feature_patch_num, feature_double_patch, feature_output_patch_num, feature_input_patch_num, feature_input_base_addr, order} <= order_fifo_out;
     end
