@@ -31,6 +31,7 @@ module MAC_PE #(
     output signed[47:0]                 PCOUT       // Cascade Output
 );
 
+/*--------------------------- for fast simulation ----------------------*/
 // MAC IP : P = P + w * x
 reg signed [MAC_WIDTH-1:0] p;
 initial p = 'd0;
@@ -57,13 +58,15 @@ end
 assign out = {out_reg[47], out_reg[34:0]};
 assign PCOUT = out;
 
+// /*--------------------------- for real hardware ----------------------*/
+
 // MulAdder muladder_inst (
 //     .CLK        (DSP_clk),
 //     .CE         (pulse),
 //     .SCLR       (1'b0),
 //     .A          (w),
 //     .B          (x),    
-//     .C          (b),
+//     .C          (),
 //     .PCIN       (PCIN),
 //     .SUBTRACT   (1'b0),
 //     .P          (out),

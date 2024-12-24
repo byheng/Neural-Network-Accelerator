@@ -34,7 +34,7 @@ module PE_core #(
 /*----------------- 缓存weight -----------------*/
 reg [WEIGHT_WIDTH-1:0]   weight_array [PE_ARRAY_TOTAL_SIZE-1:0];
 reg [BIAS_WIDTH-1:0]     bias_reg;
-always @(posedge DSP_clk or negedge rst_n) begin
+always @(posedge DSP_clk) begin
     if (weight_valid) begin
         weight_array[PE_ARRAY_TOTAL_SIZE-1] <= weight;
     end
@@ -47,7 +47,7 @@ end
 genvar p;
 generate
     for (p = 0; p < PE_ARRAY_TOTAL_SIZE-1; p=p+1) begin : weight_array_gen
-        always @(posedge DSP_clk or negedge rst_n) begin
+        always @(posedge DSP_clk) begin
             if (weight_valid) begin
                 weight_array[p] <= weight_array[p+1];
             end
@@ -126,7 +126,7 @@ generate
     end
 endgenerate
 
-always @(posedge DSP_clk or negedge rst_n) begin
+always @(posedge DSP_clk) begin
     flow_reg1[0] <= output_array[2];
     flow_reg1[1] <= output_array[5];
     flow_reg1[2] <= output_array[8];
@@ -134,13 +134,9 @@ always @(posedge DSP_clk or negedge rst_n) begin
     flow_reg2[0] <= flow_reg1[0];
     flow_reg2[1] <= flow_reg1[1];
     flow_reg2[2] <= flow_reg1[2];
-
-    // flow_reg3[0] <= flow_reg2[0];
-    // flow_reg3[1] <= flow_reg2[1];
-    // flow_reg3[2] <= flow_reg2[2];
 end
 
-always @(posedge DSP_clk or negedge rst_n) begin
+always @(posedge DSP_clk) begin
     adder1 <= $signed(flow_reg2[0] + flow_reg2[1]);
     adder2 <= $signed(flow_reg2[2] + bias_add);
     adder3 <= $signed(adder1 + adder2);

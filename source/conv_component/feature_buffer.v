@@ -271,7 +271,7 @@ assign convolution_valid_wire = convolution_valid_flag & feature_output_valid;
 
 // 由于卷积计算部件需要延迟10拍，所以这里的convolution_valid需要延迟10拍
 reg [10:0]   convolution_valid_delay;
-always@(posedge system_clk or negedge rst_n) begin
+always@(posedge system_clk) begin
     convolution_valid_delay <= {convolution_valid_delay[9:0], convolution_valid_wire};
 end
 
@@ -279,7 +279,7 @@ assign convolution_valid = convolution_valid_delay[10];
 
 // 因此，calculate_finish信号也需要延迟10拍
 reg [11:0]   compute_finish_delay;
-always@(posedge system_clk or negedge rst_n) begin
+always@(posedge system_clk) begin
     compute_finish_delay <= {compute_finish_delay[10:0], compute_finish_signal};
 end
 

@@ -68,7 +68,7 @@ foreach signal $all_signals {
         foreach group $param_channels {
             # 获取前缀和分组名称
             set prefix [lindex $group 0]
-            if {[string match *$prefix* $signal_name]} {
+            if {[string match $prefix $signal_name]} {
                 # 将信号添加到对应的 AXI 分组
                 add wave -group "Parameter Signals" $signal
                 set grouped 1

@@ -159,7 +159,7 @@ model = YOLO('./runs/detect/640-16bit-onlyweight/weights/best.pt')
 # with open('modelList.pkl', 'wb') as f:
 #     pickle.dump(modelList, f)
 
-results = model.predict("/home/hipeson/hzq/ultralytics2/datasets/coco/images/test2017/000000000063.jpg",
+results = model.predict("/home/hipeson/hzq/ultralytics2/datasets/coco/images/test2017/000000002051.jpg",
                         save=True, device=0)
 # with open('input_list.pkl', 'wb') as file:
 #     pickle.dump(input_dict, file)

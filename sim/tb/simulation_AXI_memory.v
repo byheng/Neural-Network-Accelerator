@@ -422,21 +422,21 @@ initial begin
 end
 
 always @(posedge clk) begin
-    if (conv_control_tb.u_get_order.change_order)begin
+    if (conv_control_tb.u_accelerator_control.get_order_inst.next_calculate_application)begin
         for (i=0;i<conv_control_tb.u_accelerator_control.return_patch_num*conv_control_tb.u_accelerator_control.feature_output_patch_num*64;i=i+1)begin
             $fwrite(out_file, "%h\n", mem[(conv_control_tb.u_accelerator_control.return_addr/64)+i]);
         end
-        $fwrite(out_file, "#%d\n", conv_control_tb.u_get_order.id);
+        $fwrite(out_file, "#%d\n", conv_control_tb.u_accelerator_control.get_order_inst.id);
 
         for (i=0;i<conv_control_tb.u_accelerator_control.feature_input_patch_num*conv_control_tb.u_accelerator_control.feature_patch_num*64*(1+conv_control_tb.u_accelerator_control.feature_double_patch);i=i+1)begin
             $fwrite(in_file, "%h\n", mem[(conv_control_tb.u_accelerator_control.feature_input_base_addr/64)+i]);
         end
-        $fwrite(in_file, "#%d\n", conv_control_tb.u_get_order.id);
+        $fwrite(in_file, "#%d\n", conv_control_tb.u_accelerator_control.get_order_inst.id);
 
-        if (conv_control_tb.u_get_order.order_addr==73) begin
+        if (conv_control_tb.u_accelerator_control.get_order_inst.id==73) begin
             if (file != 0) begin
                 $writememh(memory_patch, mem);
-                $display("the %d layer simulation is finish", conv_control_tb.u_get_order.order_addr);
+                $display("the %d layer simulation is finish", conv_control_tb.u_accelerator_control.get_order_inst.id);
                 // $display("save memory data to file");
                 $display("weight_cnt==%d", conv_control_tb.u_accelerator_control.u_Weight_buffer.debug_weight_cnt);
                 $display("Using time: %d us", (($time - times) / 10000000));
@@ -448,7 +448,7 @@ always @(posedge clk) begin
             end
         end
         else begin
-            $display("the %d layer simulation is finish", conv_control_tb.u_get_order.order_addr);
+            $display("the %d layer simulation is finish", conv_control_tb.u_accelerator_control.get_order_inst.id);
             $display("weight_cnt==%d", conv_control_tb.u_accelerator_control.u_Weight_buffer.debug_weight_cnt); 
             $display("Using time: %d us", (($time - times) / 10000000));
             times = $time;
@@ -458,7 +458,7 @@ always @(posedge clk) begin
         for (i=0;i<conv_control_tb.u_accelerator_control.feature_input_patch_num*conv_control_tb.u_accelerator_control.feature_patch_num*64;i=i+1)begin
             $fwrite(out_file, "%h\n", mem[(conv_control_tb.u_accelerator_control.feature_input_base_addr/64)+i]);
         end
-        $fwrite(out_file, "#%d\n", conv_control_tb.u_get_order.id);
+        $fwrite(out_file, "#%d\n", conv_control_tb.u_accelerator_control.get_order_inst.id);
         d = 1;
     end 
 end

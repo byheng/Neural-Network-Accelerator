@@ -19,35 +19,15 @@ module accelerator_control #(
     parameter FETURE_DATA_WIDTH = `PE_CORE_NUM * `FEATURE_WIDTH,
     parameter WEIGHT_DATA_WIDTH = `PE_CORE_NUM * WEIGHT_WIDTH,
     parameter MAC_OUTPUT_WIDTH  = `MAC_OUTPUT_WIDTH,
-    parameter POOL_DATA_WIDTH   = 5 * `FEATURE_WIDTH
+    parameter POOL_DATA_WIDTH   = 5 * `FEATURE_WIDTH,
+	parameter AXIL_DATA_WIDTH	= 32,
+	parameter AXIL_ADDR_WIDTH	= 8
 )
 (
     input                           system_clk,
     input                           rst_n,
-    // patch convolution parameters
-	input                           task_start,
-    input                           task_finish,
-    output                          calculate_finish,
-    input                           calculate_start,
-
     // accelerator core parameters (when simulation finish, it will be change to AXI-lite interface)
-    input  [2:0]            		order,
-	input  [31:0]           		feature_input_base_addr,
-	input  [7:0]            		feature_input_patch_num,
-	input  [7:0]            		feature_output_patch_num,
-	input                   		feature_double_patch,
-	input  [31:0]           		feature_patch_num,
-	input  [9:0]            		row_size,
-	input  [9:0]            		col_size,
-	input  [3:0]            		weight_quant_size,
-	input  [3:0]            		fea_in_quant_size,
-	input  [3:0]            		fea_out_quant_size,
-	input                   		stride,
-	input  [31:0]           		return_addr,
-	input  [15:0]           		return_patch_num,
-	input  [2:0]            		padding_size,
-	input  [31:0]					weight_data_length,
-	input                           activate,
+
     // AXI-signal for ddr port
     // AXI-4 Only read
     output  [MEM_ADDR_WIDTH-1:0]    m00_axi_araddr,     // 操控
@@ -83,7 +63,27 @@ module accelerator_control #(
     input                           m00_axi_wready,
     input  [1:0]                    m00_axi_bresp,
     input                           m00_axi_bvalid,
-    output                          m00_axi_bready
+    output                          m00_axi_bready,
+	// AXI-lite interface for setup parameters
+	input 	[AXIL_ADDR_WIDTH-1:0] 	s00_axi_awaddr,
+	input 	[2 : 0] 				s00_axi_awprot,
+	input 	 						s00_axi_awvalid,
+	output 	 						s00_axi_awready,
+	input 	[AXIL_DATA_WIDTH-1:0] 	s00_axi_wdata,
+	input [(AXIL_DATA_WIDTH/8)-1:0] s00_axi_wstrb,
+	input 	 						s00_axi_wvalid,
+	output 	 						s00_axi_wready,
+	output 	[1 : 0] 				s00_axi_bresp,
+	output 	 						s00_axi_bvalid,
+	input 	 						s00_axi_bready,
+	input 	[AXIL_ADDR_WIDTH-1 : 0] s00_axi_araddr,
+	input 	[2 : 0] 				s00_axi_arprot,
+	input 	 						s00_axi_arvalid,
+	output 	 						s00_axi_arready,
+	output 	[AXIL_DATA_WIDTH-1 : 0] s00_axi_rdata,
+	output 	[1 : 0] 				s00_axi_rresp,
+	output 	 						s00_axi_rvalid,
+	input 	 						s00_axi_rready
 );
 
 // local parameter declaration
@@ -118,6 +118,28 @@ localparam [2:0] WAIT_BEGIN         	 = 3'd0,
 				 CHECK_IN_PATCH_NUM      = 3'd4,
 				 OPERTOR_FINISH          = 3'd5;
 
+// accelerator parameters
+wire 		 task_start					;
+wire 		 task_finish				;	
+wire 		 calculate_finish			;	
+wire 		 calculate_start			;	
+wire  [2:0]  order						;
+wire  [31:0] feature_input_base_addr	;
+wire  [7:0]  feature_input_patch_num	;
+wire  [7:0]  feature_output_patch_num	;
+wire         feature_double_patch		;
+wire  [31:0] feature_patch_num			;
+wire  [9:0]  row_size					;
+wire  [9:0]  col_size					;
+wire  [3:0]  weight_quant_size			;
+wire  [3:0]  fea_in_quant_size			;
+wire  [3:0]  fea_out_quant_size			;
+wire         stride						;
+wire  [31:0] return_addr				;
+wire  [15:0] return_patch_num			;		
+wire  [2:0]  padding_size				;
+wire  [31:0] weight_data_length			;
+wire         activate					;
 
 // variables declaration
 reg  [2:0]                      task_state;
@@ -795,6 +817,52 @@ upsample u_upsample(
 	.unsample_feature_valid 	( unsample_feature_valid  ),
 	.output_ready           	( return_buffer_ready     ),
 	.upsample_buffer_empty  	( upsample_buffer_empty   )
+);
+
+get_order get_order_inst(
+	.task_start					( task_start			  ),	
+	.task_finish				( task_finish			  ),
+	.calculate_finish			( calculate_finish		  ),
+	.calculate_start			( calculate_start		  ),
+	.order						( order					  ),
+	.feature_input_base_addr	( feature_input_base_addr ),
+	.feature_input_patch_num	( feature_input_patch_num ),
+	.feature_output_patch_num	( feature_output_patch_num),
+	.feature_double_patch		( feature_double_patch	  ),
+	.feature_patch_num			( feature_patch_num		  ),
+	.row_size					( row_size				  ),
+	.col_size					( col_size				  ),
+	.weight_quant_size			( weight_quant_size		  ),
+	.fea_in_quant_size			( fea_in_quant_size		  ),
+	.fea_out_quant_size			( fea_out_quant_size	  ),
+	.stride						( stride				  ),
+	.return_addr				( return_addr			  ),
+	.return_patch_num			( return_patch_num		  ),
+	.padding_size				( padding_size			  ),
+	.weight_data_length			( weight_data_length      ),
+	.activate   				( activate				  ),
+	.id							( ), 
+	.s00_axi_aclk				( system_clk			  ),
+	.s00_axi_aresetn			( rst_n		  			  ),
+	.s00_axi_awaddr				( s00_axi_awaddr		  ),
+	.s00_axi_awprot				( s00_axi_awprot		  ),
+	.s00_axi_awvalid			( s00_axi_awvalid		  ),
+	.s00_axi_awready			( s00_axi_awready		  ),
+	.s00_axi_wdata				( s00_axi_wdata			  ),
+	.s00_axi_wstrb				( s00_axi_wstrb			  ),
+	.s00_axi_wvalid				( s00_axi_wvalid		  ),
+	.s00_axi_wready				( s00_axi_wready		  ),
+	.s00_axi_bresp				( s00_axi_bresp			  ),
+	.s00_axi_bvalid				( s00_axi_bvalid		  ),
+	.s00_axi_bready				( s00_axi_bready		  ),
+	.s00_axi_araddr				( s00_axi_araddr		  ),
+	.s00_axi_arprot				( s00_axi_arprot		  ),
+	.s00_axi_arvalid			( s00_axi_arvalid		  ),
+	.s00_axi_arready			( s00_axi_arready		  ),
+	.s00_axi_rdata				( s00_axi_rdata			  ),
+	.s00_axi_rresp				( s00_axi_rresp			  ),
+	.s00_axi_rvalid				( s00_axi_rvalid		  ),
+	.s00_axi_rready				( s00_axi_rready		  )
 );
 
 

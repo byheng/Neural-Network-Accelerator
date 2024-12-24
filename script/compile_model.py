@@ -52,14 +52,14 @@ class Order(object):
         return OrderString.zfill(256)
 
     def CompileOrder2Code(self):
-        """8-bit command 8-bit addr and 32-bit data """
+        """8-bit addr and 32-bit data """
         OrderCode = []
         for key, value in self.parameter.items():
             Id = IdMapping(key)
             """ command 1 define set parameter"""
-            OrderCode.append(hex(1)[2:].zfill(2) + hex(Id)[2:].zfill(2) + hex(value)[2:].zfill(8))
+            OrderCode.append(hex(Id*4)[2:].zfill(2) + " " + hex(value)[2:].zfill(8))
         """ command 2 define Run Order"""
-        OrderCode.append(hex(2)[2:].zfill(2) + hex(0)[2:].zfill(10))
+        OrderCode.append(hex(18*4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
         return OrderCode
 
     def AllocateMemory(self, memory_point_input):
@@ -794,12 +794,28 @@ class MyYolov8Model(object):
                 f.write("0".zfill(256))
                 f.write('\n')
 
+    def GenerateCode(self):
+        code = []
+        flattenName, flattenLayer = self.FlattenLayer(self.model)
+        index = 0
+        code.append(hex(20*4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        for layer in flattenLayer:
+            if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
+                layer.id = index
+                layer.parameter['id'] = index
+                code += layer.CompileOrder2Code()
+                index += 1
+        with open("order_code.txt", 'w') as f:
+            for o in code:
+                f.write(o)
+                f.write('\n')
+
     def SetWeightLength(self):
         flattenName, flattenLayer = self.FlattenLayer(self.model)
         for layer in flattenLayer:
             layer.parameter['weight_data_length'] = 0x11A4000
 
-    def Build(self):
+    def Build(self, code=False):
         self.AllocateMemory()
         self.IntParameter()
         self.PrintModelMemoryUsing()
@@ -807,7 +823,10 @@ class MyYolov8Model(object):
         self.weight, self.bias = self.MakeWeight()
         self.weightAndBias = self.MakeWeightBiasBin()
         self.SetWeightLength()
-        self.GenerateOrder()
+        if code:
+            self.GenerateCode()
+        else:
+            self.GenerateOrder()
 
     @staticmethod
     def RemoveNoCalculateLayers(layerName, layerList):

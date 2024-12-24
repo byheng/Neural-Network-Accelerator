@@ -52,7 +52,7 @@ shift_register_ram shift_register_ram_inst (
     .doutb      (rd_data_wire   )
 );
 
-always @(posedge system_clk or negedge rst_n) begin
+always @(posedge system_clk) begin
     wr_en_reg <= wr_en;
 end
 

@@ -161,8 +161,7 @@ def deQuant(x, bit):
 
 
 def MakePictureBin(picture):
-    picture = np.concatenate([picture, np.zeros((1, 5, 480, 640))], axis=1).squeeze().astype(np.int16)
-    picture = picture.transpose(1, 2, 0)
+    picture = np.concatenate([picture, np.zeros((480, 640, 5))], axis=2).squeeze().astype(np.int16)
     with open("picture.bin", 'wb') as f:
         f.write(picture.tobytes())
 
@@ -356,7 +355,7 @@ def NonMaximumSuppression(box, score, iou_threshold=0.5):
 
 
 def ShowPicture(boxes, label, image, imageName, save=False):
-    img = image.copy() * 255
+    img = image.copy()
     img = img.astype(np.uint8)
     for i in range(boxes.shape[0]):
         lp = (int(boxes[i, 0]), int(boxes[i, 1]))
@@ -367,6 +366,59 @@ def ShowPicture(boxes, label, image, imageName, save=False):
         cv2.imwrite(imageName + ".png", img)
     cv2.imshow(imageName, img)
     cv2.waitKey(0)
+
+
+def letterbox(img, target_size=(640, 480), color=(114, 114, 114), auto=True, scale_fill=False, scale_up=True):
+    """
+    Resize and pad image to meet the target size using letterboxing.
+
+    Args:
+        img (numpy.ndarray): Original input image.
+        target_size (tuple): Target size (width, height).
+        color (tuple): Padding color (default is gray, (114, 114, 114)).
+        auto (bool): Whether to automatically adjust size to be divisible by 32.
+        scale_fill (bool): Whether to force resize to target size without padding.
+        scale_up (bool): Allow scaling up if the input image is smaller than target size.
+
+    Returns:
+        padded_img (numpy.ndarray): Letterboxed image.
+        ratio (tuple): Width and height scaling ratio.
+        padding (tuple): Padding added to (top, bottom, left, right).
+    """
+    # Original image shape
+    h, w = img.shape[:2]
+    target_w, target_h = target_size
+
+    # Scale ratio (new / old)
+    scale = min(target_w / w, target_h / h)
+    if not scale_up:
+        scale = min(scale, 1.0)
+
+    # Compute resized image size
+    new_w, new_h = int(w * scale), int(h * scale)
+
+    # Resize the image
+    resized_img = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+    # Compute padding
+    dw, dh = target_w - new_w, target_h - new_h  # Width and height padding
+    if auto:  # Make padding even on both sides
+        dw, dh = np.mod(dw, 32), np.mod(dh, 32)
+    dw //= 2
+    dh //= 2
+
+    # Add border (padding)
+    padded_img = cv2.copyMakeBorder(resized_img, dh, target_h - new_h - dh, dw, target_w - new_w - dw,
+                                    cv2.BORDER_CONSTANT, value=color)
+
+    # Return the padded image, scaling ratio, and padding info
+    return padded_img, (scale, scale), (dw, dh)
+
+
+def ChangeBGR2RGB(image):
+    image = image.copy()
+    image = image[..., ::-1]
+    return image
 
 
 if __name__ == "__main__":

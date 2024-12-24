@@ -37,7 +37,7 @@ generate
     for (i=0; i<8; i=i+1) begin : activate_gen
         assign data_for_act_depacked[i] = data_for_act[i*MAC_OUTPUT_WIDTH+:MAC_OUTPUT_WIDTH];
         if (ACTIVATE_TYPE == 0) begin
-            always @(posedge system_clk or negedge rst_n) begin
+            always @(posedge system_clk) begin
                 if (activate) begin
                     activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? 36'h0 : data_for_act_depacked[i];
                 end
@@ -47,7 +47,7 @@ generate
             end
         end
         else if (ACTIVATE_TYPE == 1) begin
-            always @(posedge system_clk or negedge rst_n) begin
+            always @(posedge system_clk) begin
                 if (activate) begin
                     activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? {{3{data_for_act[MAC_OUTPUT_WIDTH-1]}}, data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1:3]} : data_for_act_depacked[i];
                 end
