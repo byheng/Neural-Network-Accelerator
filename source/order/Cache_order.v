@@ -57,8 +57,6 @@ module Cache_order(
     output reg [31:0]           id                       
 );
 
-assign order_in_ready = 1'b1;
-
 // 缓存两段指令
 wire [255:0] order_fifo_in;
 wire [255:0] order_fifo_out;

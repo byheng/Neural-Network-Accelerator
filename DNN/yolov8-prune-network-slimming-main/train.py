@@ -20,10 +20,10 @@ def train_model(opt):
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='./runs/detect/train5/weights/best.pt', help='Path to the model weights file')
+    parser.add_argument('--weights', type=str, default='./ultralytics/weights/yolov8n_relu.pt', help='Path to the model weights file')
     parser.add_argument('--data', type=str, default='./ultralytics/cfg/datasets/coco.yaml', help='Path to the dataset YAML file')
-    parser.add_argument('--epochs', type=int, default=100, help='Number of epochs for training')
-    parser.add_argument('--imgsz', type=int, default=640, help='Input image size for training')
+    parser.add_argument('--epochs', type=int, default=200, help='Number of epochs for training')
+    parser.add_argument('--imgsz', type=int, default=320, help='Input image size for training')
     parser.add_argument('--batch', type=int, default=64, help='Batch size for training')
     parser.add_argument('--workers', type=int, default=4, help='Number of workers for data loading')
     parser.add_argument('--device', nargs='+', type=int, default=[1], help='Device ID or IDs for training (e.g., 0 or 0 1 for multiple GPUs)')
