@@ -6,3 +6,4 @@ script/memory.npy
 script/WeightAndBias.bin
 script/picture.bin
 script/order.txt
+DNN/*
