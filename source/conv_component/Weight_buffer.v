@@ -20,7 +20,7 @@ module Weight_buffer #(
     // data path       
     input [MEM_DATA_WIDTH-1:0]      weight_and_bias_data   ,
     input                           weight_and_bias_valid  ,
-    output                          weight_buffer_ready    ,
+    (* keep = "true" *)output                          weight_buffer_ready    ,
     // output data path  
     output                          weight_and_bias_ready  ,
     input  [1:0]                    change_weight_bias     ,  // 00: no change, 01: change weight, 10: change bias, 11: change weight and bias
@@ -32,17 +32,17 @@ localparam [1:0] IDLE = 2'b00, CHANGE_WEIGHT=2'b01, CHANGE_BIAS=2'b10, CHANGE_WE
 parameter WEIGHT_CNT = 0; //12586
 
 // variables declaration
-reg [1:0]                   state;
+(* keep = "true" *)reg [1:0]                   state;
 reg [3:0]                   cnt2;
 wire                        weight_buffer_almost_full;
-wire                        weight_buffer_empty;
+(* keep = "true" *)wire                        weight_buffer_empty;
 wire                        weight_buffer_rd_en;
 wire[MEM_DATA_WIDTH-1:0]    fifo_in_data;
 reg [8:0]                   weight_bias_output_addr;
 // for debug
-reg [31:0] debug_weight_cnt;
-reg        debug_weight_en;
-reg        debug_weight_ready;
+// reg [31:0] debug_weight_cnt;
+// reg        debug_weight_en;
+// reg        debug_weight_ready;
 
 generate
     // because the xilinx fifo is big-endian, we need to swap the data when using xilinx device
@@ -59,7 +59,7 @@ weight_and_bias_buffer_fifo weight_and_bias_buffer_fifo_inst (
     .srst              (~rst_n),
     .din               (fifo_in_data),
     .wr_en             (weight_and_bias_valid),
-    .rd_en             (weight_buffer_rd_en | debug_weight_en),
+    .rd_en             (weight_buffer_rd_en),
     .dout              (weight_bias_output_data),
     .full              (),
     .almost_full       (),
@@ -72,29 +72,29 @@ weight_and_bias_buffer_fifo weight_and_bias_buffer_fifo_inst (
 assign weight_buffer_ready = ~weight_buffer_almost_full;
 
 // for debug
-always @(posedge system_clk or negedge rst_n) begin
-    if(~rst_n) begin
-        debug_weight_cnt <= 0;
-        debug_weight_en <= 0;
-        debug_weight_ready <= 0;
-    end
-    else if (weight_buffer_rd_en) begin
-        debug_weight_cnt <= debug_weight_cnt + 1;
-        debug_weight_en <= 0;
-    end
-    else if (debug_weight_cnt >= WEIGHT_CNT) begin
-        debug_weight_en <= 0;
-        debug_weight_ready <= 1;
-    end
-    else if (~weight_buffer_empty & debug_weight_en == 0) begin
-        debug_weight_en <= 1;
-        debug_weight_cnt <= debug_weight_cnt + 1;
-    end
-    else begin
-        debug_weight_en <= 0;
-        debug_weight_cnt <= debug_weight_cnt;
-    end
-end
+// always @(posedge system_clk or negedge rst_n) begin
+//     if(~rst_n) begin
+//         debug_weight_cnt <= 0;
+//         debug_weight_en <= 0;
+//         debug_weight_ready <= 0;
+//     end
+//     else if (weight_buffer_rd_en) begin
+//         debug_weight_cnt <= debug_weight_cnt + 1;
+//         debug_weight_en <= 0;
+//     end
+//     else if (debug_weight_cnt >= WEIGHT_CNT) begin
+//         debug_weight_en <= 0;
+//         debug_weight_ready <= 1;
+//     end
+//     else if (~weight_buffer_empty & debug_weight_en == 0) begin
+//         debug_weight_en <= 1;
+//         debug_weight_cnt <= debug_weight_cnt + 1;
+//     end
+//     else begin
+//         debug_weight_en <= 0;
+//         debug_weight_cnt <= debug_weight_cnt;
+//     end
+// end
 
 // 更新权重或偏置
 always @(posedge system_clk or negedge rst_n) begin
@@ -163,7 +163,7 @@ always @(posedge system_clk or negedge rst_n) begin
     end
 end
 
-assign weight_buffer_rd_en   = (|weight_bias_output_addr) & ~weight_buffer_empty & debug_weight_ready;
+assign weight_buffer_rd_en   = (|weight_bias_output_addr) & ~weight_buffer_empty;
 
 assign weight_and_bias_ready = (state == IDLE) & (change_weight_bias == 2'b00);
 

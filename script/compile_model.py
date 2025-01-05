@@ -35,7 +35,6 @@ class Order(object):
                           "return_addr": 0,
                           "return_patch_num": 0,
                           "padding_size": 0,
-                          "weight_data_length": 0,
                           "activate": 0,
                           "id": 0
                           }
@@ -44,23 +43,27 @@ class Order(object):
         for key, value in self.parameter.items():
             self.parameter[key] = int(value)
 
-    def MakeOrderString(self):
-        OrderString = ""
-        parameter_len = len(self.parameter)
-        for i in range(parameter_len - 1, -1, -1):
-            OrderString += hex(self.parameter[IdMapping(i)])[2:].zfill(8)
-        return OrderString.zfill(256)
-
     def CompileOrder2Code(self):
-        """8-bit addr and 32-bit data """
+        """8-bit addr and 32-bit data for simulation """
         OrderCode = []
         for key, value in self.parameter.items():
             Id = IdMapping(key)
             """ command 1 define set parameter"""
-            OrderCode.append(hex(Id*4)[2:].zfill(2) + " " + hex(value)[2:].zfill(8))
+            OrderCode.append(hex(Id * 4)[2:].zfill(2) + " " + hex(value)[2:].zfill(8))
         """ command 2 define Run Order"""
-        OrderCode.append(hex(18*4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        OrderCode.append(hex(18 * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
         return OrderCode
+
+    def CompileOrder2Instruction(self):
+        """8-bit addr and 32-bit data for hardware"""
+        OrderInstruction = []
+        for key, value in self.parameter.items():
+            Id = IdMapping(key)
+            """ command 1 define set parameter"""
+            OrderInstruction.append(np.uint8(Id).tobytes() + np.uint32(value).tobytes())
+        """ command 2 define Run Order"""
+        OrderInstruction.append(np.uint8(18).tobytes() + np.uint32(0).tobytes())
+        return OrderInstruction
 
     def AllocateMemory(self, memory_point_input):
         return memory_point_input
@@ -82,6 +85,7 @@ class Order(object):
             # self.weight = weight_temp
             # bias_temp = np.ones_like(bias_temp) * 12 * np.power(2, self.w_quant)
             # self.bias = bias_temp
+            # (out_c, in_c, k, _) = weight_temp.shape
             if k == _ == 1:
                 z = np.zeros([out_c, in_c, 3, 3], dtype=weight_temp.dtype)
                 z[:, :, 1, 1] = weight_temp.squeeze()
@@ -173,7 +177,7 @@ class ConvOrder(Order):
                                                                 self.weight, self.bias, self.stride,
                                                                 self.GetOutputQuant(), self.activate)
         print("%-30s%-20s%-20s" % (self.layer_name, ' compare ' + str(correct), 'is zeros ' + str(is_zero)))
-        self.output_data = conv_out_ac_quant
+        self.output_data = s_data
 
 
 class MaxPoolOrder(Order):
@@ -221,7 +225,7 @@ class MaxPoolOrder(Order):
         s_data = ReshapeData(simulation_data[data_index], self.out_shape)
         pool_out, correct, is_zero = ComparePoolResult(s_data, self.input_layer.output_data, self.stride)
         print("%-30s%-20s%-20s" % (self.layer_name, ' compare ' + str(correct), 'is zeros ' + str(is_zero)))
-        self.output_data = pool_out
+        self.output_data = s_data
 
 
 class UpsampleOrder(Order):
@@ -269,7 +273,7 @@ class UpsampleOrder(Order):
         s_data = ReshapeData(simulation_data[data_index], self.out_shape)
         upsample_out, correct, is_zero = CompareUpSampleResult(s_data, self.input_layer.output_data)
         print("%-30s%-20s%-20s" % (self.layer_name, ' compare ' + str(correct), 'is zeros ' + str(is_zero)))
-        self.output_data = upsample_out
+        self.output_data = s_data
 
 
 class AddOrder(Order):
@@ -318,7 +322,7 @@ class AddOrder(Order):
         s_data = ReshapeData(simulation_data[data_index], self.out_shape)
         add_out_ac_quant, correct, is_zero = CompareAddResult(s_data, [self.inputLayerX1.output_data,
                                                                        self.inputLayerX2.output_data])
-        self.output_data = add_out_ac_quant
+        self.output_data = s_data
         print("%-30s%-20s%-20s" % (self.layer_name, ' compare ' + str(correct), 'is zeros ' + str(is_zero)))
 
 
@@ -599,11 +603,11 @@ class VideoImage(Order):
 
 
 class MyYolov8Model(object):
-    def __init__(self, VideoAddr, ImageShape: tuple, FeatureSpaceAddr):
+    def __init__(self, VideoAddr, ImageShape: tuple, FeatureSpaceAddr, modelPath):
         super(MyYolov8Model, self).__init__()
         self.FeatureSpaceAddr = FeatureSpaceAddr
         self.video = VideoImage(VideoAddr, ImageShape)
-        modelList = pickle.load(open('modelList.pkl', 'rb'))
+        modelList = pickle.load(open(modelPath, 'rb'))
         (conv_id, c2f_id, upsample_id, concat_id) = (0, 0, 0, 0)
         self.model = {}
         inLayer = self.video
@@ -775,30 +779,12 @@ class MyYolov8Model(object):
                 f.write(by)
         return WeightAndBias
 
-    def GenerateOrder(self):
-        order = []
-        flattenName, flattenLayer = self.FlattenLayer(self.model)
-        index = 0
-        for layer in flattenLayer:
-            if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
-                layer.id = index
-                layer.parameter['id'] = index
-                order.append(layer.MakeOrderString())
-                index += 1
-        with open("order.txt", 'w') as f:
-            zeros_l = 128 - len(order)
-            for order in order:
-                f.write(order)
-                f.write('\n')
-            for i in range(zeros_l):
-                f.write("0".zfill(256))
-                f.write('\n')
-
     def GenerateCode(self):
         code = []
         flattenName, flattenLayer = self.FlattenLayer(self.model)
         index = 0
-        code.append(hex(20*4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        code.append(hex(15 * 4)[2:].zfill(2) + " " + "011A4000")
+        code.append(hex(20 * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
         for layer in flattenLayer:
             if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
                 layer.id = index
@@ -810,12 +796,28 @@ class MyYolov8Model(object):
                 f.write(o)
                 f.write('\n')
 
+    def GenerateInstruction(self):
+        instruction = []
+        flattenName, flattenLayer = self.FlattenLayer(self.model)
+        index = 0
+        instruction.append(np.uint8(15).tobytes() + np.uint32(0x011A4000).tobytes())
+        instruction.append(np.uint8(20).tobytes() + np.uint32(0).tobytes())
+        for layer in flattenLayer:
+            if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
+                layer.id = index
+                layer.parameter['id'] = index
+                instruction += layer.CompileOrder2Instruction()
+                index += 1
+        instruction.append(np.uint8(255).tobytes() + np.uint32(255).tobytes())
+        f = open("instruction.bin", 'wb')
+        for o in instruction:
+            f.write(o)
+        f.close()
+
     def SetWeightLength(self):
         flattenName, flattenLayer = self.FlattenLayer(self.model)
-        for layer in flattenLayer:
-            layer.parameter['weight_data_length'] = 0x11A4000
 
-    def Build(self, code=False):
+    def Build(self):
         self.AllocateMemory()
         self.IntParameter()
         self.PrintModelMemoryUsing()
@@ -823,10 +825,8 @@ class MyYolov8Model(object):
         self.weight, self.bias = self.MakeWeight()
         self.weightAndBias = self.MakeWeightBiasBin()
         self.SetWeightLength()
-        if code:
-            self.GenerateCode()
-        else:
-            self.GenerateOrder()
+        self.GenerateCode()  # for axi write instruction ----> just simulation
+        self.GenerateInstruction()  # for axi write instruction -----> for hardware
 
     @staticmethod
     def RemoveNoCalculateLayers(layerName, layerList):
@@ -873,8 +873,3 @@ class MyYolov8Model(object):
         box_nms = np.stack(box_nms, axis=0)
         label_nms = np.stack(label_nms, axis=0)
         return box_list, label, box_nms, label_nms
-
-
-
-if __name__ == '__main__':
-    MyYolov8Model(0, (640, 480), 0x2800000)

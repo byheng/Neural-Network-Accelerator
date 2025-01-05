@@ -31,7 +31,7 @@ module get_order #
 	output [31:0]           return_addr					,
 	output [15:0]           return_patch_num			,
 	output [2:0]            padding_size				,
-	output [31:0]			weight_data_length			,
+	output reg[31:0]		weight_data_length			,
 	output                  activate   					,
 	output [31:0]			id							,
 	// User ports ends
@@ -82,6 +82,23 @@ wire                  push_order_en				;
 wire                  order_in_ready			;
 wire                  order_valid				;
 wire                  order_valid_r 			;
+reg  [31:0]			  finish_layer 				;
+reg  [31:0]			  push_layer 				;
+reg  [31:0]			  valid_layer 				;
+wire                  task_start_axi			;
+wire                  task_finish_axi			;
+reg                   task_start_r1,task_start_r2	;
+reg                   task_finish_r1,task_finish_r2	;
+
+always @(posedge system_clk) begin
+	task_start_r1 <= task_start_axi;
+	task_finish_r1 <= task_finish_axi;
+	task_start_r2 <= task_start_r1;
+	task_finish_r2 <= task_finish_r1;
+end
+
+assign task_start = task_start_r1 & ~task_start_r2;
+assign task_finish = task_finish_r1 & ~task_finish_r2;
 
 reg calculate_finish_r1;
 wire next_calculate_application;
@@ -111,9 +128,12 @@ set_accelerator_reg_axi # (
 	.activate   				(x_activate   				),
 	.id							(x_id						),
 	.push_order_en				(push_order_en				),
-	.task_start					(task_start					),	
-	.task_finish				(task_finish				),
+	.task_start					(task_start_axi				),	
+	.task_finish				(task_finish_axi			),
 	.order_in_ready				(order_in_ready				),
+	.finish_layer				(finish_layer				),	
+	.push_layer					(push_layer					),
+	.valid_layer				(valid_layer				),
 	.S_AXI_ACLK					(s00_axi_aclk				),
 	.S_AXI_ARESETN				(s00_axi_aresetn			),
 	.S_AXI_AWADDR				(s00_axi_awaddr				),
@@ -164,7 +184,6 @@ Cache_order Cache_order_inst(
     .x_return_addr              (x_return_addr				),
     .x_return_patch_num         (x_return_patch_num			),
     .x_padding_size             (x_padding_size				),
-    .x_weight_data_length       (x_weight_data_length		),
     .x_activate                 (x_activate   				),
     .x_id                       (x_id						),
     .order                      (order						),
@@ -182,7 +201,6 @@ Cache_order Cache_order_inst(
     .return_addr                (return_addr				),
     .return_patch_num           (return_patch_num			),
     .padding_size               (padding_size				),
-    .weight_data_length         (weight_data_length			),
     .activate                   (activate   				),
     .id                         (id							)
 );
@@ -208,4 +226,45 @@ end
 always @(posedge system_clk) begin
 	calculate_start <= order_valid_r;
 end
+
+always @(posedge system_clk or negedge rst_n) begin
+	if (~rst_n) begin
+		finish_layer <= 32'h0;
+	end
+	else if (task_start) begin
+		finish_layer <= 32'h0;
+	end
+	else if (next_calculate_application) begin
+		finish_layer <= finish_layer + 1;
+	end
+end
+
+always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
+	if (~s00_axi_aresetn) begin
+		push_layer <= 32'h0;
+	end
+	else if (task_start_axi) begin
+		push_layer <= 32'h0;
+	end
+	else if (push_order_en) begin
+		push_layer <= push_layer + 1;
+	end
+end
+
+always @(posedge system_clk or negedge rst_n) begin
+	if (~rst_n) begin
+		valid_layer <= 32'h0;
+	end
+	else if (task_start) begin
+		valid_layer <= 32'h0;
+	end
+	else if (calculate_start) begin
+		valid_layer <= valid_layer + 1;
+	end
+end
+
+always @(posedge system_clk) begin
+	weight_data_length <= x_weight_data_length;
+end
+
 endmodule

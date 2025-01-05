@@ -37,6 +37,9 @@
 		output                  task_start   				,
 		output                  task_finish   				,
 		input                   order_in_ready				,
+		input  [31:0]			finish_layer				,
+		input  [31:0]			push_layer					,	
+		input  [31:0]			valid_layer					,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -524,27 +527,27 @@
 	                // Slave register 21
 	                slv_reg21[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end  
-	          6'h16:
-	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 22
-	                slv_reg22[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	              end  
-	          6'h17:
-	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 23
-	                slv_reg23[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	              end  
-	          6'h18:
-	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 24
-	                slv_reg24[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	              end  
+	        //   6'h16:
+	        //     for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+	        //       if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+	        //         // Respective byte enables are asserted as per write strobes 
+	        //         // Slave register 22
+	        //         slv_reg22[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+	        //       end  
+	        //   6'h17:
+	        //     for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+	        //       if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+	        //         // Respective byte enables are asserted as per write strobes 
+	        //         // Slave register 23
+	        //         slv_reg23[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+	        //       end  
+	        //   6'h18:
+	        //     for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+	        //       if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+	        //         // Respective byte enables are asserted as per write strobes 
+	        //         // Slave register 24
+	        //         slv_reg24[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+	        //       end  
 	          6'h19:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
@@ -1013,9 +1016,9 @@
 	        6'h13   : reg_data_out <= order_in_ready;
 	        6'h14   : reg_data_out <= slv_reg20;
 	        6'h15   : reg_data_out <= slv_reg21;
-	        6'h16   : reg_data_out <= slv_reg22;
-	        6'h17   : reg_data_out <= slv_reg23;
-	        6'h18   : reg_data_out <= slv_reg24;
+	        6'h16   : reg_data_out <= finish_layer;
+	        6'h17   : reg_data_out <= push_layer;
+	        6'h18   : reg_data_out <= valid_layer;
 	        6'h19   : reg_data_out <= slv_reg25;
 	        6'h1A   : reg_data_out <= slv_reg26;
 	        6'h1B   : reg_data_out <= slv_reg27;

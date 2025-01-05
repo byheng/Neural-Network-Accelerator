@@ -438,7 +438,7 @@ always @(posedge clk) begin
                 $writememh(memory_patch, mem);
                 $display("the %d layer simulation is finish", conv_control_tb.u_accelerator_control.get_order_inst.id);
                 // $display("save memory data to file");
-                $display("weight_cnt==%d", conv_control_tb.u_accelerator_control.u_Weight_buffer.debug_weight_cnt);
+                // $display("weight_cnt==%d", conv_control_tb.u_accelerator_control.u_Weight_buffer.debug_weight_cnt);
                 $display("Using time: %d us", (($time - times) / 10000000));
                 times = $time;
                 $fclose(file);
@@ -449,7 +449,7 @@ always @(posedge clk) begin
         end
         else begin
             $display("the %d layer simulation is finish", conv_control_tb.u_accelerator_control.get_order_inst.id);
-            $display("weight_cnt==%d", conv_control_tb.u_accelerator_control.u_Weight_buffer.debug_weight_cnt); 
+            // $display("weight_cnt==%d", conv_control_tb.u_accelerator_control.u_Weight_buffer.debug_weight_cnt); 
             $display("Using time: %d us", (($time - times) / 10000000));
             times = $time;
         end

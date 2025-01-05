@@ -22,8 +22,8 @@ module feature_buffer #(
     input                           load_feature_begin    ,
     input [9:0]                     row_size              ,
     input [9:0]                     col_size              ,
-    input                           stride                ,
-    input [2:0]                     padding_size          ,
+    (* keep = "true" *)input                           stride                ,
+    (* keep = "true" *)input [2:0]                     padding_size          ,
     // data path      
     input [MEM_DATA_WIDTH-1:0]      feature_data          ,
     input                           feature_buffer_1_valid,
@@ -33,14 +33,14 @@ module feature_buffer #(
     input                           feature_double_patch  ,    // 输入数据是否为双批，单批是8输入通道，双批是16输入通道
     // output data path
     output[FETURE_DATA_WIDTH-1:0]   feature_output_data   ,
-    output                          feature_output_valid  ,
-    input                           feature_output_ready  ,
+    (* keep = "true" *)output                          feature_output_valid  ,
+    (* keep = "true" *)input                           feature_output_ready  ,
     // calculate data valid signal
-    output                          convolution_valid     ,
-    output                          pool_data_valid       ,
-    output                          adder_pulse           ,
-    output [9:0]                    col_size_for_cache    ,
-    output [2:0]                    kernel_size
+    (* keep = "true" *)output                          convolution_valid     ,
+    (* keep = "true" *)output                          pool_data_valid       ,
+    (* keep = "true" *)output                          adder_pulse           ,
+    (* keep = "true" *)output [9:0]                    col_size_for_cache    ,
+    (* keep = "true" *)input [2:0]                     kernel_size
 );
 
 wire [FEATURE_WIDTH*8-1:0] feature_data_expand[3:0];
@@ -50,25 +50,25 @@ wire [7:0]                 feature_buffer_1_empty;
 wire [FEATURE_WIDTH*4-1:0] feature_buffer_2_data[7:0];
 wire [7:0]                 feature_buffer_2_almost_full;
 wire [7:0]                 feature_buffer_2_empty;
-reg  [9:0]                 row_cnt;
-reg  [9:0]                 col_cnt;
-reg                        calculate_keep, calculate_keep_r1;
-reg                        padding_flag;
-wire                       padding_en;
-reg                        padding_en_reg;
-reg                        fifo_flag;
-wire                       fifo_rd_en;
-reg                        fifo_rd_en_reg;
-wire                       fifo_empty;
+(* keep = "true" *)reg  [9:0]                 row_cnt;
+(* keep = "true" *)reg  [9:0]                 col_cnt;
+(* keep = "true" *)reg                        calculate_keep, calculate_keep_r1;
+(* keep = "true" *)wire                       padding_en;
+(* keep = "true" *)reg                        padding_en_reg;
+(* keep = "true" *)wire                       fifo_rd_en;
+(* keep = "true" *)reg                        fifo_rd_en_reg;
+(* keep = "true" *)wire                       fifo_empty;
 wire [FEATURE_WIDTH-1:0]   fifo_output_data[PE_CORE_NUM-1:0];
-wire                       compute_finish_signal;
+(* keep = "true" *)wire                       compute_finish_signal;
 wire                       fifo_rst;
 wire [15:0]                wr_rst_busy;
 wire [15:0]                rd_rst_busy;
-reg  [9:0]                 row_plus_padding;
-reg  [9:0]                 col_plus_padding;
-reg  [3:0]                 padding_size_double;    
-reg  [2:0]                 kernel_size_miner;
+wire                       buffer1_rst_busy;
+wire                       buffer2_rst_busy;
+(* keep = "true" *)reg  [9:0]                 row_plus_padding;
+(* keep = "true" *)reg  [9:0]                 col_plus_padding;
+(* keep = "true" *)reg  [3:0]                 padding_size_double;    
+(* keep = "true" *)reg  [2:0]                 kernel_size_miner;
 
 always@(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
@@ -124,7 +124,8 @@ generate
         );
     end
 endgenerate
-assign feature_buffer_1_ready = ~(|feature_buffer_1_almost_full);
+assign feature_buffer_1_ready = (~(|feature_buffer_1_almost_full)) & (~buffer1_rst_busy);
+assign buffer1_rst_busy = (|wr_rst_busy[7:0]) | (|rd_rst_busy[7:0]);
 
 // patch 2的fifo
 generate
@@ -144,7 +145,8 @@ generate
         );      
     end
 endgenerate
-assign feature_buffer_2_ready = ~(|feature_buffer_2_almost_full);
+assign feature_buffer_2_ready = (~(|feature_buffer_2_almost_full)) & (~buffer2_rst_busy);
+assign buffer2_rst_busy = (|wr_rst_busy[15:8]) | (|rd_rst_busy[15:8]);
 
 assign fifo_empty = (feature_double_patch) ? (|feature_buffer_1_empty) | (|feature_buffer_2_empty) : (|feature_buffer_1_empty);
 
@@ -190,40 +192,6 @@ always@(posedge system_clk) begin
 end
 assign compute_finish_signal = calculate_keep_r1 & ~calculate_keep;
 
-always@(posedge system_clk or negedge rst_n) begin
-    if(~rst_n) begin
-        padding_flag <= 0;
-    end
-    else if (calculate_keep) begin
-        if ((row_cnt<padding_size)||(row_cnt>=row_plus_padding)||(col_cnt<padding_size)||(col_cnt>=col_plus_padding))begin
-            padding_flag <= 1;
-        end
-        else begin
-            padding_flag <= 0;
-        end
-    end
-    else begin
-        padding_flag <= 0;
-    end
-end
-
-always@(posedge system_clk or negedge rst_n) begin
-    if(~rst_n) begin
-        fifo_flag <= 0;
-    end
-    else if (calculate_keep) begin
-        if ((row_cnt<padding_size)||(row_cnt>=row_size+padding_size)||(col_cnt<padding_size)||(col_cnt>=col_size+padding_size)) begin
-            fifo_flag <= 0;
-        end
-        else begin
-            fifo_flag <= 1;
-        end
-    end
-    else begin
-        fifo_flag <= 0;
-    end
-end
-
 assign padding_en = ((row_cnt<padding_size) | (row_cnt>=row_plus_padding) | (col_cnt<padding_size) | (col_cnt>=col_plus_padding)) & feature_output_ready & calculate_keep;
 assign fifo_rd_en = (row_cnt>=padding_size) & (row_cnt<row_plus_padding) & (col_cnt>=padding_size) & (col_cnt<col_plus_padding) & feature_output_ready & calculate_keep & (~fifo_empty);
 
@@ -257,15 +225,6 @@ always@(posedge system_clk or negedge rst_n) begin
         convolution_valid_flag <= 1'b0;
     end
 end
-
-// always@(posedge system_clk or negedge rst_n) begin
-//     if(~rst_n) begin
-//         convolution_valid_reg <= 0;
-//     end
-//     else begin
-//         convolution_valid_reg <= convolution_valid_flag & feature_output_valid;
-//     end
-// end
 
 assign convolution_valid_wire = convolution_valid_flag & feature_output_valid;
 
