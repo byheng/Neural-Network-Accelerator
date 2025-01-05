@@ -54,9 +54,15 @@ This project aims to implement an acceleration circuit for convolutional neural 
 
   The method of loading instructions is modified to read and write registers through the axi_lite interface, and the modelsim simulation is completed. During the simulation process, BFM is used to simulate the process of CPU scheduling axi_lite interface reading and writing registers.
 
+- **2025-01-01**
+
+  The deployment on xilinx 19EG has been completed, and the inference of static images in ddr has been completed. But the circuit design can only reach 200Mhz. Very sad, but, not bad.
+
 - **todo**
 
-  1. Complete the deployment on xilinx 19EG, and complete the inference of the static pictures in ddr. In 19EG, I will try to perfect the circuit design so that it can reach 300MHz。
+  1. Improve the logic on the ps side so that the accelerator supports single-step instruction operation and loop instruction operation.
+
+
 
 ## Reference
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)
