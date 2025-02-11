@@ -91,15 +91,30 @@ generate
     for(i=0;i<4;i=i+1) begin: feature_expand
         assign feature_data_expand[i] = feature_data[(i+1)*FEATURE_WIDTH*8-1:i*FEATURE_WIDTH*8];
     end
-    for(i=0;i<8;i=i+1) begin: feature_buffer_1_assign
-        assign feature_buffer_1_data[i] = {feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
-                                            feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
-                                            feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
-                                            feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
-        assign feature_buffer_2_data[i] = {feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
-                                            feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
-                                            feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
-                                            feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
+    // because the xilinx fifo is big-endian, we need to swap the data when using xilinx device
+    if (`device == "xilinx") begin
+        for(i=0;i<8;i=i+1) begin: feature_buffer_1_assign
+            assign feature_buffer_1_data[i] = {feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
+            assign feature_buffer_2_data[i] = {feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
+        end
+    end
+    else if (`device == "simulation") begin
+        for(i=0;i<8;i=i+1) begin: feature_buffer_1_assign
+            assign feature_buffer_1_data[i] = {feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
+            assign feature_buffer_2_data[i] = {feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+                                                feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
+        end
     end
 endgenerate
 
@@ -108,20 +123,47 @@ assign fifo_rst = (~rst_n) | load_feature_begin;
 // patch 1的fifo
 generate
     for (i=0;i<8;i=i+1) begin: feature_buffer_1_fifo
-        feature_buffer_fifo feature_buffer_fifo_inst(
-            .clk               (system_clk),
-            .srst              (fifo_rst),
-            .din               (feature_buffer_1_data[i]),
-            .wr_en             (feature_buffer_1_valid),
-            .rd_en             (fifo_rd_en),
-            .dout              (fifo_output_data[i]),
-            .full              (),
-            .almost_full       (),
-            .empty             (feature_buffer_1_empty[i]),
-            .wr_rst_busy       (wr_rst_busy[i]),
-            .rd_rst_busy       (rd_rst_busy[i]),
-            .prog_full         (feature_buffer_1_almost_full[i])
-        );
+        if (`device == "xilinx") begin
+            feature_buffer_fifo feature_buffer_fifo_inst(
+                .clk               (system_clk                      ),
+                .srst              (fifo_rst                        ),
+                .din               (feature_buffer_1_data[i]        ),
+                .wr_en             (feature_buffer_1_valid          ),
+                .rd_en             (fifo_rd_en                      ),
+                .dout              (fifo_output_data[i]             ),
+                .full              (                                ),
+                .almost_full       (                                ),
+                .empty             (feature_buffer_1_empty[i]       ),
+                .wr_rst_busy       (wr_rst_busy[i]                  ),
+                .rd_rst_busy       (rd_rst_busy[i]                  ),
+                .prog_full         (feature_buffer_1_almost_full[i] )
+            );
+        end
+        else if (`device == "simulation") begin
+            ram_based_fifo #(
+                .DATA_W                  	( 64       ),
+                .DEPTH_W                 	( 9        ),
+                .DATA_R                  	( 16       ),
+                .DEPTH_R                 	( 11       ),
+                .ALMOST_FULL_THRESHOLD   	( 256      ),
+                .ALMOST_EMPTY_THRESHOLD  	( 2        ),
+                .FIRST_WORD_FALL_THROUGH 	( 0        )
+            )
+            u_ram_based_fifo(
+                .system_clk     	( system_clk                      ),
+                .rst_n          	( ~fifo_rst                       ),
+                .i_wren         	( feature_buffer_1_valid          ),
+                .i_wrdata       	( feature_buffer_1_data[i]        ),
+                .o_full         	(                                 ),
+                .o_almost_full  	( feature_buffer_1_almost_full[i] ),
+                .i_rden         	( fifo_rd_en                      ),
+                .o_rddata       	( fifo_output_data[i]             ),
+                .o_empty        	( feature_buffer_1_empty[i]       ),
+                .o_almost_empty 	(                                 )  
+            );
+            assign wr_rst_busy[i] = 0;
+            assign rd_rst_busy[i] = 0;
+        end
     end
 endgenerate
 assign feature_buffer_1_ready = (~(|feature_buffer_1_almost_full)) & (~buffer1_rst_busy);
@@ -130,19 +172,46 @@ assign buffer1_rst_busy = (|wr_rst_busy[7:0]) | (|rd_rst_busy[7:0]);
 // patch 2的fifo
 generate
     for (i=0;i<8;i=i+1) begin: feature_buffer_2_fifo
-        feature_buffer_fifo feature_buffer_fifo_inst(
-            .clk               (system_clk),
-            .srst              (fifo_rst),
-            .din               (feature_buffer_2_data[i]),
-            .wr_en             (feature_buffer_2_valid),
-            .rd_en             (fifo_rd_en),
-            .dout              (fifo_output_data[8+i]),
-            .full              (),
-            .almost_full       (feature_buffer_2_almost_full[i]),
-            .empty             (feature_buffer_2_empty[i]),
-            .wr_rst_busy       (wr_rst_busy[8+i]),
-            .rd_rst_busy       (rd_rst_busy[8+i])
-        );      
+        if (`device == "xilinx") begin
+            feature_buffer_fifo feature_buffer_fifo_inst(
+                .clk               (system_clk),
+                .srst              (fifo_rst),
+                .din               (feature_buffer_2_data[i]),
+                .wr_en             (feature_buffer_2_valid),
+                .rd_en             (fifo_rd_en),
+                .dout              (fifo_output_data[8+i]),
+                .full              (),
+                .almost_full       (feature_buffer_2_almost_full[i]),
+                .empty             (feature_buffer_2_empty[i]),
+                .wr_rst_busy       (wr_rst_busy[8+i]),
+                .rd_rst_busy       (rd_rst_busy[8+i])
+            );     
+        end
+        else if (`device == "simulation") begin
+            ram_based_fifo #(
+                .DATA_W                  	( 64       ),
+                .DEPTH_W                 	( 9        ),
+                .DATA_R                  	( 16       ),
+                .DEPTH_R                 	( 11       ),
+                .ALMOST_FULL_THRESHOLD   	( 256      ),
+                .ALMOST_EMPTY_THRESHOLD  	( 2        ),
+                .FIRST_WORD_FALL_THROUGH 	( 0        )
+            )
+            u_ram_based_fifo(
+                .system_clk     	( system_clk                      ),
+                .rst_n          	( ~fifo_rst                       ),
+                .i_wren         	( feature_buffer_2_valid          ),
+                .i_wrdata       	( feature_buffer_2_data[i]        ),
+                .o_full         	(                                 ),
+                .o_almost_full  	( feature_buffer_2_almost_full[i] ),
+                .i_rden         	( fifo_rd_en                      ),
+                .o_rddata       	( fifo_output_data[8+i]             ),
+                .o_empty        	( feature_buffer_2_empty[i]       ),
+                .o_almost_empty 	(                                 )  
+            );
+            assign wr_rst_busy[8+i] = 0;
+            assign rd_rst_busy[8+i] = 0;
+        end
     end
 endgenerate
 assign feature_buffer_2_ready = (~(|feature_buffer_2_almost_full)) & (~buffer2_rst_busy);

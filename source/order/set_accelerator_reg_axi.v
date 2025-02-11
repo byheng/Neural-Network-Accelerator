@@ -36,6 +36,7 @@
 		output                  push_order_en				,
 		output                  task_start   				,
 		output                  task_finish   				,
+		output                  accelerator_restart			,
 		input                   order_in_ready				,
 		input  [31:0]			finish_layer				,
 		input  [31:0]			push_layer					,	
@@ -1103,6 +1104,7 @@
 	assign push_order_en            = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 18) & slv_reg_wren;
 	assign task_start               = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 20) & slv_reg_wren;
 	assign task_finish              = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 21) & slv_reg_wren;
+	assign accelerator_restart      = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 25) & slv_reg_wren;
 	// User logic ends
 
 	endmodule

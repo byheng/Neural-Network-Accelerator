@@ -49,25 +49,53 @@ generate
     if (`device == "xilinx") begin
         assign fifo_in_data = {weight_and_bias_data[255:0], weight_and_bias_data[511:256]};
     end
-    else begin
+    else if (`device == "simulation") begin
         assign fifo_in_data = weight_and_bias_data;
     end
 endgenerate
 
-weight_and_bias_buffer_fifo weight_and_bias_buffer_fifo_inst (
-    .clk               (system_clk),
-    .srst              (~rst_n),
-    .din               (fifo_in_data),
-    .wr_en             (weight_and_bias_valid),
-    .rd_en             (weight_buffer_rd_en),
-    .dout              (weight_bias_output_data),
-    .full              (),
-    .almost_full       (),
-    .empty             (weight_buffer_empty),
-    .wr_rst_busy       (),
-    .rd_rst_busy       (),
-    .prog_full         (weight_buffer_almost_full)
-);
+generate
+    if (`device == "xilinx") begin
+        weight_and_bias_buffer_fifo weight_and_bias_buffer_fifo_inst (
+            .clk               (system_clk),
+            .srst              (~rst_n),
+            .din               (fifo_in_data),
+            .wr_en             (weight_and_bias_valid),
+            .rd_en             (weight_buffer_rd_en),
+            .dout              (weight_bias_output_data),
+            .full              (),
+            .almost_full       (),
+            .empty             (weight_buffer_empty),
+            .wr_rst_busy       (),
+            .rd_rst_busy       (),
+            .prog_full         (weight_buffer_almost_full)
+        );
+    end
+    else if (`device == "simulation") begin
+        ram_based_fifo #(
+            .DATA_W                  	( 512      ),
+            .DEPTH_W                 	( 9        ),
+            .DATA_R                  	( 256      ),
+            .DEPTH_R                 	( 10       ),
+            .ALMOST_FULL_THRESHOLD   	( 256      ),
+            .ALMOST_EMPTY_THRESHOLD  	( 2        ),
+            .FIRST_WORD_FALL_THROUGH 	( 0        )
+        )
+        u_ram_based_fifo(
+            .system_clk     	( system_clk                ),
+            .rst_n          	( rst_n                     ),
+            .i_wren         	( weight_and_bias_valid     ),
+            .i_wrdata       	( fifo_in_data              ),
+            .o_full         	(                           ),
+            .o_almost_full  	( weight_buffer_almost_full ),
+            .i_rden         	( weight_buffer_rd_en       ),
+            .o_rddata       	( weight_bias_output_data   ),
+            .o_empty        	( weight_buffer_empty       ),
+            .o_almost_empty 	(                           )  
+        );
+    end
+endgenerate
+
 
 assign weight_buffer_ready = ~weight_buffer_almost_full;
 

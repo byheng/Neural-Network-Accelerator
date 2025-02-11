@@ -131,7 +131,7 @@ wire            calculate_finish;
 
 accelerator_control u_accelerator_control(
     .system_clk                   ( system_clk      ),
-    .rst_n                        ( rst_n           ),
+    .system_rst_n                 ( rst_n           ),
     .m00_axi_araddr               ( s_axi_araddr    ),
     .m00_axi_arlen                ( s_axi_arlen     ),
     .m00_axi_arsize               ( s_axi_arsize    ),

@@ -13,6 +13,7 @@ module get_order #
 	input                   rst_n						,
 	output                  task_start					,	
 	output                  task_finish					,
+	output reg              accelerator_restart			,
 	input  				 	calculate_finish			,
 	output reg				calculate_start				,
 
@@ -87,8 +88,10 @@ reg  [31:0]			  push_layer 				;
 reg  [31:0]			  valid_layer 				;
 wire                  task_start_axi			;
 wire                  task_finish_axi			;
+wire                  accelerator_restart_axi	;
 reg                   task_start_r1,task_start_r2	;
 reg                   task_finish_r1,task_finish_r2	;
+reg [2:0]             rst_cnt;
 
 always @(posedge system_clk) begin
 	task_start_r1 <= task_start_axi;
@@ -99,6 +102,30 @@ end
 
 assign task_start = task_start_r1 & ~task_start_r2;
 assign task_finish = task_finish_r1 & ~task_finish_r2;
+
+always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
+	if (~s00_axi_aresetn) begin
+		accelerator_restart <= 0;
+	end
+	else if (accelerator_restart_axi) begin
+		accelerator_restart <= 1;
+	end
+	else if (rst_cnt == 7) begin
+		accelerator_restart <= 0;
+	end
+end
+
+always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
+	if (~s00_axi_aresetn) begin
+		rst_cnt <= 0;
+	end
+	else if (accelerator_restart) begin
+		rst_cnt <= rst_cnt + 1;
+	end
+	else begin
+		rst_cnt <= 0;
+	end
+end
 
 reg calculate_finish_r1;
 wire next_calculate_application;
@@ -130,6 +157,7 @@ set_accelerator_reg_axi # (
 	.push_order_en				(push_order_en				),
 	.task_start					(task_start_axi				),	
 	.task_finish				(task_finish_axi			),
+	.accelerator_restart		(accelerator_restart_axi	),
 	.order_in_ready				(order_in_ready				),
 	.finish_layer				(finish_layer				),	
 	.push_layer					(push_layer					),

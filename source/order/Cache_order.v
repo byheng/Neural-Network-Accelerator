@@ -5,6 +5,8 @@
 */
 `timescale 1ns/100fs
 
+`include "../../parameters.v"
+
 module Cache_order(
     input                   axi_clk                    ,
     input                   axi_rst_n                  ,
@@ -67,19 +69,41 @@ assign order_in_ready = ~order_fifo_almost_full;
 
 assign order_fifo_in = {x_id, x_activate, x_return_addr, x_return_patch_num, x_padding_size, x_stride, x_fea_out_quant_size, x_fea_in_quant_size, x_weight_quant_size, x_col_size, x_row_size, x_feature_patch_num, x_feature_double_patch, x_feature_output_patch_num, x_feature_input_patch_num, x_feature_input_base_addr, x_order};
 
-order_cache order_cache_inst (
-    .wr_clk         (axi_clk),
-    .wr_rst         (~axi_rst_n),
-    .rd_clk         (system_clk),
-    .rd_rst         (~rst_n),
-    .din            (order_fifo_in),
-    .wr_en          (push_order_en),
-    .rd_en          (pop_order_en),
-    .dout           (order_fifo_out),
-    .full           (),
-    .almost_full    (order_fifo_almost_full),
-    .empty          (order_fifo_empty)
-);
+generate
+    if (`device == "xilinx") begin
+        order_cache order_cache_inst (
+            .wr_clk         (axi_clk),
+            .rst            (~rst_n),
+            .rd_clk         (system_clk),
+            .din            (order_fifo_in),
+            .wr_en          (push_order_en),
+            .rd_en          (pop_order_en),
+            .dout           (order_fifo_out),
+            .full           (),
+            .almost_full    (order_fifo_almost_full),
+            .empty          (order_fifo_empty)
+        );        
+    end
+    else if (`device == "simulation") begin
+        async_fifo #(
+            .DSIZE 	( 256   ),
+            .ASIZE 	( 9     )
+        )
+        u_async_fifo(
+            .winc   	( push_order_en         ),
+            .wclk   	( axi_clk               ),
+            .wrst_n 	( axi_rst_n             ),
+            .rinc   	( pop_order_en          ),
+            .rclk   	( system_clk            ),
+            .rrst_n 	( rst_n                 ),
+            .wdata  	( order_fifo_in         ),
+            .rdata  	( order_fifo_out        ),
+            .wfull  	( order_fifo_almost_full),
+            .rempty 	( order_fifo_empty      )
+        );
+    end
+endgenerate
+
 
 assign order_valid = pop_order_en & ~order_fifo_empty;
 

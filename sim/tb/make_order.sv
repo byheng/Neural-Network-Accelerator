@@ -70,7 +70,7 @@ initial begin
     bfm = new(axi);
     instruction_finish = 0;
     // 打开文件
-    file = $fopen("F:/FPGA/accelerator_core/script/order_code.txt", "r");
+    file = $fopen("../compile/compile_out/order_code.txt", "r");
     if (file == 0) begin
           $display("Error: Cannot open file.");
           $finish;

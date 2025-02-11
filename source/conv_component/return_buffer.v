@@ -77,22 +77,50 @@ assign m00_axi_awlen = 8'd63;
 
 assign return_buffer_ready = ~return_buffer_almost_full;
 
-return_buffer_fifo return_buffer_fifo_inst (
-    .clk            (system_clk),                
-    .srst           (fifo_rst),        
-    .din            (return_data),        
-    .wr_en          (return_data_valid),        
-    .rd_en          (return_buffer_rd_en),        
-    .dout           (return_buffer_data),        
-    .full           (),        
-    .almost_full    (),            
-    .empty          (return_buffer_empty),
-    .almost_empty   (),        
-    .prog_full      (return_buffer_almost_full),    
-    .prog_empty     (return_buffer_almost_empty),        
-    .wr_rst_busy    (),        
-    .rd_rst_busy    ()       
-);
+generate
+    if (`device == "xilinx") begin
+        return_buffer_fifo return_buffer_fifo_inst (
+            .clk            (system_clk),                
+            .srst           (fifo_rst),        
+            .din            (return_data),        
+            .wr_en          (return_data_valid),        
+            .rd_en          (return_buffer_rd_en),        
+            .dout           (return_buffer_data),        
+            .full           (),        
+            .almost_full    (),            
+            .empty          (return_buffer_empty),
+            .almost_empty   (),        
+            .prog_full      (return_buffer_almost_full),    
+            .prog_empty     (return_buffer_almost_empty),        
+            .wr_rst_busy    (),        
+            .rd_rst_busy    ()       
+        );
+    end
+    else if (`device == "simulation") begin
+        ram_based_fifo #(
+            .DATA_W                  	( 128      ),
+            .DEPTH_W                 	( 11       ),
+            .DATA_R                  	( 512      ),
+            .DEPTH_R                 	( 9        ),
+            .ALMOST_FULL_THRESHOLD   	( 2016     ),
+            .ALMOST_EMPTY_THRESHOLD  	( 64       ),
+            .FIRST_WORD_FALL_THROUGH 	( 1        )
+        )
+        u_ram_based_fifo(
+            .system_clk     	( system_clk                    ),
+            .rst_n          	( ~fifo_rst                     ),
+            .i_wren         	( return_data_valid             ),
+            .i_wrdata       	( return_data                   ),
+            .o_full         	(                               ),
+            .o_almost_full  	( return_buffer_almost_full     ),
+            .i_rden         	( return_buffer_rd_en           ),
+            .o_rddata       	( return_buffer_data            ),
+            .o_empty        	( return_buffer_empty           ),
+            .o_almost_empty 	( return_buffer_almost_empty    )  
+        );
+    end
+endgenerate
+
 
 /*-------------------------------- DDR AXI-4 write logic --------------------------*/
 always @(posedge system_clk or negedge rst_n) begin
@@ -186,7 +214,16 @@ end
 
 assign m00_axi_awvalid = (write_ddr_state == WRITE_REQ);
 assign m00_axi_wvalid = (write_ddr_state == WRITE_DATA) & ((~return_buffer_empty) | output_buffer_done) & (cnt <= m00_axi_awlen);
-assign m00_axi_wdata = {return_buffer_data[127:0], return_buffer_data[255:128], return_buffer_data[383:256], return_buffer_data[511:384]};
+// because the xilinx fifo is big-endian, we need to swap the data when using xilinx device
+generate
+    if (`device == "xilinx") begin
+        assign m00_axi_wdata = {return_buffer_data[127:0], return_buffer_data[255:128], return_buffer_data[383:256], return_buffer_data[511:384]};
+    end
+    else if (`device == "simulation") begin
+        assign m00_axi_wdata = return_buffer_data;
+    end
+endgenerate
+
 assign m00_axi_wlast = (cnt == m00_axi_awlen) && m00_axi_wvalid && m00_axi_wready;
 
 assign return_buffer_rd_en = m00_axi_wvalid && m00_axi_wready;

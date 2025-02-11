@@ -1,6 +1,13 @@
 vlib work
 vmap work ./work
-vlog ./tb/*.v
-vlog ./tb/*.sv
 
-vlog ../source/order/*.v
+vlog ../parameters.v
+vlog ../ipcore/simulation/*
+vlog ../source/conv_component/*
+vlog ../source/order/*
+vlog ../source/pool_component/*
+vlog ../source/upsample_component/*
+vlog ../source/accelerator_control.v
+vlog ./tb/*
+
+vsim -c -do "run -all; quit" work.conv_control_tb

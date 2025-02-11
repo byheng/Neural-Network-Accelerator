@@ -25,7 +25,7 @@ module accelerator_control #(
 )
 (
     input                           system_clk,
-    input                           rst_n,
+    input                           system_rst_n,
     // accelerator core parameters (when simulation finish, it will be change to AXI-lite interface)
 
     // AXI-signal for ddr port
@@ -213,6 +213,8 @@ wire                            upsample_ready;
 wire                            unsample_feature_valid;
 wire                            upsample_buffer_empty;
 wire                            single_operator_buffer_done;
+(* keep = "true" *)wire                            rst_n;
+(* keep = "true" *)wire                            accelerator_restart;
 
 integer i;
 
@@ -581,6 +583,8 @@ end
 
 
 // assign signals
+assign rst_n 			 = system_rst_n & (~accelerator_restart);
+
 assign weight            = weight_bias_output_data;
 assign weight_valid      = weight_bias_output_valid[7:0];
 assign bias              = weight_bias_output_data;
@@ -826,6 +830,7 @@ get_order get_order_inst(
 	.rst_n						( rst_n				  	  ),
 	.task_start					( task_start			  ),	
 	.task_finish				( task_finish			  ),
+	.accelerator_restart		( accelerator_restart	  ),
 	.calculate_finish			( calculate_finish		  ),
 	.calculate_start			( calculate_start		  ),
 	.order						( order					  ),
