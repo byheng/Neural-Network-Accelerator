@@ -9,53 +9,980 @@ z2
 cModel Technology
 Z0 dF:/FPGA/accelerator_core/sim
 T_opt
-!s110 1732612907
-V4nX1W=P1IB<hQmRg9TWXU1
-04 15 4 work conv_control_tb fast 0
-=2-047c16d2c882-6745932b-17d-299ec
-o-quiet -auto_acc_if_foreign -work work
-Z1 tCvgOpt 0
+!s110 1739259395
+VHhW6QgVHZkaIZ:DR]E[dM1
+Z1 04 15 4 work conv_control_tb fast 0
+=1-047c16d2c882-67aafe03-273-1113c
+Z2 o-quiet -auto_acc_if_foreign -work work
+Z3 tCvgOpt 0
 n@_opt
-OL;O;10.7;67
-vaxi_ram
-!s110 1732612904
-!i10b 1
-!s100 ^5A^1[Am^:<m`4`l?0cjG3
-IkK0@A4oZNH12AQ?M?1JKf3
-Z2 VDg1SIo80bB@j0V0VzS_@n1
+Z4 OL;O;10.7;67
 R0
-w1732612881
-8F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v
-FF:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v
-L0 35
-Z3 OL;L;10.7;67
+T_opt1
+!s110 1739244912
+VmLoBXK:GodW5@BIingOZi3
+04 16 4 work refresh_ddr_data fast 0
+=1-047c16d2c882-67aac570-8d-10514
+R2
+R3
+n@_opt1
+R4
+R0
+T_opt2
+!s110 1739255786
+Vi27bFemVGzXJ0dhXOCjeD3
+R1
+=1-047c16d2c882-67aaefea-147-6b00
+o-quiet -auto_acc_if_foreign -work work +acc
+R3
+n@_opt2
+R4
+R0
+vaccelerator_control
+Z5 !s110 1739261970
+!i10b 1
+!s100 ZEljKA?;>i_Be1N@H_WF03
+I=4=@7dKSf_N:8K4IfO@l42
+Z6 VDg1SIo80bB@j0V0VzS_@n1
+R0
+w1737013795
+8../source/accelerator_control.v
+F../source/accelerator_control.v
+Z7 L0 13
+Z8 OL;L;10.7;67
 r1
 !s85 0
 31
-!s108 1732612904.000000
-!s107 F:\FPGA\accelerator_core\sim\tb\..\..\parameters.v|F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v|
-!s90 -reportprogress|300|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v|
+Z9 !s108 1739261970.000000
+!s107 ../parameters.v|../source/accelerator_control.v|
+!s90 ../source/accelerator_control.v|
 !i113 0
-Z4 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
-R1
-vconv_control_tb
-!s110 1732612815
+Z10 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+R3
+vactivate_function
+Z11 !s110 1739261969
 !i10b 1
-!s100 [F1k`7PhVPC<<<lfo7ZM=3
-I_5a>Q8m;EWV:H4KCGY1J53
-R2
+!s100 2DazYfkPQ:k<6WUZcfmNn3
+In@6e0S@Z^dGeKMG?P8M@W3
+R6
 R0
-w1732612805
+Z12 w1735031815
+8../source/conv_component/activate_function.v
+F../source/conv_component/activate_function.v
+Z13 L0 10
+R8
+r1
+!s85 0
+31
+Z14 !s108 1739261969.000000
+Z15 !s107 ..\source\conv_component\..\..\parameters.v|../source/conv_component/return_data_arbitra.v|../source/conv_component/return_buffer.v|../source/conv_component/read_ddr_control.v|../source/conv_component/ram_base_shift_register_for_cache.v|../source/conv_component/feature_row_Cache.v|../source/conv_component/feature_buffer.v|../source/conv_component/feature_add.v|../source/conv_component/convlution_core.v|../source/conv_component/adder_trees.v|../source/conv_component/activate_function.v|../source/conv_component/Weight_buffer.v|../source/conv_component/PE_core.v|../source/conv_component/PE_array.v|../source/conv_component/Output_buffer.v|../source/conv_component/MAC_PE.v|
+Z16 !s90 ../source/conv_component/MAC_PE.v|../source/conv_component/Output_buffer.v|../source/conv_component/PE_array.v|../source/conv_component/PE_core.v|../source/conv_component/Weight_buffer.v|../source/conv_component/activate_function.v|../source/conv_component/adder_trees.v|../source/conv_component/convlution_core.v|../source/conv_component/feature_add.v|../source/conv_component/feature_buffer.v|../source/conv_component/feature_row_Cache.v|../source/conv_component/ram_base_shift_register_for_cache.v|../source/conv_component/read_ddr_control.v|../source/conv_component/return_buffer.v|../source/conv_component/return_data_arbitra.v|
+!i113 0
+R10
+R3
+vadd_tree
+R11
+!i10b 1
+!s100 3AYREhRP]7=OZTTaP<_5S1
+IM[NI^@Io>mRXneN;3HP9:3
+R6
+R0
+R12
+8../source/conv_component/adder_trees.v
+F../source/conv_component/adder_trees.v
+R13
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vasync_fifo
+Z17 DXx6 sv_std 3 std 0 22 >9az<^>2ff9DAl3OFGaAf1
+R11
+!i10b 1
+!s100 h6gSe6Al19gH:?T>TCZNO0
+IheC???hjeI@<;MIR]nHei1
+R6
+Z18 !s105 Syn_fifo_sv_unit
+S1
+R0
+Z19 w1739180328
+Z20 8../ipcore/simulation/Syn_fifo.sv
+Z21 F../ipcore/simulation/Syn_fifo.sv
+L0 30
+R8
+r1
+!s85 0
+31
+R14
+Z22 !s107 ..\ipcore\simulation\..\..\parameters.v|../ipcore/simulation/simulation_ram.v|../ipcore/simulation/Syn_fifo.sv|../ipcore/simulation/Ram_based_fifo_tb.v|../ipcore/simulation/Ram_based_fifo.v|
+Z23 !s90 ../ipcore/simulation/Ram_based_fifo.v|../ipcore/simulation/Ram_based_fifo_tb.v|../ipcore/simulation/Syn_fifo.sv|../ipcore/simulation/simulation_ram.v|
+!i113 0
+R10
+R3
+Xaxi_lite_BFM_sv_unit
+Z24 !s115 axi_lite_if
+R17
+R5
+!i10b 1
+!s100 6`3U]c=G`LjS_[LO?TeA;1
+I`G:z01V?Kko^GAkSB=Gge0
+V`G:z01V?Kko^GAkSB=Gge0
+!i103 1
+S1
+R0
+w1739170387
+Z25 8./tb/axi_lite_BFM.sv
+Z26 F./tb/axi_lite_BFM.sv
+Z27 F.\tb\..\..\parameters.v
+R7
+R8
+r1
+!s85 0
+31
+R9
+!s107 .\tb\axi_lite_BFM.sv|.\tb\..\..\parameters.v|./tb/simulation_tb.v|./tb/simulation_row_cache.v|./tb/simulation_order_tb.v|./tb/simulation_mul.v|./tb/simulation_AXI_memory.v|./tb/refresh_ddr_data.v|./tb/make_order.sv|./tb/axi_lite_BFM.sv|./tb/axi_interface.sv|
+Z28 !s90 ./tb/axi_interface.sv|./tb/axi_lite_BFM.sv|./tb/make_order.sv|./tb/refresh_ddr_data.v|./tb/simulation_AXI_memory.v|./tb/simulation_mul.v|./tb/simulation_order_tb.v|./tb/simulation_row_cache.v|./tb/simulation_tb.v|
+!i113 0
+R10
+R3
+naxi_lite_@b@f@m_sv_unit
+Yaxi_lite_if
+R17
+R5
+!i10b 1
+!s100 mM]j;nK66M=Nb61?DSWoG3
+Ioo[fCdKZ;:<_Hka1aHbTK2
+R6
+!s105 axi_interface_sv_unit
+S1
+R0
+w1735007662
+8./tb/axi_interface.sv
+F./tb/axi_interface.sv
+Z29 L0 11
+R8
+r1
+!s85 0
+31
+R9
+Z30 !s107 .\tb\axi_lite_BFM.sv|.\tb\..\..\parameters.v|./tb/simulation_tb.v|./tb/simulation_row_cache.v|./tb/simulation_order_tb.v|./tb/simulation_mul.v|./tb/simulation_AXI_memory.v|./tb/refresh_ddr_data.v|./tb/make_order.sv|./tb/axi_lite_BFM.sv|./tb/axi_interface.sv|
+R28
+!i113 0
+R10
+R3
+vaxi_ram
+R5
+!i10b 1
+!s100 clNE[h13FHzLeN;lo>J_f3
+IM4>1;QG>85fZa?mc5ZVKB2
+R6
+R0
+w1739259374
+8./tb/simulation_AXI_memory.v
+F./tb/simulation_AXI_memory.v
+L0 35
+R8
+r1
+!s85 0
+31
+R9
+R30
+R28
+!i113 0
+R10
+R3
+vCache_order
+R5
+!i10b 1
+!s100 zCJ5M?N^icOHTgOWl>XgC2
+IIMT]Fz=kfmOK_AKEoLJNo2
+R6
+R0
+w1739177768
+8../source/order/Cache_order.v
+F../source/order/Cache_order.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+Z31 !s107 ..\source\order\..\..\parameters.v|../source/order/set_accelerator_reg_axi.v|../source/order/get_order.v|../source/order/Cache_order.v|
+Z32 !s90 ../source/order/Cache_order.v|../source/order/get_order.v|../source/order/set_accelerator_reg_axi.v|
+!i113 0
+R10
+R3
+n@cache_order
+vconv_control_tb
+R5
+!i10b 1
+!s100 Oi]6>Lh4JdeGA[hz2[dS53
+I0l4jeW9Td>M@WNf:GgQXZ1
+R6
+R0
+w1736737755
 8./tb/simulation_tb.v
 F./tb/simulation_tb.v
-L0 10
-R3
+R13
+R8
 r1
 !s85 0
 31
-!s108 1732612815.000000
-!s107 .\tb\..\..\parameters.v|./tb/simulation_tb.v|./tb/simulation_AXI_memory.v|
-!s90 -reportprogress|300|./tb/simulation_AXI_memory.v|./tb/simulation_tb.v|
+R9
+R30
+R28
 !i113 0
-R4
-R1
+R10
+R3
+vconvolution_core
+R11
+!i10b 1
+!s100 :]0Y6fz]PG2kK]lj_jGEW3
+IVJK3OAjHCAX7XPVHYNS@@0
+R6
+R0
+R12
+8../source/conv_component/convlution_core.v
+F../source/conv_component/convlution_core.v
+R7
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vfeature_add
+R5
+!i10b 1
+!s100 3<LcFaADfKhUK2OHZCf9T2
+I6Rg?Jj[Q>[ZLm;YjJm@Fm3
+R6
+R0
+R12
+8../source/conv_component/feature_add.v
+F../source/conv_component/feature_add.v
+R29
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vfeature_buffer
+R5
+!i10b 1
+!s100 YMBa`8S1IjYe<j<o]l4;Q2
+I9a2^hmhESfB:?0iA=^ni:1
+R6
+R0
+w1739169202
+8../source/conv_component/feature_buffer.v
+F../source/conv_component/feature_buffer.v
+R13
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vfeature_row_Cache
+R5
+!i10b 1
+!s100 `^kAAz<eS29D:6kfjUN:D2
+IXm38PS0mDWh@OSd`z=`X11
+R6
+R0
+R12
+8../source/conv_component/feature_row_Cache.v
+F../source/conv_component/feature_row_Cache.v
+R13
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+nfeature_row_@cache
+vfifomem
+R17
+R11
+!i10b 1
+!s100 RV5=1ij82mV?>3XQ^i5[G0
+IcUN:G8@`Dh7;]=jZQQ=LD1
+R6
+R18
+S1
+R0
+R19
+R20
+R21
+L0 60
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3
+vget_order
+R5
+!i10b 1
+!s100 W3@c^5=FkZgW]:heiBhM<3
+I>7jMW6DLiaLUW:Ghc?i>M2
+R6
+R0
+w1737013767
+8../source/order/get_order.v
+F../source/order/get_order.v
+L0 4
+R8
+r1
+!s85 0
+31
+R9
+R31
+R32
+!i113 0
+R10
+R3
+vMAC_PE
+R11
+!i10b 1
+!s100 o5U=Hb559=EQXJ?4ZcCc33
+I25BUFko40zLd2zafTMdE>3
+R6
+R0
+R12
+8../source/conv_component/MAC_PE.v
+F../source/conv_component/MAC_PE.v
+Z33 L0 12
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+n@m@a@c_@p@e
+vmake_order
+R17
+DXx4 work 18 make_order_sv_unit 0 22 CU`7U9kfMD:SMjz??Q=ZS2
+R6
+r1
+!s85 0
+31
+!i10b 1
+!s100 SK`B@FiTfAcETnkD3h0ZW2
+IT>335OPaYK9A;V@8?Agz41
+!s105 make_order_sv_unit
+S1
+R0
+Z34 w1739254601
+Z35 8./tb/make_order.sv
+Z36 F./tb/make_order.sv
+R29
+R8
+R9
+R30
+R28
+!i113 0
+R10
+R3
+Xmake_order_sv_unit
+R24
+R17
+VCU`7U9kfMD:SMjz??Q=ZS2
+r1
+!s85 0
+31
+!i10b 1
+!s100 3@l6EejScj=3KfFjYVN`63
+ICU`7U9kfMD:SMjz??Q=ZS2
+!i103 1
+S1
+R0
+R34
+R25
+R26
+R27
+R35
+R36
+F.\tb\axi_lite_BFM.sv
+R7
+R8
+R9
+R30
+R28
+!i113 0
+R10
+R3
+vorder_tb
+R5
+!i10b 1
+!s100 5d6<b4X:Vm7Ok^3loW0C>2
+I[8Fzd?0kYL]EH4S`F:m5L3
+R6
+R0
+w1735011686
+8./tb/simulation_order_tb.v
+F./tb/simulation_order_tb.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+R30
+R28
+!i113 0
+R10
+R3
+vOutput_buffer
+R11
+!i10b 1
+!s100 K^^oH=k=RH6Y78F3<7`O`1
+I?2A;ORTh[X0QSU@jZIlOY0
+R6
+R0
+w1739187116
+8../source/conv_component/Output_buffer.v
+F../source/conv_component/Output_buffer.v
+R13
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+n@output_buffer
+vPE_array
+R11
+!i10b 1
+!s100 ;Vd:eNMMdJQJ2?F[Bi<TI2
+IX62XoeDDIjWCg:7]d=5NE3
+R6
+R0
+R12
+8../source/conv_component/PE_array.v
+F../source/conv_component/PE_array.v
+Z37 L0 14
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+n@p@e_array
+vPE_core
+R11
+!i10b 1
+!s100 inD?K^RcQY5WOj3aW0]3=1
+IZ_45?G26d[3Bj4e3zn1^D3
+R6
+R0
+R12
+8../source/conv_component/PE_core.v
+F../source/conv_component/PE_core.v
+R33
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+n@p@e_core
+vpool_array
+R5
+!i10b 1
+!s100 m36IX0Ga[R]f:[@cL1e?G3
+I]YV8_7KcDGW7CRQASnima0
+R6
+R0
+w1735031804
+8../source/pool_component/pool_array.v
+F../source/pool_component/pool_array.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+Z38 !s107 ..\source\pool_component\..\..\parameters.v|../source/pool_component/pool_core.v|../source/pool_component/pool_array.v|../source/pool_component/pool_PE.v|
+Z39 !s90 ../source/pool_component/pool_PE.v|../source/pool_component/pool_array.v|../source/pool_component/pool_core.v|
+!i113 0
+R10
+R3
+vpool_core
+R5
+!i10b 1
+!s100 Sbm9[?WckK[fUjL1Zz9b12
+IWRJG_Hlld0ZQUTfB1jZ1A3
+R6
+R0
+R12
+8../source/pool_component/pool_core.v
+F../source/pool_component/pool_core.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+R38
+R39
+!i113 0
+R10
+R3
+vpool_PE
+R5
+!i10b 1
+!s100 2mgOA5Ze;]VQl<=gVBfWX1
+I53>fN;3Tc?Oo<@2d8:;d]0
+R6
+R0
+R12
+8../source/pool_component/pool_PE.v
+F../source/pool_component/pool_PE.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+R38
+R39
+!i113 0
+R10
+R3
+npool_@p@e
+vram_base_shift_register_for_cache
+R5
+!i10b 1
+!s100 S_m]8KGXo87a<H9f?Udb50
+IcOUVPUH_ae^WEk2oSH;6M3
+R6
+R0
+w1739185558
+8../source/conv_component/ram_base_shift_register_for_cache.v
+F../source/conv_component/ram_base_shift_register_for_cache.v
+R37
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vram_based_fifo
+R11
+!i10b 1
+!s100 jcJFM3H6imG:4M`g9`i7_2
+IKYCaP[Ko@oOZn``dI1A3>1
+R6
+R0
+w1739158961
+8../ipcore/simulation/Ram_based_fifo.v
+F../ipcore/simulation/Ram_based_fifo.v
+R13
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3
+vram_based_fifo_tb
+R11
+!i10b 1
+!s100 `4YkHljY74ZK@X`JYAmV;2
+IGajKIG9:[h;3oSPj`U>BV3
+R6
+R0
+w1739159110
+8../ipcore/simulation/Ram_based_fifo_tb.v
+F../ipcore/simulation/Ram_based_fifo_tb.v
+R13
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3
+vram_based_upsample_fifo
+R5
+!i10b 1
+!s100 Kk@i8SFD7lRHmLU:O:OV81
+IMB1BZfl[UXzL9zVNCl;BM1
+R6
+R0
+w1739174470
+8../source/upsample_component/upsample_fifo.v
+F../source/upsample_component/upsample_fifo.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+Z40 !s107 ..\source\upsample_component\..\..\parameters.v|../source/upsample_component/upsample_fifo.v|../source/upsample_component/upsample.v|
+Z41 !s90 ../source/upsample_component/upsample.v|../source/upsample_component/upsample_fifo.v|
+!i113 0
+R10
+R3
+vread_ddr_control
+R5
+!i10b 1
+!s100 GbzV1jXbhdfDaZb4`^nL@3
+Ij802NG1CmQMOa1m_OmP@H3
+R6
+R0
+w1735869707
+8../source/conv_component/read_ddr_control.v
+F../source/conv_component/read_ddr_control.v
+R33
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vrefresh_ddr_data
+R5
+!i10b 1
+!s100 >zBjLcK?ZUK5bb1;NlVN31
+ITn16OzERY]m94EoTkGWSi1
+R6
+R0
+w1739244541
+8./tb/refresh_ddr_data.v
+F./tb/refresh_ddr_data.v
+L0 2
+R8
+r1
+!s85 0
+31
+R9
+R30
+R28
+!i113 0
+R10
+R3
+vreturn_buffer
+R5
+!i10b 1
+!s100 ?R4E<]jkIiI63LAi@PNQo1
+Ik7nO=hOcKZ6:]5dKkc54m2
+R6
+R0
+w1739172055
+8../source/conv_component/return_buffer.v
+F../source/conv_component/return_buffer.v
+R29
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vreturn_data_arbitra
+R5
+!i10b 1
+!s100 75BPL;Y`R8S^YIGJCKj<P3
+I>lb>?J`EFjWP:=a5a_mG10
+R6
+R0
+R12
+8../source/conv_component/return_data_arbitra.v
+F../source/conv_component/return_data_arbitra.v
+R13
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+vrptr_empty
+R17
+R11
+!i10b 1
+!s100 d_c?Jb6@gc`Dz>HVS78D33
+IK]<B9b`FfAN:dCzB0]O<13
+R6
+R18
+S1
+R0
+R19
+R20
+R21
+L0 139
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3
+vset_accelerator_reg_axi
+R5
+!i10b 1
+!s100 F08lndA2^JDQ;9F<FIV1@1
+I]4lzAOXRalcT1DU^<=1=L1
+R6
+R0
+w1736736879
+8../source/order/set_accelerator_reg_axi.v
+F../source/order/set_accelerator_reg_axi.v
+L0 4
+R8
+r1
+!s85 0
+31
+R9
+R31
+R32
+!i113 0
+R10
+R3
+vsim_mul_tb
+R5
+!i10b 1
+!s100 [BejV:A>b=Z]?`PnRhNHS3
+IPd7zo`nZ:HD9;BVUV_?:L2
+R6
+R0
+w1734678440
+8./tb/simulation_mul.v
+F./tb/simulation_mul.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+R30
+R28
+!i113 0
+R10
+R3
+vsimulation_ram
+R11
+!i10b 1
+!s100 J>6zAA=@;B5oC`LACgz5i0
+ILof[V[W[c7:A766_<]Wke0
+R6
+R0
+w1739185516
+8../ipcore/simulation/simulation_ram.v
+F../ipcore/simulation/simulation_ram.v
+L0 8
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3
+vsimulation_row_cache
+R5
+!i10b 1
+!s100 `A9XA:J^GMa>C<I1Gb2Q72
+I27zEENDGL_SYTTUfY^T:_2
+R6
+R0
+w1734272786
+8./tb/simulation_row_cache.v
+F./tb/simulation_row_cache.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+R30
+R28
+!i113 0
+R10
+R3
+vsync_r2w
+R17
+R11
+!i10b 1
+!s100 Z1iEd3F]S?EfU7gSQVQ0`1
+IXl5I6N_c7XIX<D8gU7ENH1
+R6
+R18
+S1
+R0
+R19
+R20
+R21
+L0 91
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3
+vsync_w2r
+R17
+R11
+!i10b 1
+!s100 19J:O[NUEc^ZG[@fabOm_1
+IDifUKdnJA58lcCAN4oY?73
+R6
+R18
+S1
+R0
+R19
+R20
+R21
+L0 115
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3
+vupsample
+R5
+!i10b 1
+!s100 3_3bCec<9V;A0ai5[N<ci1
+I0Xa^DX6WGKD1T:Vo`nZV50
+R6
+R0
+R12
+8../source/upsample_component/upsample.v
+F../source/upsample_component/upsample.v
+R13
+R8
+r1
+!s85 0
+31
+R9
+R40
+R41
+!i113 0
+R10
+R3
+vWeight_buffer
+R11
+!i10b 1
+!s100 FgWTRNg[o4dE221KF0mXi0
+IZncXd7NOG31m>z;2mI3Zf3
+R6
+R0
+w1739173585
+8../source/conv_component/Weight_buffer.v
+F../source/conv_component/Weight_buffer.v
+R29
+R8
+r1
+!s85 0
+31
+R14
+R15
+R16
+!i113 0
+R10
+R3
+n@weight_buffer
+vwptr_full
+R17
+R11
+!i10b 1
+!s100 A08EV?b`D@5dND]b2Yb8z1
+Ik]RRXPR@`a1z8Db`z@Jm91
+R6
+R18
+S1
+R0
+R19
+R20
+R21
+L0 185
+R8
+r1
+!s85 0
+31
+R14
+R22
+R23
+!i113 0
+R10
+R3

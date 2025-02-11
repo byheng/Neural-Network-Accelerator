@@ -1,4 +1,140 @@
-# Reading D:/modelsim/modelsim/tcl/vsim/pref.tcl
+# do sim.do
+# ** Warning: (vlib-34) Library already exists at "work".
+# Model Technology ModelSim SE-64 vmap 10.7 Lib Mapping Utility 2017.12 Dec  7 2017
+# vmap work ./work 
+# Modifying D:/modelsim/modelsim/win64/../modelsim.ini
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:29 on Feb 11,2025
+# vlog ../parameters.v 
+# End time: 16:19:29 on Feb 11,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:29 on Feb 11,2025
+# vlog ../ipcore/simulation/Ram_based_fifo.v ../ipcore/simulation/Ram_based_fifo_tb.v ../ipcore/simulation/Syn_fifo.sv ../ipcore/simulation/simulation_ram.v 
+# -- Compiling module ram_based_fifo
+# -- Compiling module ram_based_fifo_tb
+# -- Compiling module async_fifo
+# -- Compiling module fifomem
+# -- Compiling module sync_r2w
+# -- Compiling module sync_w2r
+# -- Compiling module rptr_empty
+# -- Compiling module wptr_full
+# -- Compiling module simulation_ram
+# ** Warning: ../ipcore/simulation/simulation_ram.v(60): (vlog-2226) The inline genvar declaration for 'i' is only legal in SystemVerilog.
+# Use -error for strict enforcement.
+# ** Warning: ../ipcore/simulation/simulation_ram.v(67): (vlog-2226) The inline genvar declaration for 'i' is only legal in SystemVerilog.
+# Use -error for strict enforcement.
+# ** Warning: ../ipcore/simulation/simulation_ram.v(103): (vlog-2226) The inline genvar declaration for 'i' is only legal in SystemVerilog.
+# Use -error for strict enforcement.
+# ** Warning: ../ipcore/simulation/simulation_ram.v(116): (vlog-2226) The inline genvar declaration for 'i' is only legal in SystemVerilog.
+# Use -error for strict enforcement.
+# ** Warning: ../ipcore/simulation/simulation_ram.v(132): (vlog-2226) The inline genvar declaration for 'i' is only legal in SystemVerilog.
+# Use -error for strict enforcement.
+# ** Warning: ../ipcore/simulation/simulation_ram.v(157): (vlog-2226) The inline genvar declaration for 'i' is only legal in SystemVerilog.
+# Use -error for strict enforcement.
+# 
+# Top level modules:
+# 	ram_based_fifo_tb
+# 	async_fifo
+# End time: 16:19:29 on Feb 11,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 6
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:29 on Feb 11,2025
+# vlog ../source/conv_component/MAC_PE.v ../source/conv_component/Output_buffer.v ../source/conv_component/PE_array.v ../source/conv_component/PE_core.v ../source/conv_component/Weight_buffer.v ../source/conv_component/activate_function.v ../source/conv_component/adder_trees.v ../source/conv_component/convlution_core.v ../source/conv_component/feature_add.v ../source/conv_component/feature_buffer.v ../source/conv_component/feature_row_Cache.v ../source/conv_component/ram_base_shift_register_for_cache.v ../source/conv_component/read_ddr_control.v ../source/conv_component/return_buffer.v ../source/conv_component/return_data_arbitra.v 
+# -- Compiling module MAC_PE
+# -- Compiling module Output_buffer
+# -- Compiling module PE_array
+# -- Compiling module PE_core
+# -- Compiling module Weight_buffer
+# -- Compiling module activate_function
+# -- Compiling module add_tree
+# -- Compiling module convolution_core
+# -- Compiling module feature_add
+# -- Compiling module feature_buffer
+# -- Compiling module feature_row_Cache
+# -- Compiling module ram_base_shift_register_for_cache
+# -- Compiling module read_ddr_control
+# -- Compiling module return_buffer
+# -- Compiling module return_data_arbitra
+# 
+# Top level modules:
+# 	Output_buffer
+# 	Weight_buffer
+# 	activate_function
+# 	convolution_core
+# 	feature_add
+# 	feature_buffer
+# 	feature_row_Cache
+# 	read_ddr_control
+# 	return_buffer
+# 	return_data_arbitra
+# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:30 on Feb 11,2025
+# vlog ../source/order/Cache_order.v ../source/order/get_order.v ../source/order/set_accelerator_reg_axi.v 
+# -- Compiling module Cache_order
+# -- Compiling module get_order
+# -- Compiling module set_accelerator_reg_axi
+# 
+# Top level modules:
+# 	get_order
+# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:30 on Feb 11,2025
+# vlog ../source/pool_component/pool_PE.v ../source/pool_component/pool_array.v ../source/pool_component/pool_core.v 
+# -- Compiling module pool_PE
+# -- Compiling module pool_array
+# -- Compiling module pool_core
+# 
+# Top level modules:
+# 	pool_array
+# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:30 on Feb 11,2025
+# vlog ../source/upsample_component/upsample.v ../source/upsample_component/upsample_fifo.v 
+# -- Compiling module upsample
+# -- Compiling module ram_based_upsample_fifo
+# 
+# Top level modules:
+# 	upsample
+# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:30 on Feb 11,2025
+# vlog ../source/accelerator_control.v 
+# -- Compiling module accelerator_control
+# 
+# Top level modules:
+# 	accelerator_control
+# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
+# Start time: 16:19:30 on Feb 11,2025
+# vlog ./tb/axi_interface.sv ./tb/axi_lite_BFM.sv ./tb/make_order.sv ./tb/refresh_ddr_data.v ./tb/simulation_AXI_memory.v ./tb/simulation_mul.v ./tb/simulation_order_tb.v ./tb/simulation_row_cache.v ./tb/simulation_tb.v 
+# -- Compiling interface axi_lite_if
+# -- Compiling package make_order_sv_unit
+# -- Compiling module make_order
+# -- Compiling module refresh_ddr_data
+# -- Compiling module axi_ram
+# -- Compiling module sim_mul_tb
+# -- Compiling module order_tb
+# -- Compiling module simulation_row_cache
+# -- Compiling module conv_control_tb
+# 
+# Top level modules:
+# 	refresh_ddr_data
+# 	sim_mul_tb
+# 	order_tb
+# 	simulation_row_cache
+# 	conv_control_tb
+# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -c -do "run -all; quit" work.conv_control_tb 
+# Start time: 16:19:30 on Feb 11,2025
+# ** Note: (vsim-8009) Loading existing optimized design _opt
 # //  ModelSim SE-64 10.7 Dec  7 2017
 # //
 # //  Copyright 1991-2017 Mentor Graphics Corporation
@@ -12,61 +148,47 @@
 # //  is prohibited from disclosure under the Trade Secrets Act,
 # //  18 U.S.C. Section 1905.
 # //
-# do sim.do
-# ** Warning: (vlib-34) Library already exists at "work".
-# Model Technology ModelSim SE-64 vmap 10.7 Lib Mapping Utility 2017.12 Dec  7 2017
-# vmap work ./work 
-# Modifying D:/modelsim/modelsim/win64/../modelsim.ini
-# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 17:20:15 on Nov 26,2024
-# vlog -reportprogress 300 ./tb/simulation_AXI_memory.v ./tb/simulation_tb.v 
-# -- Compiling module axi_ram
-# -- Compiling module conv_control_tb
-# 
-# Top level modules:
-# 	conv_control_tb
-# End time: 17:20:15 on Nov 26,2024, Elapsed time: 0:00:00
-# Errors: 0, Warnings: 0
-# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 17:20:15 on Nov 26,2024
-# vlog -reportprogress 300 ../parameters.v 
-# End time: 17:20:15 on Nov 26,2024, Elapsed time: 0:00:00
-# Errors: 0, Warnings: 0
-vsim -gui work.conv_control_tb
-# vsim -gui work.conv_control_tb 
-# Start time: 17:20:32 on Nov 26,2024
-# ** Note: (vsim-3812) Design is being optimized...
 # Loading work.conv_control_tb(fast)
-run
-# read data num:     5079872
-# read data num:     1935872
-# ** Warning: (vsim-3533) [FOFIW] - Failed to open file "../../script/memory_patch.txt" for writing.
-# No such file or directory. (errno = ENOENT)    : ./tb/simulation_AXI_memory.v(412)
-#    Time: 0 fs  Iteration: 0  Instance: /conv_control_tb/u_axi_ram
-# ** Warning: (vsim-7) Failed to open writemem file "../../script/memory_patch.txt" in write mode.
-# No such file or directory. (errno = ENOENT)    : ./tb/simulation_AXI_memory.v(413)
-#    Time: 0 fs  Iteration: 0  Instance: /conv_control_tb/u_axi_ram
-# ** Warning: (vsim-3534) [FOFIR] - Failed to open file "../../script/memory_patch.txt" for reading.
-# No such file or directory. (errno = ENOENT)    : ./tb/simulation_AXI_memory.v(416)
-#    Time: 0 fs  Iteration: 0  Instance: /conv_control_tb/u_axi_ram
-# ** Warning: (vsim-7) Failed to open readmem file "../../script/memory_patch.txt" in read mode.
-# No such file or directory. (errno = ENOENT)    : ./tb/simulation_AXI_memory.v(417)
-#    Time: 0 fs  Iteration: 0  Instance: /conv_control_tb/u_axi_ram
-vlog -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v
-# Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 17:21:44 on Nov 26,2024
-# vlog -reportprogress 300 -L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact F:/FPGA/accelerator_core/sim/tb/simulation_AXI_memory.v 
-# -- Compiling module axi_ram
-# 
-# Top level modules:
-# 	axi_ram
-# End time: 17:21:44 on Nov 26,2024, Elapsed time: 0:00:00
-# Errors: 0, Warnings: 0
-restart
-# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
-# Loading work.conv_control_tb(fast)
-run
-# read data num:     5079872
-# read data num:     1935872
-# End time: 19:44:30 on Nov 27,2024, Elapsed time: 26:23:58
+# Loading work.ram_based_fifo(fast)
+# Loading work.ram_base_shift_register_for_cache(fast)
+# Loading work.PE_array(fast)
+# Loading work.simulation_ram(fast__3)
+# Loading sv_std.std
+# Loading work.async_fifo(fast)
+# Loading work.make_order_sv_unit(fast)
+# Loading work.make_order(fast)
+# Loading work.axi_lite_if(fast)
+# run -all
+# Sent: Address = 0x0000003c, Data = 0x011a4000
+# Sent: Address = 0x00000054, Data = 0x00000000
+# Sent: Address = 0x00000050, Data = 0x00000000
+# Sent: Address = 0x00000000, Data = 0x00000001
+# Sent: Address = 0x00000004, Data = 0x00000000
+# Sent: Address = 0x00000008, Data = 0x00000001
+# Sent: Address = 0x0000000c, Data = 0x00000001
+# Sent: Address = 0x00000010, Data = 0x00000000
+# Sent: Address = 0x00000014, Data = 0x000004b0
+# Sent: Address = 0x00000018, Data = 0x000001e0
+# Sent: Address = 0x0000001c, Data = 0x00000280
+# Sent: Address = 0x00000020, Data = 0x00000007
+# Sent: Address = 0x00000024, Data = 0x00000007
+# Sent: Address = 0x00000028, Data = 0x00000007
+# Sent: Address = 0x0000002c, Data = 0x00000000
+# Sent: Address = 0x00000030, Data = 0x02800000
+# Sent: Address = 0x00000034, Data = 0x000004b0
+# Sent: Address = 0x00000038, Data = 0x00000001
+# Sent: Address = 0x00000040, Data = 0x00000000
+# Sent: Address = 0x00000044, Data = 0x00000000
+# Sent: Address = 0x00000048, Data = 0x00000000
+# Sent: Address = 0x00000000, Data = 0x00000005
+# Sent: Address = 0x00000048, Data = 0x00000000
+# All instructions have been sent.
+# the          0 layer simulation is finish
+# Using time:                    0 us
+# ** Note: $stop    : ./tb/simulation_AXI_memory.v(403)
+#    Time: 3202715 ns  Iteration: 1  Instance: /conv_control_tb/u_axi_ram
+# Break at ./tb/simulation_AXI_memory.v line 403
+# Stopped at ./tb/simulation_AXI_memory.v line 403
+#  quit
+# End time: 16:19:42 on Feb 11,2025, Elapsed time: 0:00:12
 # Errors: 0, Warnings: 0

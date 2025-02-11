@@ -50,7 +50,7 @@ endgenerate
 
 assign feature_data_out = {feature_data_out_reg[7], feature_data_out_reg[6], feature_data_out_reg[5], feature_data_out_reg[4], feature_data_out_reg[3], feature_data_out_reg[2], feature_data_out_reg[1], feature_data_out_reg[0]};
 
-always @(posedge system_clk or negedge rst_n) begin
+always @(posedge system_clk) begin
     feature_data_valid_out_reg <= feature_x_valid_in;
 end
 

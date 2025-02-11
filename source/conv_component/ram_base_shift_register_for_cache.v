@@ -40,19 +40,40 @@ always @(posedge system_clk or negedge rst_n) begin
     end
 end
 
-shift_register_ram shift_register_ram_inst (
-    .clka       (system_clk),
-    .ena        (1'b1      ),
-    .wea        (wr_en     ),
-    .addra      (wr_addr   ),
-    .dina       (wr_data   ),
-    .clkb       (system_clk),
-    .enb        (1'b1      ),
-    .addrb      (rd_addr   ),
-    .doutb      (rd_data_wire   )
-);
+generate
+    if (`device == "xilinx") begin
+        shift_register_ram shift_register_ram_inst (
+            .clka       (system_clk),
+            .ena        (1'b1      ),
+            .wea        (wr_en     ),
+            .addra      (wr_addr   ),
+            .dina       (wr_data   ),
+            .clkb       (system_clk),
+            .enb        (1'b1      ),
+            .addrb      (rd_addr   ),
+            .doutb      (rd_data_wire   )
+        );
+    end
+    else if (`device == "simulation") begin
+        simulation_ram #(
+            .DATA_W    	( 32      ),
+            .DATA_R    	( 32      ),
+            .DEPTH_W   	( 10      ),
+            .DEPTH_R   	( 10      )
+        )
+        u_simulation_ram(
+            .clk     	( system_clk    ),
+            .i_wren  	( wr_en         ),
+            .i_waddr 	( wr_addr       ),
+            .i_wdata 	( wr_data       ),
+            .i_raddr 	( rd_addr       ),
+            .o_rdata 	( rd_data_wire  )
+        );
+    end
+endgenerate
 
-always @(posedge system_clk or negedge rst_n) begin
+
+always @(posedge system_clk) begin
     wr_en_reg <= wr_en;
 end
 

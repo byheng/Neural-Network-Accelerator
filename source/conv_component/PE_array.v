@@ -5,6 +5,7 @@
     module_intro: make a 3*3 kernel to convolution
     state       : simulation finish
                   LION WORK FINISH
+                  NEUFLOW
 */
 `timescale 1ns/100fs
 

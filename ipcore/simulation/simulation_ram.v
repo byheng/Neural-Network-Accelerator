@@ -12,7 +12,8 @@ module simulation_ram #(
     parameter DEPTH_R   = 8       ,
     parameter RAM_NUM_W = 2**DEPTH_W,
     parameter RAM_NUM_R = 2**DEPTH_R,
-    parameter INIT_FILE = ""
+    parameter INIT_FILE = "",
+    parameter DELAY     = 0
 )
 (              
     input  wire                  clk    ,      // Clock                    
@@ -20,8 +21,11 @@ module simulation_ram #(
     input  wire [DEPTH_W- 1 : 0] i_waddr,      // Write-address                    
     input  wire [DATA_W - 1 : 0] i_wdata,      // Write-data 
     input  wire [DEPTH_R- 1 : 0] i_raddr,      // Read-address                   
-    output reg  [DATA_R - 1 : 0] o_rdata       // Read-data                   
+    output wire [DATA_R - 1 : 0] o_rdata      // Read-data                   
 );
+
+reg [DATA_R - 1 : 0] o_rdata_reg;
+reg [DATA_R - 1 : 0] o_rdata_delay_reg[DELAY:0];
 
 initial begin
     if (DATA_W * RAM_NUM_W != DATA_R * RAM_NUM_R) begin : error_check
@@ -71,7 +75,7 @@ generate
         end
 
         always @ (posedge clk) begin
-            o_rdata <= data_rg [i_raddr] ;  
+            o_rdata_reg <= data_rg [i_raddr] ;  
         end
     end
     else if (DATA_W < DATA_R) begin : ram_gen2
@@ -113,7 +117,7 @@ generate
             wire [DEPTH_W-1:0] addr_r;
             assign addr_r = {i_raddr, {times_bit{1'b0}}} + i;
             always @ (posedge clk) begin
-                o_rdata[DATA_W*(i+1)-1 : DATA_W*i] <= data_rg[addr_r];  
+                o_rdata_reg[DATA_W*(i+1)-1 : DATA_W*i] <= data_rg[addr_r];  
             end
         end
     end
@@ -139,8 +143,30 @@ generate
             end
         end
         always @ (posedge clk) begin
-            o_rdata <= data_rg[i_raddr];  
+            o_rdata_reg <= data_rg[i_raddr];  
         end
+    end
+endgenerate
+
+// delay read data
+generate
+    if (DELAY == 0) begin
+        assign o_rdata = o_rdata_reg;
+    end
+    else begin
+        for (genvar i = 0; i < DELAY; i = i + 1) begin
+            if (i == 0) begin
+                always@(posedge clk) begin
+                    o_rdata_delay_reg[i] <= o_rdata_reg;
+                end
+            end
+            else begin
+                always@(posedge clk) begin
+                    o_rdata_delay_reg[i] <= o_rdata_delay_reg[i-1];
+                end
+            end
+        end
+        assign o_rdata = o_rdata_delay_reg[DELAY-1];
     end
 endgenerate
 

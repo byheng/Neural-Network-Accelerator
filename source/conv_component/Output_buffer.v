@@ -30,52 +30,71 @@ wire[71:0]  uram_read_data[3:0];
 genvar i;
 generate
     for (i=0; i<4; i=i+1) begin: output_buffer
-        xpm_memory_sdpram #(
-            .ADDR_WIDTH_A           (15),               // DECIMAL
-            .ADDR_WIDTH_B           (15),               // DECIMAL
-            .AUTO_SLEEP_TIME        (0),                // DECIMAL
-            .BYTE_WRITE_WIDTH_A     (72),               // DECIMAL
-            .CASCADE_HEIGHT         (0),                // DECIMAL
-            .CLOCKING_MODE          ("common_clock"),   // String
-            .ECC_MODE               ("no_ecc"),         // String
-            .MEMORY_INIT_FILE       ("none"),           // String
-            .MEMORY_INIT_PARAM      ("0"),              // String
-            .MEMORY_OPTIMIZATION    ("true"),           // String
-            .MEMORY_PRIMITIVE       ("ultra"),          // String
-            .MEMORY_SIZE            (32768*72),         // DECIMAL
-            .MESSAGE_CONTROL        (0),                // DECIMAL
-            .READ_DATA_WIDTH_B      (72),               // DECIMAL
-            .READ_LATENCY_B         (3),                // DECIMAL
-            .READ_RESET_VALUE_B     ("0"),              // String
-            .RST_MODE_A             ("SYNC"),           // String
-            .RST_MODE_B             ("SYNC"),           // String
-            .SIM_ASSERT_CHK         (1),                // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
-            .USE_EMBEDDED_CONSTRAINT(0),                // DECIMAL
-            .USE_MEM_INIT           (1),                // DECIMAL
-            .USE_MEM_INIT_MMI       (0),                // DECIMAL
-            .WAKEUP_TIME            ("disable_sleep"),  // String
-            .WRITE_DATA_WIDTH_A     (72),               // DECIMAL
-            .WRITE_MODE_B           ("read-first"),     // String
-            .WRITE_PROTECT          (1)                 // DECIMAL
-        )
-        xpm_memory_sdpram_inst (
-            .dbiterrb       (),
-            .sbiterrb       (),
-            .clka           (system_clk),                     
-            .clkb           (system_clk),     
-            .dina           (feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]),  
-            .addra          (uram_write_addr),               
-            .doutb          (uram_read_data[i]),           
-            .addrb          (uram_read_addr),          
-            .ena            (1'b1),                       
-            .enb            (1'b1),                       
-            .injectdbiterra (1'b0), 
-            .injectsbiterra (1'b0), 
-            .regceb         (1'b1),                
-            .rstb           (1'b0),                   
-            .sleep          (1'b0),                 
-            .wea            (feature_valid)                        
-        );
+        if (`device == "xilinx") begin
+            xpm_memory_sdpram #(
+                .ADDR_WIDTH_A           (15),               // DECIMAL
+                .ADDR_WIDTH_B           (15),               // DECIMAL
+                .AUTO_SLEEP_TIME        (0),                // DECIMAL
+                .BYTE_WRITE_WIDTH_A     (72),               // DECIMAL
+                .CASCADE_HEIGHT         (0),                // DECIMAL
+                .CLOCKING_MODE          ("common_clock"),   // String
+                .ECC_MODE               ("no_ecc"),         // String
+                .MEMORY_INIT_FILE       ("none"),           // String
+                .MEMORY_INIT_PARAM      ("0"),              // String
+                .MEMORY_OPTIMIZATION    ("true"),           // String
+                .MEMORY_PRIMITIVE       ("ultra"),          // String
+                .MEMORY_SIZE            (32768*72),         // DECIMAL
+                .MESSAGE_CONTROL        (0),                // DECIMAL
+                .READ_DATA_WIDTH_B      (72),               // DECIMAL
+                .READ_LATENCY_B         (3),                // DECIMAL
+                .READ_RESET_VALUE_B     ("0"),              // String
+                .RST_MODE_A             ("SYNC"),           // String
+                .RST_MODE_B             ("SYNC"),           // String
+                .SIM_ASSERT_CHK         (1),                // DECIMAL; 0=disable simulation messages, 1=enable simulation messages
+                .USE_EMBEDDED_CONSTRAINT(0),                // DECIMAL
+                .USE_MEM_INIT           (1),                // DECIMAL
+                .USE_MEM_INIT_MMI       (0),                // DECIMAL
+                .WAKEUP_TIME            ("disable_sleep"),  // String
+                .WRITE_DATA_WIDTH_A     (72),               // DECIMAL
+                .WRITE_MODE_B           ("read-first"),     // String
+                .WRITE_PROTECT          (1)                 // DECIMAL
+            )
+            xpm_memory_sdpram_inst (
+                .dbiterrb       (),
+                .sbiterrb       (),
+                .clka           (system_clk),                     
+                .clkb           (system_clk),     
+                .dina           (feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]),  
+                .addra          (uram_write_addr),               
+                .doutb          (uram_read_data[i]),           
+                .addrb          (uram_read_addr),          
+                .ena            (1'b1),                       
+                .enb            (1'b1),                       
+                .injectdbiterra (1'b0), 
+                .injectsbiterra (1'b0), 
+                .regceb         (1'b1),                
+                .rstb           (1'b0),                   
+                .sleep          (1'b0),                 
+                .wea            (feature_valid)                        
+            );
+        end
+        else if (`device == "simulation") begin
+            simulation_ram #(
+                .DATA_W    	( 72      ),
+                .DATA_R    	( 72      ),
+                .DEPTH_W   	( 15      ),
+                .DEPTH_R   	( 15      ),
+                .DELAY     	( 2       )
+            )
+            u_simulation_ram(
+                .clk     	( system_clk                                            ),
+                .i_wren  	( feature_valid                                         ),
+                .i_waddr 	( uram_write_addr                                       ),
+                .i_wdata 	( feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]  ),
+                .i_raddr 	( uram_read_addr                                        ),
+                .o_rdata 	( uram_read_data[i]                                     )   
+            );
+        end
     end
 endgenerate
 

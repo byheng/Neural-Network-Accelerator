@@ -50,11 +50,23 @@ This project aims to implement an acceleration circuit for convolutional neural 
 
 ![image](./script/after_nms.png)
 
+- **2024-12-24**
+
+  The method of loading instructions is modified to read and write registers through the axi_lite interface, and the modelsim simulation is completed. During the simulation process, BFM is used to simulate the process of CPU scheduling axi_lite interface reading and writing registers.
+
+- **2025-01-01**
+
+  The deployment on xilinx 19EG has been completed, and the inference of static images in ddr has been completed. But the circuit design can only reach 200Mhz. Very sad, but, not bad.
+
+- **2025-02-11**
+  All dependent IP cores are written, so they can not depend on xilinx's IP core library. Set device=simulation in parameters.v file.
+  Improve the compiler part, you can form an image processing network by yourself, and compile it into instructions to run it on the accelerator.
+
 - **todo**
 
-  1. The current way of loading instructions is through rom. Next, it will be modified to axi_lite.
-  
-  2. Complete the deployment on xilinx 19EG, and complete the inference of the static pictures in ddr. In 19EG, I will try to perfect the circuit design so that it can reach 300MHz。
+  1. Improve the logic on the ps side so that the accelerator supports single-step instruction operation and loop instruction operation.
+
+
 
 ## Reference
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)

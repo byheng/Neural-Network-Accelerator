@@ -63,17 +63,38 @@ reg  ex_rg    ;        // Exception
 /*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    Instantiation of RAM
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
-upsample_ram upsample_ram_inst (
-    .clka   ( system_clk    ),
-    .ena    ( 1'b1          ),
-    .wea    ( wren          ),
-    .addra  ( wrptr_rg      ),
-    .dina   ( i_wrdata      ),
-    .clkb   ( system_clk    ),  
-    .enb    ( 1'b1          ),
-    .addrb  ( rdaddr_select ),
-    .doutb  ( o_rddata      )
-);
+generate
+    if (`device == "xilinx") begin
+        upsample_ram upsample_ram_inst (
+            .clka   ( system_clk    ),
+            .ena    ( 1'b1          ),
+            .wea    ( wren          ),
+            .addra  ( wrptr_rg      ),
+            .dina   ( i_wrdata      ),
+            .clkb   ( system_clk    ),  
+            .enb    ( 1'b1          ),
+            .addrb  ( rdaddr_select ),
+            .doutb  ( o_rddata      )
+        );
+    end
+    else if (`device == "simulation") begin
+        simulation_ram #(
+            .DATA_W    	( 256      ),
+            .DATA_R    	( 128      ),
+            .DEPTH_W   	( 10       ),
+            .DEPTH_R   	( 11       )
+        )
+        u_simulation_ram(
+            .clk     	( system_clk    ),
+            .i_wren  	( wren          ),
+            .i_waddr 	( wrptr_rg      ),
+            .i_wdata 	( i_wrdata      ),
+            .i_raddr 	( rdaddr_select ),
+            .o_rdata 	( o_rddata      )
+        );
+    end
+endgenerate
+
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
    Synchronous logic to write to and read from FIFO

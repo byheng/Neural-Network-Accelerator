@@ -50,11 +50,22 @@
 
 ![image](./script/after_nms.png)
 
-- **todo**
+- **2024-12-24**
 
-  1. 目前加载指令的方式是通过rom。接下来修改为axi_lite。
+  加载指令的方式修改为通过axi_lite接口读写寄存器，并完成modelsim仿真。仿真过程中使用BFM模拟CPU调度axi_lite接口读写寄存器的过程。
+
+- **2025-1-5**
+
+  已完成xilinx 19EG上的部署，并完成ddr中静态图片的推理。但电路设计仅能达到200Mhz。非常遗憾，但是，还不错。
+
+- **2025-2-11**
+
+  编写了所有的依赖的IP核，因此可以不依赖于xilinx的IP核库。在parameters.v文件中设置device=simulation。
+  完善编译器部分，可以自行组建图像处理网络，并编译成指令运行在加速器上。
+
+- **todo**
   
-  2. 完成在xilinx 19EG上的部署，并完成ddr中静态图片的推理。我将尝试完善电路设计，使其能达到300M时钟的速度。
+  1. 完善ps端的逻辑，使加速器支持单步指令运行以及循环指令运行。
 
 ## 引用
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)

@@ -1,1 +1,1 @@
-modelsim -do sim.do
+vsim -c -do sim.do
