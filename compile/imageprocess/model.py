@@ -108,7 +108,7 @@ if __name__ == "__main__":
     image = Make_picture_bin()
     model = SobelFilter(0, (640, 480), 0x2800000)
     model.Build()
-    refresh_ddr_patch()
+    refresh_ddr_patch(s_Folder)
     Run_simulation()
     model.Compare()
     with open("model.pkl", 'wb') as f:
