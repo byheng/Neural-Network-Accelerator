@@ -726,6 +726,8 @@ class Model(object):
                     WeightAndBias.append(patch_w[:, d, :, :].reshape(-1).tobytes())
                     if d == 0:
                         WeightAndBias.append(patch_b.reshape(-1).astype(np.int32).tobytes())
+        if not os.path.exists(c_Folder):
+            os.makedirs(c_Folder)
         with open(c_Folder + "/WeightAndBias.bin", "wb") as f:
             for by in WeightAndBias:
                 f.write(by)
@@ -746,6 +748,8 @@ class Model(object):
                 index += 1
         code.append(hex(0 * 4)[2:].zfill(2) + " " + hex(OrderType.FINISH.value)[2:].zfill(8))
         code.append(hex(18 * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        if not os.path.exists(c_Folder):
+            os.makedirs(c_Folder)
         with open(c_Folder + "/order_code.txt", 'w') as f:
             for o in code:
                 f.write(o)
