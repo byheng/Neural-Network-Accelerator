@@ -163,6 +163,8 @@ def deQuant(x, bit):
 
 def MakePictureBin(picture, c_Folder):
     picture = np.concatenate([picture, np.zeros((480, 640, 5))], axis=2).squeeze().astype(np.int16)
+    if not os.path.exists(c_Folder):
+        os.makedirs(c_Folder)
     with open(c_Folder + "/picture.bin", 'wb') as f:
         f.write(picture.tobytes())
 
