@@ -80,3 +80,5 @@ compile/hardware_data/73.BIN
 compile/hardware_data/74.BIN
 compile/imageprocess/model.pkl
 .history/
+sim/work/*
+

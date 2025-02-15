@@ -4,12 +4,12 @@
 # vmap work ./work 
 # Modifying D:/modelsim/modelsim/win64/../modelsim.ini
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:29 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ../parameters.v 
-# End time: 16:19:29 on Feb 11,2025, Elapsed time: 0:00:00
+# End time: 18:15:33 on Feb 15,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:29 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ../ipcore/simulation/Ram_based_fifo.v ../ipcore/simulation/Ram_based_fifo_tb.v ../ipcore/simulation/Syn_fifo.sv ../ipcore/simulation/simulation_ram.v 
 # -- Compiling module ram_based_fifo
 # -- Compiling module ram_based_fifo_tb
@@ -36,10 +36,10 @@
 # Top level modules:
 # 	ram_based_fifo_tb
 # 	async_fifo
-# End time: 16:19:29 on Feb 11,2025, Elapsed time: 0:00:00
+# End time: 18:15:33 on Feb 15,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 6
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:29 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ../source/conv_component/MAC_PE.v ../source/conv_component/Output_buffer.v ../source/conv_component/PE_array.v ../source/conv_component/PE_core.v ../source/conv_component/Weight_buffer.v ../source/conv_component/activate_function.v ../source/conv_component/adder_trees.v ../source/conv_component/convlution_core.v ../source/conv_component/feature_add.v ../source/conv_component/feature_buffer.v ../source/conv_component/feature_row_Cache.v ../source/conv_component/ram_base_shift_register_for_cache.v ../source/conv_component/read_ddr_control.v ../source/conv_component/return_buffer.v ../source/conv_component/return_data_arbitra.v 
 # -- Compiling module MAC_PE
 # -- Compiling module Output_buffer
@@ -68,10 +68,10 @@
 # 	read_ddr_control
 # 	return_buffer
 # 	return_data_arbitra
-# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:01
+# End time: 18:15:33 on Feb 15,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:30 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ../source/order/Cache_order.v ../source/order/get_order.v ../source/order/set_accelerator_reg_axi.v 
 # -- Compiling module Cache_order
 # -- Compiling module get_order
@@ -79,10 +79,10 @@
 # 
 # Top level modules:
 # 	get_order
-# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# End time: 18:15:33 on Feb 15,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:30 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ../source/pool_component/pool_PE.v ../source/pool_component/pool_array.v ../source/pool_component/pool_core.v 
 # -- Compiling module pool_PE
 # -- Compiling module pool_array
@@ -90,29 +90,29 @@
 # 
 # Top level modules:
 # 	pool_array
-# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# End time: 18:15:33 on Feb 15,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:30 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ../source/upsample_component/upsample.v ../source/upsample_component/upsample_fifo.v 
 # -- Compiling module upsample
 # -- Compiling module ram_based_upsample_fifo
 # 
 # Top level modules:
 # 	upsample
-# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# End time: 18:15:33 on Feb 15,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:30 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ../source/accelerator_control.v 
 # -- Compiling module accelerator_control
 # 
 # Top level modules:
 # 	accelerator_control
-# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# End time: 18:15:33 on Feb 15,2025, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # Model Technology ModelSim SE-64 vlog 10.7 Compiler 2017.12 Dec  7 2017
-# Start time: 16:19:30 on Feb 11,2025
+# Start time: 18:15:33 on Feb 15,2025
 # vlog ./tb/axi_interface.sv ./tb/axi_lite_BFM.sv ./tb/make_order.sv ./tb/refresh_ddr_data.v ./tb/simulation_AXI_memory.v ./tb/simulation_mul.v ./tb/simulation_order_tb.v ./tb/simulation_row_cache.v ./tb/simulation_tb.v 
 # -- Compiling interface axi_lite_if
 # -- Compiling package make_order_sv_unit
@@ -130,10 +130,10 @@
 # 	order_tb
 # 	simulation_row_cache
 # 	conv_control_tb
-# End time: 16:19:30 on Feb 11,2025, Elapsed time: 0:00:00
+# End time: 18:15:34 on Feb 15,2025, Elapsed time: 0:00:01
 # Errors: 0, Warnings: 0
 # vsim -c -do "run -all; quit" work.conv_control_tb 
-# Start time: 16:19:30 on Feb 11,2025
+# Start time: 18:15:34 on Feb 15,2025
 # ** Note: (vsim-8009) Loading existing optimized design _opt
 # //  ModelSim SE-64 10.7 Dec  7 2017
 # //
@@ -190,5 +190,5 @@
 # Break at ./tb/simulation_AXI_memory.v line 403
 # Stopped at ./tb/simulation_AXI_memory.v line 403
 #  quit
-# End time: 16:19:42 on Feb 11,2025, Elapsed time: 0:00:12
+# End time: 18:15:47 on Feb 15,2025, Elapsed time: 0:00:13
 # Errors: 0, Warnings: 0
