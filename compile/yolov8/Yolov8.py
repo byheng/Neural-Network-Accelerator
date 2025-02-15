@@ -8,6 +8,9 @@ import os
 import pickle
 import copy
 
+s_Folder = "../simulation_data"
+c_Folder = "../compile_out"
+
 
 class MyYolov8Model(Model):
     def __init__(self, VideoAddr, ImageShape: tuple, FeatureSpaceAddr, modelPath, s_Folder, c_Folder):
@@ -103,9 +106,8 @@ class MyYolov8Model(Model):
         return box_list, label, box_nms, label_nms
 
 
-def Build(modelPath, videoAddr, featureSpaceAddr, s_Folder="../simulation_data", c_Folder="../compile_out"):
-    models = Yolov8MemoryChecker(s_Folder + "/memory.npy", s_Folder + "/output.pkl", modelPath, videoAddr,
-                                 featureSpaceAddr, s_Folder, c_Folder)
+def Build(modelPath, videoAddr, featureSpaceAddr):
+    models = Yolov8MemoryChecker(s_Folder + "/memory.npy", s_Folder + "/output.pkl", modelPath, videoAddr, featureSpaceAddr)
     models.Build()
     with open("Yolov8_models.pkl", 'wb') as f:
         pickle.dump(models, f)
@@ -130,24 +132,13 @@ def Load():
 
 
 class Yolov8MemoryChecker(object):
-    def __init__(self, memory_path, simulation_path, modelPath, videoAddr, featureSpaceAddr,
-                 s_Folder="../simulation_data", c_Folder="../compile_out"):
+    def __init__(self, memory_path, simulation_path, modelPath, videoAddr, featureSpaceAddr):
         self.s_Folder = s_Folder
         self.c_Folder = c_Folder
         image, _, _ = letterbox(cv2.imread("shiyanshi.jpg"))
         self.image = np.ascontiguousarray(image)
         self.memory_path = memory_path
         self.output_path = simulation_path
-        if os.path.exists(memory_path):
-            self.memory_data = np.load(self.memory_path).astype('int16')
-        else:
-            self.refresh_ddr_data()
-        if os.path.exists(self.output_path):
-            with open(self.output_path, 'rb') as f:
-                self.output_data = pickle.load(f)
-        else:
-            self.refresh_simulation_data()
-
         self.model = MyYolov8Model(videoAddr, (640, 480), featureSpaceAddr, modelPath, s_Folder, c_Folder)
 
     def showImage(self):
@@ -162,10 +153,6 @@ class Yolov8MemoryChecker(object):
             f.write(np.uint16(w).tobytes())
             f.write(np.uint16(c).tobytes())
             f.write(self.image.tobytes())
-
-    def refresh_ddr_data(self):
-        self.memory_data = np.array(read_hex_file()).reshape(-1)
-        np.save(self.memory_path, self.memory_data)
 
     def refresh_simulation_data(self):
         output_id_list, output_data = read_output_file(self.s_Folder + "/output.txt")
@@ -206,7 +193,7 @@ class Yolov8MemoryChecker(object):
 
 if __name__ == '__main__':
     model = Build("./modelList_dirct.pkl", 0, 0x2800000)  # for simulation
-    refresh_ddr_patch()
+    refresh_ddr_patch(s_Folder)
     Run_simulation()
     model = CheckSimulationOutput(model, hard_ware=False)
     model.PostProcessing()
