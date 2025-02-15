@@ -424,7 +424,9 @@ def ChangeBGR2RGB(image):
     image = image[..., ::-1]
     return image
 
-def refresh_ddr_patch():
+def refresh_ddr_patch(s_Folder):
+    if not os.path.exists(s_Folder):
+        os.makedirs(s_Folder)
     os.system(r"chcp 65001 && cd ../../sim && refresh.bat")
 
 def Run_simulation():
