@@ -12,12 +12,11 @@ module Cache_order(
     input                   axi_rst_n                  ,
     input                   system_clk                 ,
     input                   rst_n                      ,
-    output                  order_in_ready             ,
-    output                  order_out_ready            ,
+    input                   refresh_order_ram          ,
     input                   push_order_en              ,
     input                   pop_order_en               ,
-    output                  order_valid                ,
-    output reg              order_valid_r              ,
+    input                   task_start                 ,
+    output reg              calculate_start            ,
 
     input [2:0]             x_order                    ,
     input [31:0]            x_feature_input_base_addr  ,
@@ -36,8 +35,8 @@ module Cache_order(
     input [2:0]             x_padding_size             ,
     input [31:0]            x_weight_data_length       ,
     input                   x_activate                 ,
-    input [31:0]            x_id                       ,
-    
+    input [7:0]             x_id                       ,    
+    input [31:0]            x_negedge_threshold        ,
 
     output reg [2:0]            order                    ,
     output reg [31:0]           feature_input_base_addr  ,
@@ -56,65 +55,85 @@ module Cache_order(
     output reg [2:0]            padding_size             ,
     output reg [31:0]           weight_data_length       ,
     output reg                  activate                 ,
-    output reg [31:0]           id                       
+    output reg [7:0]            id                       ,
+    output reg [31:0]           negedge_threshold      
 );
 
 // 缓存两段指令
 wire [255:0] order_fifo_in;
 wire [255:0] order_fifo_out;
-wire         order_fifo_almost_full;
-wire         order_fifo_empty;
+reg  [8:0]   write_addr;
+reg  [8:0]   read_addr;
 
-assign order_in_ready = ~order_fifo_almost_full;
-
-assign order_fifo_in = {x_id, x_activate, x_return_addr, x_return_patch_num, x_padding_size, x_stride, x_fea_out_quant_size, x_fea_in_quant_size, x_weight_quant_size, x_col_size, x_row_size, x_feature_patch_num, x_feature_double_patch, x_feature_output_patch_num, x_feature_input_patch_num, x_feature_input_base_addr, x_order};
+assign order_fifo_in = {x_negedge_threshold, x_id, x_activate, x_return_addr, x_return_patch_num, x_padding_size, x_stride, x_fea_out_quant_size, x_fea_in_quant_size, x_weight_quant_size, x_col_size, x_row_size, x_feature_patch_num, x_feature_double_patch, x_feature_output_patch_num, x_feature_input_patch_num, x_feature_input_base_addr, x_order};
 
 generate
     if (`device == "xilinx") begin
         order_cache order_cache_inst (
-            .wr_clk         (axi_clk),
-            .rst            (~rst_n),
-            .rd_clk         (system_clk),
-            .din            (order_fifo_in),
-            .wr_en          (push_order_en),
-            .rd_en          (pop_order_en),
-            .dout           (order_fifo_out),
-            .full           (),
-            .almost_full    (order_fifo_almost_full),
-            .empty          (order_fifo_empty)
-        );        
+            .clka   (axi_clk        ),
+            .wea    (push_order_en  ),
+            .addra  (write_addr     ),
+            .dina   (order_fifo_in  ),
+            .clkb   (system_clk     ),
+            .addrb  (read_addr      ),
+            .doutb  (order_fifo_out )
+        );     
     end
     else if (`device == "simulation") begin
-        async_fifo #(
-            .DSIZE 	( 256   ),
-            .ASIZE 	( 9     )
-        )
-        u_async_fifo(
-            .winc   	( push_order_en         ),
-            .wclk   	( axi_clk               ),
-            .wrst_n 	( axi_rst_n             ),
-            .rinc   	( pop_order_en          ),
-            .rclk   	( system_clk            ),
-            .rrst_n 	( rst_n                 ),
-            .wdata  	( order_fifo_in         ),
-            .rdata  	( order_fifo_out        ),
-            .wfull  	( order_fifo_almost_full),
-            .rempty 	( order_fifo_empty      )
+        simulation_ram #(
+            .DATA_W    	( 256      ),
+            .DATA_R    	( 256      ),
+            .DEPTH_W   	( 9        ),
+            .DEPTH_R   	( 9        ),
+            .INIT_FILE 	( ""       ),
+            .DELAY     	( 0        ))
+        u_simulation_ram(
+            .w_clk     	( axi_clk       ),
+            .i_wren  	( push_order_en ),
+            .i_waddr 	( write_addr    ),
+            .i_wdata 	( order_fifo_in ),
+            .r_clk     	( system_clk    ),
+            .i_raddr 	( read_addr     ),
+            .o_rdata 	( order_fifo_out)
         );
     end
 endgenerate
 
-
-assign order_valid = pop_order_en & ~order_fifo_empty;
-
-always @(posedge system_clk) begin
-    order_valid_r <= order_valid;
+always@ (posedge axi_clk or negedge axi_rst_n) begin
+    if(~axi_rst_n) begin
+        write_addr <= 0;
+    end
+    else if (refresh_order_ram) begin
+        write_addr <= 0;
+    end
+    else if (push_order_en) begin
+        write_addr <= write_addr + 1;
+    end
 end
 
-always @(posedge system_clk) begin
-    if (order_valid_r) begin
-        {id, activate, return_addr, return_patch_num, padding_size, stride, fea_out_quant_size, fea_in_quant_size, weight_quant_size, col_size, row_size, feature_patch_num, feature_double_patch, feature_output_patch_num, feature_input_patch_num, feature_input_base_addr, order} <= order_fifo_out;
+always@ (posedge system_clk or negedge rst_n) begin
+    if(~rst_n) begin
+        read_addr <= 0;
     end
+    else if (order == 5) begin
+        read_addr <= 0;
+    end
+    else if (pop_order_en) begin
+        read_addr <= read_addr + 1;
+    end
+end
+
+always@ (posedge system_clk) begin
+    if (order == 5) begin
+        order <= 0;
+    end
+    else if (pop_order_en) begin
+        {negedge_threshold, id, activate, return_addr, return_patch_num, padding_size, stride, fea_out_quant_size, fea_in_quant_size, weight_quant_size, col_size, row_size, feature_patch_num, feature_double_patch, feature_output_patch_num, feature_input_patch_num, feature_input_base_addr, order} <= order_fifo_out;
+    end
+end
+
+always@ (posedge system_clk) begin
+    calculate_start <= pop_order_en;
 end
 
 endmodule

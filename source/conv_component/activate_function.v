@@ -23,36 +23,39 @@ module activate_function #(
     input  [3:0]                    fea_in_quant_size,
     input  [3:0]                    fea_out_quant_size,
     input  [3:0]                    weight_quant_size,
-    input                           activate
+    input                           activate,
+    input  [MAC_OUTPUT_WIDTH-1:0]   negedge_threshold
 );
 
-reg [MAC_OUTPUT_WIDTH-1:0]  activate_reg[7:0];
-reg [FEATURE_WIDTH-1:0]     quant_reg[7:0];
-wire[MAC_OUTPUT_WIDTH-1:0]  data_for_act_depacked[7:0];
-reg [4:0]                   quant_size;
+reg [MAC_OUTPUT_WIDTH-1:0]          activate_reg[7:0];
+reg [FEATURE_WIDTH-1:0]             quant_reg[7:0];
+wire[MAC_OUTPUT_WIDTH-1:0]          data_for_act_depacked[7:0];
+wire[MAC_OUTPUT_WIDTH-1:0]          data_before_act[7:0];
+reg [4:0]                           quant_size;
 
 genvar i;
 // activate function
 generate  
     for (i=0; i<8; i=i+1) begin : activate_gen
         assign data_for_act_depacked[i] = data_for_act[i*MAC_OUTPUT_WIDTH+:MAC_OUTPUT_WIDTH];
+        assign data_before_act[i] = data_for_act_depacked[i] - negedge_threshold;
         if (ACTIVATE_TYPE == 0) begin
             always @(posedge system_clk) begin
                 if (activate) begin
-                    activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? 36'h0 : data_for_act_depacked[i];
+                    activate_reg[i] <= (data_before_act[i][MAC_OUTPUT_WIDTH-1]) ? 36'h0 : data_before_act[i];
                 end
                 else begin
-                    activate_reg[i] <= data_for_act_depacked[i];
+                    activate_reg[i] <= data_before_act[i];
                 end
             end
         end
         else if (ACTIVATE_TYPE == 1) begin
             always @(posedge system_clk) begin
                 if (activate) begin
-                    activate_reg[i] <= (data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1]) ? {{3{data_for_act[MAC_OUTPUT_WIDTH-1]}}, data_for_act_depacked[i][MAC_OUTPUT_WIDTH-1:3]} : data_for_act_depacked[i];
+                    activate_reg[i] <= (data_before_act[i][MAC_OUTPUT_WIDTH-1]) ? {{3{data_before_act[i][MAC_OUTPUT_WIDTH-1]}}, data_before_act[i][MAC_OUTPUT_WIDTH-1:3]} : data_before_act[i];
                 end
                 else begin
-                    activate_reg[i] <= data_for_act_depacked[i];
+                    activate_reg[i] <= data_before_act[i];
                 end
             end
         end

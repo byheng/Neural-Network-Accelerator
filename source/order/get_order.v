@@ -11,11 +11,11 @@ module get_order #
 	// Users to add ports here
 	input                   system_clk					,
 	input                   rst_n						,
-	output                  task_start					,	
-	output                  task_finish					,
+	output                  task_start					,
+	input                   task_finish                 ,		
 	output reg              accelerator_restart			,
 	input  				 	calculate_finish			,
-	output reg				calculate_start				,
+	output    				calculate_start				,
 
 	output [2:0]            order						,
 	output [31:0]           feature_input_base_addr		,
@@ -34,7 +34,8 @@ module get_order #
 	output [2:0]            padding_size				,
 	output reg[31:0]		weight_data_length			,
 	output                  activate   					,
-	output [31:0]			id							,
+	output [7:0]            id							,
+	output [31:0]			negedge_threshold			,
 	// User ports ends
 	// Do not modify the ports beyond this line
 	// Ports of Axi Slave Bus Interface S00_AXI
@@ -78,7 +79,8 @@ wire [15:0]           x_return_patch_num		;
 wire [2:0]            x_padding_size			;
 wire [31:0]			  x_weight_data_length		;
 wire                  x_activate   				;
-wire [31:0]			  x_id						;
+wire [7:0]			  x_id						;
+wire [31:0]			  x_negedge_threshold		;
 wire                  push_order_en				;
 wire                  order_in_ready			;
 wire                  order_valid				;
@@ -90,18 +92,17 @@ wire                  task_start_axi			;
 wire                  task_finish_axi			;
 wire                  accelerator_restart_axi	;
 reg                   task_start_r1,task_start_r2	;
-reg                   task_finish_r1,task_finish_r2	;
 reg [2:0]             rst_cnt;
+wire                  refresh_order_ram;
+wire                  pop_order_en;
+reg                   task_free;
 
 always @(posedge system_clk) begin
 	task_start_r1 <= task_start_axi;
-	task_finish_r1 <= task_finish_axi;
 	task_start_r2 <= task_start_r1;
-	task_finish_r2 <= task_finish_r1;
 end
 
 assign task_start = task_start_r1 & ~task_start_r2;
-assign task_finish = task_finish_r1 & ~task_finish_r2;
 
 always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
 	if (~s00_axi_aresetn) begin
@@ -153,15 +154,17 @@ set_accelerator_reg_axi # (
 	.padding_size				(x_padding_size				),
 	.weight_data_length			(x_weight_data_length		),
 	.activate   				(x_activate   				),
-	.id							(x_id						),
+	.id							(x_id						),	
+	.negedge_threshold			(x_negedge_threshold		),
 	.push_order_en				(push_order_en				),
 	.task_start					(task_start_axi				),	
-	.task_finish				(task_finish_axi			),
 	.accelerator_restart		(accelerator_restart_axi	),
 	.order_in_ready				(order_in_ready				),
+	.refresh_order_ram			(refresh_order_ram			),
 	.finish_layer				(finish_layer				),	
 	.push_layer					(push_layer					),
 	.valid_layer				(valid_layer				),
+	.task_free                  (task_free                  ),
 	.S_AXI_ACLK					(s00_axi_aclk				),
 	.S_AXI_ARESETN				(s00_axi_aresetn			),
 	.S_AXI_AWADDR				(s00_axi_awaddr				),
@@ -185,18 +188,17 @@ set_accelerator_reg_axi # (
 	.S_AXI_RREADY				(s00_axi_rready				)
 );
 
-	// Add user logic here
+// Add user logic here
 Cache_order Cache_order_inst(
     .axi_clk                    (s00_axi_aclk				),
 	.axi_rst_n                  (s00_axi_aresetn			),
 	.system_clk                 (system_clk					),
 	.rst_n                      (rst_n						),
-    .order_in_ready             (order_in_ready				),
-    .order_out_ready            (),
     .push_order_en              (push_order_en				),
-    .pop_order_en               (next_calculate_application_r),
-    .order_valid                (order_valid				),
-	.order_valid_r				(order_valid_r				),
+    .pop_order_en               (pop_order_en			    ),
+	.task_start					(task_start					),
+	.calculate_start			(calculate_start			),
+	.refresh_order_ram			(refresh_order_ram			),
     .x_order                    (x_order					),
     .x_feature_input_base_addr  (x_feature_input_base_addr	),
     .x_feature_input_patch_num  (x_feature_input_patch_num	),
@@ -213,7 +215,8 @@ Cache_order Cache_order_inst(
     .x_return_patch_num         (x_return_patch_num			),
     .x_padding_size             (x_padding_size				),
     .x_activate                 (x_activate   				),
-    .x_id                       (x_id						),
+	.x_id						(x_id						),
+	.x_negedge_threshold		(x_negedge_threshold		),
     .order                      (order						),
     .feature_input_base_addr    (feature_input_base_addr	),
     .feature_input_patch_num    (feature_input_patch_num	),
@@ -230,7 +233,8 @@ Cache_order Cache_order_inst(
     .return_patch_num           (return_patch_num			),
     .padding_size               (padding_size				),
     .activate                   (activate   				),
-    .id                         (id							)
+	.id							(id							),
+    .negedge_threshold			(negedge_threshold			)
 );
 // User logic ends
 // 取finish的上升沿得到下一次计算的申请信号
@@ -238,22 +242,6 @@ always @(posedge system_clk) begin
 	calculate_finish_r1 <= calculate_finish;
 end
 assign next_calculate_application = ~calculate_finish_r1 & calculate_finish;
-// 保持申请信号直到下一次指令读出
-always @(posedge system_clk or negedge rst_n) begin
-	if (~rst_n) begin
-		next_calculate_application_r <= 1'b0;
-	end
-	else if(next_calculate_application | task_start) begin
-		next_calculate_application_r <= 1'b1;
-	end
-	else if (order_valid)begin
-		next_calculate_application_r <= 1'b0;
-	end
-end
-// order valid打一拍作为calculate start信号
-always @(posedge system_clk) begin
-	calculate_start <= order_valid_r;
-end
 
 always @(posedge system_clk or negedge rst_n) begin
 	if (~rst_n) begin
@@ -279,7 +267,7 @@ always @(posedge s00_axi_aclk or negedge s00_axi_aresetn) begin
 	end
 end
 
-always @(posedge system_clk or negedge rst_n) begin
+always @(posedge system_clk) begin
 	if (~rst_n) begin
 		valid_layer <= 32'h0;
 	end
@@ -293,6 +281,20 @@ end
 
 always @(posedge system_clk) begin
 	weight_data_length <= x_weight_data_length;
+end
+
+assign pop_order_en = next_calculate_application | task_start;
+
+always@(posedge system_clk or negedge rst_n) begin
+	if (~rst_n) begin
+		task_free <= 1'b1;
+	end
+	else if (task_start) begin
+		task_free <= 1'b0;
+	end 
+	else if (task_finish) begin
+		task_free <= 1'b1;
+	end
 end
 
 endmodule

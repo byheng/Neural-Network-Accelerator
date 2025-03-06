@@ -360,7 +360,8 @@ always @(posedge clk) begin
 end
 
 // 初始化内存中的数据
-parameter memory_patch = "../compile/simulation_data/memory_patch.txt";
+// parameter memory_patch = "../compile/simulation_data/memory_patch.txt";
+parameter memory_patch = "F:/FPGA/accelerator_core/compile/simulation_data/memory_patch.txt";
 
 // 读取权重文件
 integer file, o, addr, d, times;
@@ -368,41 +369,12 @@ reg [31:0]weight_first_addr, bias_first_addr, picture_first_addr;
 reg [7:0] byte_data[63:0];
 integer out_file, in_file;
 initial begin
-    out_file = $fopen("../compile/simulation_data/output.txt", "w");
+    // out_file = $fopen("../compile/simulation_data/output.txt", "w");
+    out_file = $fopen("F:/FPGA/accelerator_core/compile/simulation_data/output.txt", "w");
     file = $fopen(memory_patch, "r");
     $readmemh(memory_patch, mem);
     d = 0;
     times = $time;
-end
-
-always @(posedge clk) begin
-    if (conv_control_tb.u_accelerator_control.get_order_inst.next_calculate_application)begin
-        for (i=0;i<conv_control_tb.u_accelerator_control.return_patch_num*conv_control_tb.u_accelerator_control.feature_output_patch_num*64;i=i+1)begin
-            $fwrite(out_file, "%h\n", mem[(conv_control_tb.u_accelerator_control.return_addr/64)+i]);
-        end
-        $fwrite(out_file, "#%d\n", conv_control_tb.u_accelerator_control.get_order_inst.id);
-
-        $display("the %d layer simulation is finish", conv_control_tb.u_accelerator_control.get_order_inst.id);
-        $display("Using time: %d us", (($time - times) / 10000000));
-        times = $time;
-    end
-    else if (conv_control_tb.u_accelerator_control.feature_input_patch_num!=0 && d==0) begin
-        for (i=0;i<conv_control_tb.u_accelerator_control.feature_input_patch_num*conv_control_tb.u_accelerator_control.feature_patch_num*64;i=i+1)begin
-            $fwrite(out_file, "%h\n", mem[(conv_control_tb.u_accelerator_control.feature_input_base_addr/64)+i]);
-        end
-        $fwrite(out_file, "#%d\n", conv_control_tb.u_accelerator_control.get_order_inst.id);
-        d = 1;
-    end 
-
-    if (conv_control_tb.u_accelerator_control.get_order_inst.Cache_order_inst.order==5) begin
-        if (file != 0) begin
-            $writememh(memory_patch, mem);
-            $fclose(file);
-            $fclose(out_file);
-            file = 0;
-            $stop;
-        end
-    end
 end
 
 endmodule

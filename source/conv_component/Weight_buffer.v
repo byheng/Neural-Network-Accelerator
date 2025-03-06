@@ -25,7 +25,8 @@ module Weight_buffer #(
     output                          weight_and_bias_ready  ,
     input  [1:0]                    change_weight_bias     ,  // 00: no change, 01: change weight, 10: change bias, 11: change weight and bias
     output[WEIGHT_DATA_WIDTH-1:0]   weight_bias_output_data,
-    output reg[8:0]                 weight_bias_output_valid  // 独热码，8赋给权重，1赋值给偏置  
+    output reg[8:0]                 weight_bias_output_valid,  // 独热码，8赋给权重，1赋值给偏置  
+    input                           task_finish
 );
 // local parameter
 localparam [1:0] IDLE = 2'b00, CHANGE_WEIGHT=2'b01, CHANGE_BIAS=2'b10, CHANGE_WEIGHT_AND_BIAS=2'b11;
@@ -39,6 +40,7 @@ wire                        weight_buffer_almost_full;
 wire                        weight_buffer_rd_en;
 wire[MEM_DATA_WIDTH-1:0]    fifo_in_data;
 reg [8:0]                   weight_bias_output_addr;
+wire                        weight_rst;
 // for debug
 // reg [31:0] debug_weight_cnt;
 // reg        debug_weight_en;
@@ -54,11 +56,13 @@ generate
     end
 endgenerate
 
+assign weight_rst = (~rst_n) | task_finish;
+
 generate
     if (`device == "xilinx") begin
         weight_and_bias_buffer_fifo weight_and_bias_buffer_fifo_inst (
             .clk               (system_clk),
-            .srst              (~rst_n),
+            .srst              (weight_rst),
             .din               (fifo_in_data),
             .wr_en             (weight_and_bias_valid),
             .rd_en             (weight_buffer_rd_en),
@@ -83,7 +87,7 @@ generate
         )
         u_ram_based_fifo(
             .system_clk     	( system_clk                ),
-            .rst_n          	( rst_n                     ),
+            .rst_n          	( ~weight_rst               ),
             .i_wren         	( weight_and_bias_valid     ),
             .i_wrdata       	( fifo_in_data              ),
             .o_full         	(                           ),

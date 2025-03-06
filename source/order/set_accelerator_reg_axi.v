@@ -33,14 +33,16 @@
 		output [31:0]			weight_data_length			,
 		output                  activate   					,
 		output [31:0]			id							,
+		output [31:0]			negedge_threshold			,
 		output                  push_order_en				,
 		output                  task_start   				,
-		output                  task_finish   				,
 		output                  accelerator_restart			,
+		output                  refresh_order_ram			,
 		input                   order_in_ready				,
 		input  [31:0]			finish_layer				,
 		input  [31:0]			push_layer					,	
 		input  [31:0]			valid_layer					,
+		input                   task_free					,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -1022,7 +1024,7 @@
 	        6'h18   : reg_data_out <= valid_layer;
 	        6'h19   : reg_data_out <= slv_reg25;
 	        6'h1A   : reg_data_out <= slv_reg26;
-	        6'h1B   : reg_data_out <= slv_reg27;
+	        6'h1B   : reg_data_out <= task_free;
 	        6'h1C   : reg_data_out <= slv_reg28;
 	        6'h1D   : reg_data_out <= slv_reg29;
 	        6'h1E   : reg_data_out <= slv_reg30;
@@ -1103,8 +1105,9 @@
 	assign id						= slv_reg17;
 	assign push_order_en            = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 18) & slv_reg_wren;
 	assign task_start               = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 20) & slv_reg_wren;
-	assign task_finish              = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 21) & slv_reg_wren;
+	assign refresh_order_ram        = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 21) & slv_reg_wren;
 	assign accelerator_restart      = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 25) & slv_reg_wren;
+	assign negedge_threshold		= slv_reg26;
 	// User logic ends
 
 	endmodule

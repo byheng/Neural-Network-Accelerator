@@ -63,6 +63,14 @@ wire         s_axi_rlast;
 wire         s_axi_rvalid;
 wire         s_axi_rready;
 
+wire         s_axi_rvalid_copy;
+wire         s_axi_rlast_copy;
+wire [511:0] s_axi_rdata_copy;
+reg          s_axi_rvalid_reg;
+reg          s_axi_rlast_reg;
+reg  [511:0] s_axi_rdata_reg;
+reg          rden;
+
 wire [7:0]        m_axi_awaddr ;
 wire [2:0]        m_axi_awprot ;
 wire              m_axi_awvalid;
@@ -211,6 +219,83 @@ make_order make_order_inst(
     .m00_axi_rvalid     ( m_axi_rvalid  ),
     .m00_axi_rready     ( m_axi_rready  )
 );
+
+integer i, d, times;
+
+initial begin
+	d = 0;
+end
+
+always @(posedge system_clk) begin
+    if (u_accelerator_control.get_order_inst.next_calculate_application)begin
+        for (i=0;i<u_accelerator_control.return_patch_num*u_accelerator_control.feature_output_patch_num*64;i=i+1)begin
+            $fwrite(u_axi_ram.out_file, "%h\n", u_axi_ram.mem[(u_accelerator_control.return_addr/64)+i]);
+        end
+        $fwrite(u_axi_ram.out_file, "#%d\n", u_accelerator_control.get_order_inst.id);
+
+        $display("the %d layer simulation is finish", u_accelerator_control.get_order_inst.id);
+        $display("Using time: %d us", (($time - times) / 10000000));
+        times = $time;
+    end
+    else if (u_accelerator_control.get_order_inst.calculate_start & d == 0) begin
+        for (i=0;i<u_accelerator_control.feature_input_patch_num*u_accelerator_control.feature_patch_num*64;i=i+1)begin
+            $fwrite(u_axi_ram.out_file, "%h\n", u_axi_ram.mem[(u_accelerator_control.feature_input_base_addr/64)+i]);
+        end
+        $fwrite(u_axi_ram.out_file, "#%d\n", u_accelerator_control.get_order_inst.id);
+        d = 1;
+    end 
+
+    if (u_accelerator_control.get_order_inst.Cache_order_inst.order==5) begin
+        if (u_axi_ram.file != 0) begin
+            $writememh(u_axi_ram.memory_patch, u_axi_ram.mem);
+            $fclose(u_axi_ram.file);
+            $fclose(u_axi_ram.out_file);
+            u_axi_ram.file = 0;
+            $stop;
+        end
+    end
+end
+
+// wire empty;
+// ram_based_fifo #(
+// 	.DATA_W                  	( 514      ),
+// 	.DEPTH_W                 	( 10       ),
+// 	.DATA_R                  	( 514      ),
+// 	.DEPTH_R                 	( 10       ),
+//     .FIRST_WORD_FALL_THROUGH    ( 1        ))
+// u_ram_based_fifo(
+// 	.system_clk     	( system_clk      ),
+// 	.rst_n          	( rst_n           ),
+// 	.i_wren         	( s_axi_rvalid    ),
+// 	.i_wrdata       	( {s_axi_rvalid, s_axi_rlast, s_axi_rdata}),
+// 	.o_full         	( ),
+// 	.o_almost_full  	( ),
+// 	.i_rden         	( rden            ),
+// 	.o_rddata       	( {s_axi_rvalid_copy, s_axi_rlast_copy, s_axi_rdata_copy} ),
+// 	.o_empty        	( empty           ),
+// 	.o_almost_empty 	( )
+// );
+
+// always@(posedge system_clk or negedge rst_n)begin
+//     if (!rst_n) begin
+//         rden <= 0;
+//     end
+//     else if (($random % (100 + 1)) < 80) begin
+//         rden <= 1;
+//     end
+//     else begin
+//         rden <= 0;
+//     end
+// end
+
+// always@(posedge system_clk)begin
+//     if (rden & ~empty) begin
+//         {s_axi_rvalid_reg, s_axi_rlast_reg, s_axi_rdata_reg} <= {s_axi_rvalid_copy, s_axi_rlast_copy, s_axi_rdata_copy};
+//     end
+//     else begin
+//         {s_axi_rvalid_reg, s_axi_rlast_reg, s_axi_rdata_reg} <= {1'b0, 1'b0, 512'b0};
+//     end
+// end
 
 
 endmodule
