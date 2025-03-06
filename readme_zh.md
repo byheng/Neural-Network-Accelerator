@@ -1,5 +1,5 @@
 # Open Source Accelerator on FPGA
-**切换语言: [英语](README.md), [中文](README_zh.md)**
+**切换语言: [英语](README.md), [中文](readme_zh.md)**
 **开发日志: [英语](DevLog.md), [中文](DevLog_zh.md)**
 
 该项目旨在实现卷积神经网络的加速电路。项目以yolov8为实现对象，目标是完成一个包含卷积、残差和、上采样、池化、concat等算子操作的加速电路。由于整体电路设计思想是高效复用和指令化调用，因此除了部署yolov8网络外，由上述算子操作组成的其他神经网络也可以编译到加速器上。
@@ -23,8 +23,7 @@
 
 加速器的硬件部署时钟为200MHz，Yolov8n单帧推理时间为60ms，后处理时间为50ms。推理和后处理是并行进行的，因此总帧速率可以达到18-19fps。 
 
-<video src="./fig/result video.mp4" autoplay="true" controls="controls" width="1280" height="720">
-</video>
+https://github.com/user-attachments/assets/aae8cbe7-0244-45a3-a5b3-8fbd66b3d928
 
 # 我的频道
 
