@@ -76,10 +76,11 @@ simulation_ram#(
     .DEPTH_W   ( DEPTH_W ),
     .DEPTH_R   ( DEPTH_R )
 )return_ram_inst(
-    .clk       ( system_clk  ),
+    .w_clk     ( system_clk  ),
     .i_wren    ( wren        ),
     .i_waddr   ( wrptr_rg    ),
     .i_wdata   ( i_wrdata    ),
+    .r_clk     ( system_clk  ),
     .i_raddr   ( rdaddr      ),
     .o_rdata   ( rdata_wire  )
 );

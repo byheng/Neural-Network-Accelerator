@@ -36,7 +36,8 @@ class Order(object):
                           "return_patch_num": 0,
                           "padding_size": 0,
                           "activate": 0,
-                          "id": 0
+                          "id": 0,
+                          "negedge_threshold": 0
                           }
 
     def ChangeParameter2Int(self):
@@ -49,7 +50,10 @@ class Order(object):
         for key, value in self.parameter.items():
             Id = IdMapping(key)
             """ command 1 define set parameter"""
-            OrderCode.append(hex(Id * 4)[2:].zfill(2) + " " + hex(value)[2:].zfill(8))
+            if key == "negedge_threshold":
+                OrderCode.append(hex(Id * 4)[2:].zfill(2) + " " + signed_dec2hex(value, 8)[2:])
+            else:
+                OrderCode.append(hex(Id * 4)[2:].zfill(2) + " " + hex(value)[2:].zfill(8))
         """ command 2 define Run Order"""
         OrderCode.append(hex(18 * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
         return OrderCode
@@ -60,7 +64,10 @@ class Order(object):
         for key, value in self.parameter.items():
             Id = IdMapping(key)
             """ command 1 define set parameter"""
-            OrderInstruction.append(np.uint8(Id).tobytes() + np.uint32(value).tobytes())
+            if key == "negedge_threshold":
+                OrderInstruction.append(np.uint8(Id).tobytes() + np.int32(value).tobytes())
+            else:
+                OrderInstruction.append(np.uint8(Id).tobytes() + np.uint32(value).tobytes())
         """ command 2 define Run Order"""
         OrderInstruction.append(np.uint8(18).tobytes() + np.uint32(0).tobytes())
         return OrderInstruction
@@ -116,8 +123,9 @@ class Order(object):
 
 
 class ConvOrder(Order):
-    def __init__(self, input_layer, out_channel: int, stride: int, activate: bool = True):
+    def __init__(self, input_layer, out_channel: int, stride: int, activate: bool = True, negedge_threshold: int = 0):
         super(ConvOrder, self).__init__()
+        self.negedge_threshold = negedge_threshold
         padding = 1  # assert padding = 1
         self.input_layer = input_layer
         self.in_shape = input_layer.out_shape
@@ -169,13 +177,15 @@ class ConvOrder(Order):
         self.parameter['weight_quant_size'] = w_quant - 1  # 因为0没有意义，会白占一个case电路，所以硬件上w_quant减1
         self.weight = weight
         self.bias = Quant(bias, self.f_quant + w_quant)
+        self.negedge_threshold = self.negedge_threshold * pow(2, w_quant)
+        self.parameter['negedge_threshold'] = self.negedge_threshold
 
     def forward(self, simulation_data, simulation_id_list):
         data_index = simulation_id_list.index(self.id)
         s_data = ReshapeData(simulation_data[data_index], self.out_shape)
         conv_out_ac_quant, correct, is_zero = CompareConvResult(s_data, self.input_layer.output_data,
                                                                 self.weight, self.bias, self.stride,
-                                                                self.GetOutputQuant(), self.activate)
+                                                                self.GetOutputQuant(), self.activate, self.negedge_threshold)
         print("%-30s%-20s%-20s" % (self.layer_name, ' compare ' + str(correct), 'is zeros ' + str(is_zero)))
         self.output_data = s_data
 
@@ -464,23 +474,48 @@ class DetectOrder(Order):
         for i, inLayer in enumerate(layerList):
             inner_list = [ConvOrder(inLayer, self.c3, 1)]
             inner_list.append(ConvOrder(inner_list[-1], self.c3, 1))
-            inner_list.append(ConvOrder(inner_list[-1], self.c3, 1, activate=False))
+            inner_list.append(ConvOrder(inner_list[-1], self.c3, 1, negedge_threshold=-177))
             inner_list_name = ["Cv3_" + str(i) + "_conv1",
                                "Cv3_" + str(i) + "_conv2",
                                "Cv3_" + str(i) + "_conv3", ]
             self.cv3 += inner_list
             self.cv3_name += inner_list_name
         self.ModuleList = self.cv2 + self.cv3
+        self.ModuleList.append(ChannelSumOrder(self.cv3[2]))
+        self.ModuleList.append(ChannelSumOrder(self.cv3[5]))
+        self.ModuleList.append(ChannelSumOrder(self.cv3[8]))
         self.NameList = self.cv2_name + self.cv3_name
+        self.NameList.append("ChannelSum1")
+        self.NameList.append("ChannelSum2")
+        self.NameList.append("ChannelSum3")
 
     def SetWeightAndBias(self, w_quant: list, weight: list, bias: list):
         assert len(weight) == len(w_quant) == len(bias) == 18
         for i, layer in enumerate(self.ModuleList):
-            layer.SetWeightAndBias(w_quant[i], weight[i], bias[i])
+            if isinstance(layer, ChannelSumOrder):
+                layer.SetWeightAndBias()
+            else:
+                layer.SetWeightAndBias(w_quant[i], weight[i], bias[i])
 
     def forward(self, simulation_data, simulation_id_list):
         for layer in self.ModuleList:
             layer.forward(simulation_data, simulation_id_list)
+
+class ChannelSumOrder(Order):
+    def __init__(self, inLayer):
+        super(ChannelSumOrder, self).__init__()
+        self.ModuleList = [ConvOrder(inLayer, 1, 1, activate=False)]
+        self.NameList = ["conv1"]
+        self.w = np.zeros((1, inLayer.out_shape[0], 3, 3))
+        self.w[:, :, 1, 1] = Quant(1, 1)
+        self.bias = np.zeros(1)
+
+    def SetWeightAndBias(self):
+        self.ModuleList[0].SetWeightAndBias(1, self.w, self.bias)
+
+    def forward(self, simulation_data, simulation_id_list):
+        self.ModuleList[0].forward(simulation_data, simulation_id_list)
+
 
 
 class SpiltOrder(Order):
@@ -688,8 +723,7 @@ class Model(object):
         total_params = 0
         for index, layer in enumerate(flattenLayer):
             params = None if layer.weight is None else layer.weight.reshape(-1).shape[0]
-            print("%-30s%20s%20s%20s" % (flattenName[index], str(layer.allocate_memory) + "KB",
-                                         "0x" + hex(layer.parameter['return_addr'])[2:].zfill(8), params))
+            print("ID:%-4d%-30s%20s%20s%20s" % (flattenLayer[index].parameter['id'], flattenName[index], str(layer.allocate_memory) + "KB", "0x" + hex(layer.parameter['return_addr'])[2:].zfill(8), params))
             total_space += layer.allocate_memory
             total_params = total_params + params if params is not None else total_params
         print("%-30s%20s%20s%20s" % ("total", total_space, "-", total_params))
@@ -737,17 +771,17 @@ class Model(object):
         code = []
         flattenName, flattenLayer = self.FlattenLayer(self.model)
         index = 0
-        code.append(hex(15 * 4)[2:].zfill(2) + " " + "011A4000")
-        code.append(hex(21 * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
-        code.append(hex(20 * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        code.append(hex(RegisterType.refresh_order_ram.value * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        code.append(hex(RegisterType.weight_data_length.value * 4)[2:].zfill(2) + " " + "011B0000")
         for layer in flattenLayer:
             if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
                 layer.id = index
                 layer.parameter['id'] = index
                 code += layer.CompileOrder2Code()
                 index += 1
-        code.append(hex(0 * 4)[2:].zfill(2) + " " + hex(OrderType.FINISH.value)[2:].zfill(8))
-        code.append(hex(18 * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        code.append(hex(RegisterType.order.value * 4)[2:].zfill(2) + " " + hex(OrderType.FINISH.value)[2:].zfill(8))
+        code.append(hex(RegisterType.push_order_en.value * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
+        code.append(hex(RegisterType.task_start.value * 4)[2:].zfill(2) + " " + hex(0)[2:].zfill(8))
         if not os.path.exists(c_Folder):
             os.makedirs(c_Folder)
         with open(c_Folder + "/order_code.txt", 'w') as f:
@@ -759,15 +793,16 @@ class Model(object):
         instruction = []
         flattenName, flattenLayer = self.FlattenLayer(self.model)
         index = 0
-        instruction.append(np.uint8(21).tobytes() + np.uint32(0).tobytes())
-        instruction.append(np.uint8(15).tobytes() + np.uint32(0x011A4000).tobytes())
-        instruction.append(np.uint8(20).tobytes() + np.uint32(0).tobytes())
+        instruction.append(np.uint8(RegisterType.refresh_order_ram.value).tobytes() + np.uint32(0).tobytes())
+        instruction.append(np.uint8(RegisterType.weight_data_length.value).tobytes() + np.uint32(0x011B0000).tobytes())
         for layer in flattenLayer:
             if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
                 layer.id = index
                 layer.parameter['id'] = index
                 instruction += layer.CompileOrder2Instruction()
                 index += 1
+        instruction.append(np.uint8(RegisterType.order.value).tobytes() + np.uint32(OrderType.FINISH.value).tobytes())
+        instruction.append(np.uint8(RegisterType.push_order_en.value).tobytes() + np.uint32(0).tobytes())
         instruction.append(np.uint8(255).tobytes() + np.uint32(255).tobytes())
         f = open(c_Folder + "/instruction.bin", 'wb')
         for o in instruction:
