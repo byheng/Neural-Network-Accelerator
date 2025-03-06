@@ -23,7 +23,8 @@ using 100Mhz clk to simulate the accelerator on yolov8n, total use 114ms.
 
 The hardware deployment clock of the accelerator is 200Mhz, the single frame of yolov8n inference time is 60ms, and the post-processing time is 50ms. The inference and post-processing are carried out in parallel, so the total frame rate can reach 18-19FPS. 
 
-https://github.com/quanzaihh/Neural-Network-Accelerator/blob/instruction/fig/result%20video.mp4
+<video src="https://github.com/quanzaihh/Neural-Network-Accelerator/blob/instruction/fig/result%20video.mp4" autoplay="true" controls="controls" width="1280" height="720">
+</video>
 
 # My channel
 
