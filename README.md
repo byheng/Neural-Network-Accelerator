@@ -1,5 +1,5 @@
 # Open Source Accelerator on FPGA
-**Read this in other languages: [english](README.md), [chinese](README_zh.md)**
+**Read this in other languages: [english](readme.md), [chinese](readme_zh.md)**
 **Development Log: [english](DevLog.md), [chinese](DevLog_zh.md)**
 
 This project aims to implement an acceleration circuit for convolutional neural networks. The project uses yolov8 as the implementation object, and the goal is to complete an acceleration circuit with operator operations such as convolution, residual sum, upsampling, pooling, and concat. Since the overall circuit design idea is efficient reusability and instructional calling, in addition to deploying the yolov8 network, other neural networks composed of the above operator operations can also be compiled onto the accelerator.
