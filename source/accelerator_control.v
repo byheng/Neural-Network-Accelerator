@@ -97,7 +97,8 @@ localparam [2:0] WAIT_TASK_BEGIN         = 3'd0,
 localparam [2:0] CONVOLUTION = 3'd1,
 				 ADD         = 3'd2,
 				 POOL        = 3'd3,
-				 UPSAMPLE    = 3'd4;
+				 UPSAMPLE    = 3'd4,
+				 FINISH      = 3'd5;
 
 localparam [2:0] WAIT_CONVOLUTION_BEGIN  = 3'd0,
 				 CHANGE_WEIGHT_BIAS      = 3'd1,
@@ -121,8 +122,7 @@ localparam [2:0] WAIT_BEGIN         	 = 3'd0,
 				 OPERTOR_FINISH          = 3'd5;
 
 // accelerator parameters
-wire 		 task_start					;
-wire 		 task_finish				;	
+wire 		 task_start					;	
 wire 		 calculate_finish			;	
 wire 		 calculate_start			;	
 wire  [2:0]  order						;
@@ -215,6 +215,10 @@ wire                            upsample_buffer_empty;
 wire                            single_operator_buffer_done;
 (* keep = "true" *)wire                            rst_n;
 (* keep = "true" *)wire                            accelerator_restart;
+(* keep = "true" *)wire                            load_feature_finish;
+(* keep = "true" *)reg                             compute_finish_lock;	// compute_finish锁存
+wire                            task_finish;
+wire [31:0]						negedge_threshold;
 
 integer i;
 
@@ -246,10 +250,10 @@ always@(posedge system_clk or negedge rst_n) begin
 						UPSAMPLE: begin
 							task_state <= WAIT_OPERATOR_FINISH;
 						end
+						FINISH: begin
+							task_state <= WAIT_TASK_BEGIN;
+						end
                     endcase
-                end
-                else if (task_finish) begin
-                    task_state <= WAIT_TASK_BEGIN;
                 end
             end
 
@@ -298,7 +302,7 @@ always@(posedge system_clk or negedge rst_n) begin
 			end
 
 			WAIT_CALCULATION_DONE: begin
-				if (compute_finish) begin
+				if (compute_finish_lock & load_feature_finish) begin
 					convolution_state <= CHECK_INPUT_PATCH_NUM;
 				end
 			end
@@ -347,7 +351,7 @@ always@(posedge system_clk or negedge rst_n) begin
 				end
 			end
 			WAIT_ADD_DONE: begin
-				if (compute_finish) begin
+				if (compute_finish_lock & load_feature_finish) begin
 					add_state <= WAIT_A_RETURN_FINISH;
 				end
 			end
@@ -383,7 +387,7 @@ always@(posedge system_clk or negedge rst_n) begin
 			end
 
 			WAIT_COMPUTE_DONE: begin
-				if (compute_finish) begin
+				if (compute_finish_lock & load_feature_finish) begin
 					single_operator_state <= WAIT_S_RETURN_FINISH;
 				end
 			end
@@ -436,7 +440,7 @@ always@(posedge system_clk or negedge rst_n) begin
 	// else if (convolution_state == WAIT_CONVOLUTION_BEGIN) begin
 	// 	input_patch_cnt <= 8'd0;
 	// end 
-	else if ((convolution_state == WAIT_CALCULATION_DONE) & compute_finish) begin
+	else if ((convolution_state == WAIT_CALCULATION_DONE) & compute_finish_lock & load_feature_finish) begin
 		input_patch_cnt <= input_patch_cnt + 8'd1;
 	end
 	else if ((single_operator_state == WAIT_S_RETURN_FINISH) & return_finish) begin
@@ -581,6 +585,17 @@ always@(posedge system_clk or negedge rst_n) begin
 	end
 end
 
+always@(posedge system_clk or negedge rst_n) begin
+	if (~rst_n) begin
+		compute_finish_lock <= 0;
+	end
+	else if (compute_finish) begin
+		compute_finish_lock <= 1;
+	end
+	else if (load_feature_finish) begin
+		compute_finish_lock <= 0;
+	end
+end
 
 // assign signals
 assign rst_n 			 = system_rst_n & (~accelerator_restart);
@@ -622,6 +637,8 @@ assign kernel_size = pool_layer_working ? 5 : 3;
 
 assign single_operator_buffer_done = (upsample_working) ? upsample_buffer_empty : 1'b1;
 
+assign task_finish = (task_state == WAIT_ORDER) & (order == FINISH);
+
 // instantiate
 read_ddr_control u_read_ddr_control(
 	.system_clk              	( system_clk               ),
@@ -641,6 +658,7 @@ read_ddr_control u_read_ddr_control(
 	.feature_patch_num      	( feature_patch_num        ),
 	.load_feature_begin      	( load_feature_begin       ),
 	.free_feature_read_addr  	( free_feature_read_addr   ),
+	.load_feature_finish		( load_feature_finish	   ),
 	.m00_axi_araddr          	( m00_axi_araddr           ),
 	.m00_axi_arlen           	( m00_axi_arlen            ),
 	.m00_axi_arsize          	( m00_axi_arsize           ),
@@ -705,7 +723,8 @@ Weight_buffer u_Weight_buffer(
 	.weight_and_bias_ready    	( weight_and_bias_ready     ),
 	.change_weight_bias       	( change_weight_bias        ),
 	.weight_bias_output_data  	( weight_bias_output_data   ),
-	.weight_bias_output_valid 	( weight_bias_output_valid  )
+	.weight_bias_output_valid 	( weight_bias_output_valid  ),
+	.task_finish              	( task_finish               )
 );
 
 convolution_core u_convolution_core(
@@ -742,7 +761,8 @@ activate_function u_activate_function(
 	.fea_in_quant_size  	( fea_in_quant_size   	),
 	.fea_out_quant_size 	( fea_out_quant_size  	),
 	.weight_quant_size  	( weight_quant_size   	),
-	.activate				( activate				)
+	.activate				( activate				),
+	.negedge_threshold		( {{(MAC_OUTPUT_WIDTH-32){negedge_threshold[31]}}, negedge_threshold})
 );
 
 return_buffer u_return_buffer(
@@ -850,7 +870,7 @@ get_order get_order_inst(
 	.padding_size				( padding_size			  ),
 	.weight_data_length			( weight_data_length      ),
 	.activate   				( activate				  ),
-	.id							( ), 
+	.negedge_threshold			( negedge_threshold		  ),	
 	.s00_axi_aclk				( s00_axi_aclk			  ),
 	.s00_axi_aresetn			( s00_axi_aresetn		  ),
 	.s00_axi_awaddr				( s00_axi_awaddr		  ),

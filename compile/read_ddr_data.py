@@ -32,7 +32,10 @@ def read_output_file(file):
         for line in lines:
             # 去除换行符，分割每行的两个十六进制数，并转换为整数
             if line[0] == "#":
-                id_list.append(int(line[1:]))
+                try:
+                    id_list.append(int(line[1:]))
+                except ValueError:
+                    id_list.append(line[1:])
                 output.append(np.array(memory).reshape(-1))
                 memory = []
             else:

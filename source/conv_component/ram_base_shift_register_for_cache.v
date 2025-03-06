@@ -62,10 +62,11 @@ generate
             .DEPTH_R   	( 10      )
         )
         u_simulation_ram(
-            .clk     	( system_clk    ),
+            .w_clk     	( system_clk    ),
             .i_wren  	( wr_en         ),
             .i_waddr 	( wr_addr       ),
             .i_wdata 	( wr_data       ),
+            .r_clk      ( system_clk    ),
             .i_raddr 	( rd_addr       ),
             .o_rdata 	( rd_data_wire  )
         );

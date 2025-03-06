@@ -5,15 +5,15 @@ from torch.nn.functional import conv2d, pad, max_pool2d, upsample, interpolate
 import cv2
 import os
 
-label_dict = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-              "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-              "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-              "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-              "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-              "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-              "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard",
-              "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
-              "teddy bear", "hair drier", "toothbrush"]
+label_dict = ["人", "自行车", "汽车", "摩托车", "飞机", "巴士", "火车", "卡车", "船", "红绿灯",
+              "消防栓", "停止标", "停车表", "长椅", "鸟", "猫", "狗", "马", "羊", "牛",
+              "大象", "熊", "斑马", "长颈鹿", "背包", "雨伞", "手提包", "领带", "行李箱", "飞盘",
+              "滑雪板", "滑雪板", "运动球", "风筝", "棒球棒", "棒球手", "滑板", "冲浪板",
+              "网球拍", "瓶子", "红酒杯", "杯子", "叉子", "刀", "勺子", "碗", "香蕉", "苹果",
+              "三明治", "橙子", "西兰花", "胡萝卜", "热狗", "披萨", "甜甜圈", "蛋糕", "椅子", "沙发",
+              "盆栽植", "床", "餐桌", "马桶", "电视", "笔记本", "鼠标", "遥控器", "键盘",
+              "手机", "微波炉", "烤箱", "面包机", "水槽", "冰箱", "书", "时钟", "花瓶", "剪刀",
+              "泰迪熊", "吹风机", "牙刷"]
 
 
 class OrderType(Enum):
@@ -23,6 +23,31 @@ class OrderType(Enum):
     MAXPOOL = 3
     UPSAMPLE = 4
     FINISH = 5
+
+
+class RegisterType(Enum):
+    push_order_en = 18
+    task_start = 20
+    refresh_order_ram = 21
+    accelerator_restart = 25
+    order = 0
+    feature_input_base_addr = 1
+    feature_input_patch_num = 2
+    feature_output_patch_num = 3
+    feature_double_patch = 4
+    feature_patch_num = 5
+    row_size = 6
+    col_size = 7
+    weight_quant_size = 8
+    fea_in_quant_size = 9
+    fea_out_quant_size = 10
+    stride = 11
+    return_addr = 12
+    return_patch_num = 13
+    padding_size = 14
+    weight_data_length = 15
+    activate = 16
+    id = 17
 
 
 def IdMapping(Id):
@@ -43,7 +68,8 @@ def IdMapping(Id):
                    "padding_size": 14,
                    "weight_data_length": 15,
                    "activate": 16,
-                   "id": 17
+                   "id": 17,
+                   "negedge_threshold": 26
                    }
     if isinstance(Id, int):
         for key, value in MappingDict.items():
@@ -169,12 +195,13 @@ def MakePictureBin(picture, c_Folder):
         f.write(picture.tobytes())
 
 
-def CompareConvResult(simulation_result, input_data, w, b, stride, quant, activate):
+def CompareConvResult(simulation_result, input_data, w, b, stride, quant, activate, negedge_threshold):
     input_data = torch.from_numpy(input_data.astype(np.int64))
     w = torch.from_numpy(w.astype(np.int64))
     b = torch.from_numpy(b.astype(np.int64))
 
     out = conv2d(input_data, weight=w, bias=b, stride=stride + 1, padding=1)
+    out = out - torch.tensor(negedge_threshold)
     conv_out_ac = torch.relu(out).detach().cpu().numpy() if activate else out.detach().cpu().numpy()
     conv_out_ac_quant = conv_out_ac // pow(2, quant)
     conv_out_ac_quant = conv_out_ac_quant.astype(np.int16)
@@ -246,7 +273,7 @@ def HalfSpiltArray(input_data):
     return input_data[:c // 2, :, :], input_data[c // 2:, :, :]
 
 
-def SelectValidBox(box, cls, anchor, stride, conf=0.20):
+def SelectValidBox(box, cls, anchor, stride, Csum, conf=0.20):
     logit = np.log(conf / (1 - conf))
     # 当cls输出的最大值小于logit时，则可排除
     b_max = cls.max(axis=0)
@@ -424,10 +451,135 @@ def ChangeBGR2RGB(image):
     image = image[..., ::-1]
     return image
 
+
+def fourBin2OneHex(four_bin: str) -> str:
+    '''
+    函数功能：4位2进制字符串 -> 1位16进制字符串\n
+    输入：4位2进制字符串，输入范围0000~1111\n
+    输出：1位16进制字符串
+    '''
+    if (four_bin == '0000'):
+        return '0'
+    elif (four_bin == '0001'):
+        return '1'
+    elif (four_bin == '0010'):
+        return '2'
+    elif (four_bin == '0011'):
+        return '3'
+    elif (four_bin == '0100'):
+        return '4'
+    elif (four_bin == '0101'):
+        return '5'
+    elif (four_bin == '0110'):
+        return '6'
+    elif (four_bin == '0111'):
+        return '7'
+    elif (four_bin == '1000'):
+        return '8'
+    elif (four_bin == '1001'):
+        return '9'
+    elif (four_bin == '1010'):
+        return 'a'
+    elif (four_bin == '1011'):
+        return 'b'
+    elif (four_bin == '1100'):
+        return 'c'
+    elif (four_bin == '1101'):
+        return 'd'
+    elif (four_bin == '1110'):
+        return 'e'
+    elif (four_bin == '1111'):
+        return 'f'
+    else:
+        int('输入2进制字符' + four_bin + '错误，2进制只能包含0或1')
+
+
+def signed_bin2hex(bin_str: str, hex_width: int = -1) -> str:
+    input_bin_str = bin_str
+    bin_str = bin_str.strip()
+    if (bin_str[:2] == '0b'):  # 2进制字符串以0b开头
+        bin_str = bin_str[2:]
+    elif (bin_str[0] == '0' or bin_str[0] == '1'):
+        pass
+    else:
+        int('输入 ' + bin_str + ' 不合法，输入必须为2进制补码，不允许带正负号 且 首字符不能是下划线')
+    # 检查输入是否合法，末尾字符不能是下划线 且 不能出现连续的两个下划线
+    if (bin_str[-1] == '_' or '__' in bin_str):
+        int('输入 ' + bin_str + ' 不合法，末尾字符不能是下划线 且 不能出现连续的两个下划线')
+    else:
+        bin_str = bin_str.replace('_', '')  # 输入合法则去除下划线
+    # 去掉2进制补码字符串前面多余的符号位，保留两位
+    for i in range(len(bin_str) - 1):
+        if (bin_str[i + 1] == bin_str[0]):
+            if (i + 1 == len(bin_str) - 1):
+                bin_str = bin_str[i:]
+            else:
+                continue
+        else:
+            bin_str = bin_str[i:]
+            break
+    if (len(bin_str) % 4 > 0):  # 补符号位到位宽为4的倍数
+        bin_str = bin_str[0] * (4 - len(bin_str) % 4) + bin_str
+    hex_str = ''
+    for i in range(int(len(bin_str) / 4)):
+        hex_str += fourBin2OneHex(bin_str[i * 4: i * 4 + 4])
+    if (hex_width == -1):
+        pass
+    elif (hex_width < len(hex_str)):
+        print('位宽参数' + str(hex_width) + ' < 2进制补码' + input_bin_str + '输出16进制补码'
+              + '0x' + hex_str + '实际位宽' + str(len(hex_str)) + '，请修正位宽参数')
+    else:
+        if (hex_str[0] in ['0', '1', '2', '3', '4', '5', '6', '7']):
+            hex_str = '0' * (hex_width - len(hex_str)) + hex_str
+        else:
+            hex_str = 'f' * (hex_width - len(hex_str)) + hex_str
+    return '0x' + hex_str
+
+
+def signed_dec2bin(dec_num: int, bin_width: int = -1) -> str:
+    dec_num_str = str(dec_num)
+    if (type(dec_num) == str):
+        dec_num = int(dec_num.strip())
+    if (dec_num == 0):
+        bin_str = '0'
+    elif (dec_num > 0):
+        bin_str = '0' + bin(dec_num)[2:]  # 补符号位0
+    else:
+        for i in range(10000):
+            if (2 ** i + dec_num >= 0):
+                bin_str = bin(2 ** (i + 1) + dec_num)[2:]  # 一个负数num的补码等于（2**i + dec_num)
+                break
+    if (bin_width == -1):
+        pass
+    elif (bin_width < len(bin_str)):
+        # 实际位宽大于设定位宽则报警告，然后按实际位宽输出
+        print('位宽参数' + str(bin_width) + ' < 10进制' + dec_num_str + '输出2进制补码'
+              + '0b' + bin_str + '实际位宽' + str(len(bin_str)) + '，请修正位宽参数')
+    else:
+        bin_str = bin_str[0] * (bin_width - len(bin_str)) + bin_str  # 实际位宽小于设定位宽则补符号位
+    return '0b' + bin_str
+
+
+def signed_dec2hex(dec_num: int, hex_width=-1) -> str:
+    hex_str = signed_bin2hex(signed_dec2bin(dec_num))[2:]
+    if (hex_width == -1):
+        pass
+    elif (hex_width < len(hex_str)):
+        print('位宽参数' + str(hex_width) + ' < 10进制' + str(dec_num) + '输出16进制补码' + '0x' +
+              hex_str + '实际位宽' + str(len(hex_str)) + '，请修正位宽参数')
+    else:
+        if (hex_str[0] in ['0', '1', '2', '3', '4', '5', '6', '7']):
+            hex_str = '0' * (hex_width - len(hex_str)) + hex_str
+        else:
+            hex_str = 'f' * (hex_width - len(hex_str)) + hex_str
+    return '0x' + hex_str
+
+
 def refresh_ddr_patch(s_Folder):
     if not os.path.exists(s_Folder):
         os.makedirs(s_Folder)
     os.system(r"chcp 65001 && cd ../../sim && refresh.bat")
+
 
 def Run_simulation():
     os.system(r"chcp 65001 && cd ../../sim && sim.bat")

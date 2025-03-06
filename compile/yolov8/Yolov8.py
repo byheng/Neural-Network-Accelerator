@@ -71,27 +71,31 @@ class MyYolov8Model(Model):
     def Build(self):
         self.AllocateMemory()
         self.IntParameter()
-        self.PrintModelMemoryUsing()
         self.FlattenLayer(self.model, insert_name=True)
         self.weight, self.bias = self.MakeWeight()
         self.weightAndBias = self.MakeWeightBiasBin(self.c_Folder)
         self.SetWeightLength()
         self.GenerateCode(self.c_Folder)  # for axi write instruction ----> just simulation
         self.GenerateInstruction(self.c_Folder)  # for axi write instruction -----> for hardware
+        self.PrintModelMemoryUsing()
 
     def ReturnNetworkOutput(self):
         box = []
         cls = []
+        Csum = []
         for i in range(3):
             cv2_out = deQuant(self.model['DETECT_Q'].cv2[3 * i + 2].output_data, 7)
-            cv3_out = deQuant(self.model['DETECT_Q'].cv3[3 * i + 2].output_data, 7)
+            cv3_out = deQuant(self.model['DETECT_Q'].cv3[3 * i + 2].output_data - 178, 7)
+            s = deQuant(self.model['DETECT_Q'].ModuleList[-3+i].ModuleList[0].output_data.reshape(1, -1), 7)
             box.append(cv2_out)
             cls.append(cv3_out)
+            Csum.append(s)
         anchor, stride, box, cls = MakeAnchors(box, cls)
         box = np.concatenate(box, axis=1)
         cls = np.concatenate(cls, axis=1)
+        Csum = np.concatenate(Csum, axis=1)
 
-        box_valid, cls_valid, anchor_valid, stride_valid = SelectValidBox(box, cls, anchor, stride)
+        box_valid, cls_valid, anchor_valid, stride_valid = SelectValidBox(box, cls, anchor, stride, Csum)
         box_list = DFL(box_valid, self.model['DETECT_Q'].reg_max, anchor_valid, stride_valid)
         label = np.argmax(cls_valid, axis=0)
         box_nms = []
@@ -192,14 +196,15 @@ class Yolov8MemoryChecker(object):
 
 
 if __name__ == '__main__':
-    model = Build("./modelList_dirct.pkl", 0, 0x2800000)  # for simulation
-    refresh_ddr_patch(s_Folder)
-    Run_simulation()
-    model = CheckSimulationOutput(model, hard_ware=False)
-    model.PostProcessing()
+    # model = Build("./modelList_dirct.pkl", 0, 0x2800000)  # for simulation
+    # refresh_ddr_patch(s_Folder)
+    # Run_simulation()
+    # model = CheckSimulationOutput(model, hard_ware=False)
+    # model = Load()
+    # model.PostProcessing()
 
     # for hardware
-    # model = Build("./modelList_dirct.pkl", 0x81000000, 0x83800000)  # for actual hardware
+    model = Build("./modelList_dirct.pkl", 0x81000000, 0x83800000)  # for actual hardware
     # model.saveImage2Bin()
     # model = CheckSimulationOutput(model, hard_ware=True)
     # model.PostProcessing()

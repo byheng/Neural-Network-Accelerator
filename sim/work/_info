@@ -9,126 +9,188 @@ z2
 cModel Technology
 Z0 dF:/FPGA/accelerator_core/sim
 T_opt
-!s110 1739259395
-VHhW6QgVHZkaIZ:DR]E[dM1
+!s110 1740756501
+VDj1kLg6_UMnY9B1Ta0JlW1
 Z1 04 15 4 work conv_control_tb fast 0
-=1-047c16d2c882-67aafe03-273-1113c
+=4-047c16d2c882-67c1d615-5b-3ef90
 Z2 o-quiet -auto_acc_if_foreign -work work
 Z3 tCvgOpt 0
 n@_opt
 Z4 OL;O;10.7;67
 R0
 T_opt1
-!s110 1739244912
-VmLoBXK:GodW5@BIingOZi3
-04 16 4 work refresh_ddr_data fast 0
-=1-047c16d2c882-67aac570-8d-10514
+!s110 1741011233
+VDKibL`JlZ`9:Y9F9`8Ho[0
+R1
+=5-047c16d2c882-67c5b920-3cf-10644
 R2
 R3
 n@_opt1
 R4
-R0
 T_opt2
-!s110 1739255786
-Vi27bFemVGzXJ0dhXOCjeD3
-R1
-=1-047c16d2c882-67aaefea-147-6b00
-o-quiet -auto_acc_if_foreign -work work +acc
+!s110 1740999346
+V7CMX5RabM;O19n=Rf[kcE2
+04 16 4 work refresh_ddr_data fast 0
+=1-047c16d2c882-67c58ab1-3e0-12074
+R2
 R3
 n@_opt2
 R4
 R0
 vaccelerator_control
-Z5 !s110 1739627506
+Z5 !s110 1741001653
 !i10b 1
-!s100 ZEljKA?;>i_Be1N@H_WF03
-I=4=@7dKSf_N:8K4IfO@l42
+!s100 [ho6^e3mLD^TN5CfZPch11
+I>NQRMb0Wbl^R8_59B3E]P1
 Z6 VDg1SIo80bB@j0V0VzS_@n1
 R0
-Z7 w1739263973
-8../source/accelerator_control.v
-F../source/accelerator_control.v
-Z8 L0 13
-Z9 OL;L;10.7;67
+w1740990333
+8F:/FPGA/accelerator_core/source/accelerator_control.v
+FF:/FPGA/accelerator_core/source/accelerator_control.v
+Z7 L0 13
+Z8 OL;L;10.7;67
 r1
 !s85 0
 31
-Z10 !s108 1739627506.000000
-!s107 ../parameters.v|../source/accelerator_control.v|
-!s90 ../source/accelerator_control.v|
+Z9 !s108 1741001653.000000
+!s107 ../parameters.v|F:/FPGA/accelerator_core/source/accelerator_control.v|
+!s90 -reportprogress|300|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|F:/FPGA/accelerator_core/source/accelerator_control.v|
 !i113 0
-Z11 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
+Z10 o-L mtiAvm -L mtiRnm -L mtiOvm -L mtiUvm -L mtiUPF -L infact
 R3
 vactivate_function
-Z12 !s110 1739627505
+R5
 !i10b 1
-!s100 2DazYfkPQ:k<6WUZcfmNn3
-In@6e0S@Z^dGeKMG?P8M@W3
+!s100 l7V@UBM0fa:bOTZcO:SNI0
+If]2D0RKHgI<7eIK0;biUA0
 R6
 R0
-R7
-8../source/conv_component/activate_function.v
-F../source/conv_component/activate_function.v
-Z13 L0 10
-R9
+w1741001487
+8F:/FPGA/accelerator_core/source/conv_component/activate_function.v
+FF:/FPGA/accelerator_core/source/conv_component/activate_function.v
+Z11 L0 10
+R8
 r1
 !s85 0
 31
-Z14 !s108 1739627505.000000
-Z15 !s107 ..\source\conv_component\..\..\parameters.v|../source/conv_component/return_data_arbitra.v|../source/conv_component/return_buffer.v|../source/conv_component/read_ddr_control.v|../source/conv_component/ram_base_shift_register_for_cache.v|../source/conv_component/feature_row_Cache.v|../source/conv_component/feature_buffer.v|../source/conv_component/feature_add.v|../source/conv_component/convlution_core.v|../source/conv_component/adder_trees.v|../source/conv_component/activate_function.v|../source/conv_component/Weight_buffer.v|../source/conv_component/PE_core.v|../source/conv_component/PE_array.v|../source/conv_component/Output_buffer.v|../source/conv_component/MAC_PE.v|
-Z16 !s90 ../source/conv_component/MAC_PE.v|../source/conv_component/Output_buffer.v|../source/conv_component/PE_array.v|../source/conv_component/PE_core.v|../source/conv_component/Weight_buffer.v|../source/conv_component/activate_function.v|../source/conv_component/adder_trees.v|../source/conv_component/convlution_core.v|../source/conv_component/feature_add.v|../source/conv_component/feature_buffer.v|../source/conv_component/feature_row_Cache.v|../source/conv_component/ram_base_shift_register_for_cache.v|../source/conv_component/read_ddr_control.v|../source/conv_component/return_buffer.v|../source/conv_component/return_data_arbitra.v|
+R9
+!s107 F:\FPGA\accelerator_core\source\conv_component\..\..\parameters.v|F:/FPGA/accelerator_core/source/conv_component/activate_function.v|
+!s90 -reportprogress|300|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|F:/FPGA/accelerator_core/source/conv_component/activate_function.v|
 !i113 0
-R11
+R10
 R3
 vadd_tree
-R12
+Z12 !s110 1740999344
 !i10b 1
 !s100 3AYREhRP]7=OZTTaP<_5S1
 IM[NI^@Io>mRXneN;3HP9:3
 R6
 R0
-Z17 w1735031815
+Z13 w1735031815
 8../source/conv_component/adder_trees.v
 F../source/conv_component/adder_trees.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
-R14
-R15
-R16
+Z14 !s108 1740999344.000000
+Z15 !s107 ..\source\conv_component\..\..\parameters.v|../source/conv_component/return_data_arbitra.v|../source/conv_component/return_buffer.v|../source/conv_component/read_ddr_control.v|../source/conv_component/ram_base_shift_register_for_cache.v|../source/conv_component/feature_row_Cache.v|../source/conv_component/feature_buffer.v|../source/conv_component/feature_add.v|../source/conv_component/convlution_core.v|../source/conv_component/adder_trees.v|../source/conv_component/activate_function.v|../source/conv_component/Weight_buffer.v|../source/conv_component/PE_core.v|../source/conv_component/PE_array.v|../source/conv_component/Output_buffer.v|../source/conv_component/MAC_PE.v|
+Z16 !s90 -reportprogress|300|../source/conv_component/MAC_PE.v|../source/conv_component/Output_buffer.v|../source/conv_component/PE_array.v|../source/conv_component/PE_core.v|../source/conv_component/Weight_buffer.v|../source/conv_component/activate_function.v|../source/conv_component/adder_trees.v|../source/conv_component/convlution_core.v|../source/conv_component/feature_add.v|../source/conv_component/feature_buffer.v|../source/conv_component/feature_row_Cache.v|../source/conv_component/ram_base_shift_register_for_cache.v|../source/conv_component/read_ddr_control.v|../source/conv_component/return_buffer.v|../source/conv_component/return_data_arbitra.v|
 !i113 0
-R11
+R10
+R3
+varbiter
+Z17 !s110 1740999345
+!i10b 1
+!s100 SzIQ_ziI9Q93aL54B6UA20
+IneMS4_?[?on^8JCPOQ;C20
+R6
+R0
+Z18 w1680160333
+8./tb/arbiter.v
+F./tb/arbiter.v
+Z19 L0 34
+R8
+r1
+!s85 0
+31
+Z20 !s108 1740999345.000000
+Z21 !s107 .\tb\axi_lite_BFM.sv|.\tb\..\..\parameters.v|./tb/test_axi_tb.v|./tb/simulation_tb.v|./tb/simulation_row_cache.v|./tb/simulation_order_tb.v|./tb/simulation_mul.v|./tb/simulation_AXI_memory_virtual.v|./tb/simulation_AXI_memory.v|./tb/refresh_ddr_data.v|./tb/priority_encoder.v|./tb/make_order.sv|./tb/axi_master.v|./tb/axi_lite_BFM.sv|./tb/axi_interface.sv|./tb/axi_interconnect_warp.v|./tb/axi_interconnect.v|./tb/arbitr_simulation_tb.v|./tb/arbiter.v|
+Z22 !s90 -reportprogress|300|./tb/arbiter.v|./tb/arbitr_simulation_tb.v|./tb/axi_interconnect.v|./tb/axi_interconnect_warp.v|./tb/axi_interface.sv|./tb/axi_lite_BFM.sv|./tb/axi_master.v|./tb/make_order.sv|./tb/priority_encoder.v|./tb/refresh_ddr_data.v|./tb/simulation_AXI_memory.v|./tb/simulation_AXI_memory_virtual.v|./tb/simulation_mul.v|./tb/simulation_order_tb.v|./tb/simulation_row_cache.v|./tb/simulation_tb.v|./tb/test_axi_tb.v|
+!i113 0
+R10
 R3
 vasync_fifo
-Z18 DXx6 sv_std 3 std 0 22 >9az<^>2ff9DAl3OFGaAf1
+Z23 DXx6 sv_std 3 std 0 22 >9az<^>2ff9DAl3OFGaAf1
 R12
 !i10b 1
 !s100 h6gSe6Al19gH:?T>TCZNO0
 IheC???hjeI@<;MIR]nHei1
 R6
-Z19 !s105 Syn_fifo_sv_unit
+Z24 !s105 Syn_fifo_sv_unit
 S1
 R0
-R7
-Z20 8../ipcore/simulation/Syn_fifo.sv
-Z21 F../ipcore/simulation/Syn_fifo.sv
+Z25 w1739263973
+Z26 8../ipcore/simulation/Syn_fifo.sv
+Z27 F../ipcore/simulation/Syn_fifo.sv
 L0 30
-R9
+R8
 r1
 !s85 0
 31
 R14
-Z22 !s107 ..\ipcore\simulation\..\..\parameters.v|../ipcore/simulation/simulation_ram.v|../ipcore/simulation/Syn_fifo.sv|../ipcore/simulation/Ram_based_fifo_tb.v|../ipcore/simulation/Ram_based_fifo.v|
-Z23 !s90 ../ipcore/simulation/Ram_based_fifo.v|../ipcore/simulation/Ram_based_fifo_tb.v|../ipcore/simulation/Syn_fifo.sv|../ipcore/simulation/simulation_ram.v|
+Z28 !s107 ..\ipcore\simulation\..\..\parameters.v|../ipcore/simulation/simulation_ram.v|../ipcore/simulation/Syn_fifo.sv|../ipcore/simulation/Ram_based_fifo_tb.v|../ipcore/simulation/Ram_based_fifo.v|
+Z29 !s90 -reportprogress|300|../ipcore/simulation/Ram_based_fifo.v|../ipcore/simulation/Ram_based_fifo_tb.v|../ipcore/simulation/Syn_fifo.sv|../ipcore/simulation/simulation_ram.v|
 !i113 0
-R11
+R10
+R3
+vaxi_interconnect
+R17
+!i10b 1
+!s100 6b0QoVUJ8KJVZd2S1<fA=0
+IoMT;bYQ`DJA75:^bJF4Ae2
+R6
+R0
+R18
+8./tb/axi_interconnect.v
+F./tb/axi_interconnect.v
+R19
+R8
+r1
+!s85 0
+31
+R20
+R21
+R22
+!i113 0
+R10
+R3
+vaxi_interconnect_wrap_2x1
+R17
+!i10b 1
+!s100 =`Mia6HS3^]AY1bcgLiO>1
+IDzg5DkW@M4f8>aogR@BI<0
+R6
+R0
+w1740748526
+8./tb/axi_interconnect_warp.v
+F./tb/axi_interconnect_warp.v
+R19
+R8
+r1
+!s85 0
+31
+R20
+R21
+R22
+!i113 0
+R10
 R3
 Xaxi_lite_BFM_sv_unit
-Z24 !s115 axi_lite_if
-R18
-R5
+Z30 !s115 axi_lite_if
+R23
+R17
 !i10b 1
 !s100 6`3U]c=G`LjS_[LO?TeA;1
 I`G:z01V?Kko^GAkSB=Gge0
@@ -136,25 +198,25 @@ V`G:z01V?Kko^GAkSB=Gge0
 !i103 1
 S1
 R0
+Z31 w1740989213
+8./tb/axi_lite_BFM.sv
+F./tb/axi_lite_BFM.sv
+Z32 F.\tb\..\..\parameters.v
 R7
-Z25 8./tb/axi_lite_BFM.sv
-Z26 F./tb/axi_lite_BFM.sv
-Z27 F.\tb\..\..\parameters.v
 R8
-R9
 r1
 !s85 0
 31
-R10
-!s107 .\tb\axi_lite_BFM.sv|.\tb\..\..\parameters.v|./tb/simulation_tb.v|./tb/simulation_row_cache.v|./tb/simulation_order_tb.v|./tb/simulation_mul.v|./tb/simulation_AXI_memory.v|./tb/refresh_ddr_data.v|./tb/make_order.sv|./tb/axi_lite_BFM.sv|./tb/axi_interface.sv|
-Z28 !s90 ./tb/axi_interface.sv|./tb/axi_lite_BFM.sv|./tb/make_order.sv|./tb/refresh_ddr_data.v|./tb/simulation_AXI_memory.v|./tb/simulation_mul.v|./tb/simulation_order_tb.v|./tb/simulation_row_cache.v|./tb/simulation_tb.v|
+R20
+R21
+R22
 !i113 0
-R11
+R10
 R3
 naxi_lite_@b@f@m_sv_unit
 Yaxi_lite_if
-R18
-R5
+R23
+R17
 !i10b 1
 !s100 mM]j;nK66M=Nb61?DSWoG3
 Ioo[fCdKZ;:<_Hka1aHbTK2
@@ -162,83 +224,146 @@ R6
 !s105 axi_interface_sv_unit
 S1
 R0
-R7
+R25
 8./tb/axi_interface.sv
 F./tb/axi_interface.sv
-Z29 L0 11
-R9
+Z33 L0 11
+R8
 r1
 !s85 0
 31
-R10
-Z30 !s107 .\tb\axi_lite_BFM.sv|.\tb\..\..\parameters.v|./tb/simulation_tb.v|./tb/simulation_row_cache.v|./tb/simulation_order_tb.v|./tb/simulation_mul.v|./tb/simulation_AXI_memory.v|./tb/refresh_ddr_data.v|./tb/make_order.sv|./tb/axi_lite_BFM.sv|./tb/axi_interface.sv|
-R28
+R20
+R21
+R22
 !i113 0
-R11
+R10
+R3
+vaxi_master
+R17
+!i10b 1
+!s100 H3W95J[D_X[N7koi]6dD@3
+Ig65Ycj5cMB`km8IbTK@6H0
+R6
+R0
+w1740746959
+8./tb/axi_master.v
+F./tb/axi_master.v
+L0 9
+R8
+r1
+!s85 0
+31
+R20
+R21
+R22
+!i113 0
+R10
 R3
 vaxi_ram
-R5
+R17
 !i10b 1
-!s100 clNE[h13FHzLeN;lo>J_f3
-IM4>1;QG>85fZa?mc5ZVKB2
+!s100 G>;>PjUoTRVa97HC:COao0
+IiB0]ZZAO=`Ui7P?k@HXMj0
 R6
 R0
-R7
+w1740748971
 8./tb/simulation_AXI_memory.v
 F./tb/simulation_AXI_memory.v
-L0 35
-R9
+Z34 L0 35
+R8
 r1
 !s85 0
 31
-R10
-R30
-R28
+R20
+R21
+R22
 !i113 0
-R11
+R10
+R3
+vaxi_ram_virtual
+R17
+!i10b 1
+!s100 6SBc5;bRm:SWg2W>U79:^0
+IjJJbVkmCmH_M`e>maZb<A1
+R6
+R0
+w1740562445
+8./tb/simulation_AXI_memory_virtual.v
+F./tb/simulation_AXI_memory_virtual.v
+R34
+R8
+r1
+!s85 0
+31
+R20
+R21
+R22
+!i113 0
+R10
 R3
 vCache_order
-R12
-!i10b 1
-!s100 zCJ5M?N^icOHTgOWl>XgC2
-IIMT]Fz=kfmOK_AKEoLJNo2
-R6
-R0
-R7
-8../source/order/Cache_order.v
-F../source/order/Cache_order.v
-R13
-R9
-r1
-!s85 0
-31
-R14
-Z31 !s107 ..\source\order\..\..\parameters.v|../source/order/set_accelerator_reg_axi.v|../source/order/get_order.v|../source/order/Cache_order.v|
-Z32 !s90 ../source/order/Cache_order.v|../source/order/get_order.v|../source/order/set_accelerator_reg_axi.v|
-!i113 0
-R11
-R3
-n@cache_order
-vconv_control_tb
 R5
 !i10b 1
-!s100 Oi]6>Lh4JdeGA[hz2[dS53
-I0l4jeW9Td>M@WNf:GgQXZ1
+!s100 6HHB>I2^HbjBZI[;_5IAT1
+IiS9?h^hg@S<GL[;I[OckW0
 R6
 R0
-R7
-8./tb/simulation_tb.v
-F./tb/simulation_tb.v
-R13
-R9
+w1741001635
+8F:/FPGA/accelerator_core/source/order/Cache_order.v
+FF:/FPGA/accelerator_core/source/order/Cache_order.v
+R11
+R8
 r1
 !s85 0
 31
-R10
-R30
-R28
+R9
+!s107 F:\FPGA\accelerator_core\source\order\..\..\parameters.v|F:/FPGA/accelerator_core/source/order/Cache_order.v|
+!s90 -reportprogress|300|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|F:/FPGA/accelerator_core/source/order/Cache_order.v|
 !i113 0
+R10
+R3
+n@cache_order
+vcompete_accelerator_tb
+R17
+!i10b 1
+!s100 kmkIe^?gMo`Bm1mE[QezM0
+I]zZ<;amW[oGieL3G6oVV_3
+R6
+R0
+w1740750840
+8./tb/arbitr_simulation_tb.v
+F./tb/arbitr_simulation_tb.v
 R11
+R8
+r1
+!s85 0
+31
+R20
+R21
+R22
+!i113 0
+R10
+R3
+vconv_control_tb
+!s110 1741011224
+!i10b 1
+!s100 cID]jHVW_8f_cPdLOdT0g2
+I`7C9JOMga:YH5I@<Sb6IB3
+R6
+R0
+w1741011211
+8F:/FPGA/accelerator_core/sim/tb/simulation_tb.v
+FF:/FPGA/accelerator_core/sim/tb/simulation_tb.v
+R11
+R8
+r1
+!s85 0
+31
+!s108 1741011224.000000
+!s107 F:\FPGA\accelerator_core\sim\tb\..\..\parameters.v|F:/FPGA/accelerator_core/sim/tb/simulation_tb.v|
+!s90 -reportprogress|300|-L|mtiAvm|-L|mtiRnm|-L|mtiOvm|-L|mtiUvm|-L|mtiUPF|-L|infact|F:/FPGA/accelerator_core/sim/tb/simulation_tb.v|
+!i113 0
+R10
 R3
 vconvolution_core
 R12
@@ -247,11 +372,11 @@ R12
 IVJK3OAjHCAX7XPVHYNS@@0
 R6
 R0
-R17
+R13
 8../source/conv_component/convlution_core.v
 F../source/conv_component/convlution_core.v
+R7
 R8
-R9
 r1
 !s85 0
 31
@@ -259,7 +384,7 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 vfeature_add
 R12
@@ -268,11 +393,11 @@ R12
 I6Rg?Jj[Q>[ZLm;YjJm@Fm3
 R6
 R0
-R7
+R25
 8../source/conv_component/feature_add.v
 F../source/conv_component/feature_add.v
-R29
-R9
+R33
+R8
 r1
 !s85 0
 31
@@ -280,20 +405,20 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 vfeature_buffer
 R12
 !i10b 1
-!s100 YMBa`8S1IjYe<j<o]l4;Q2
-I9a2^hmhESfB:?0iA=^ni:1
+!s100 A=F5b[IZBa5][_HM2LD213
+I>bSzS>bZJA:bo_AU<@8<j1
 R6
 R0
-R7
+w1740640296
 8../source/conv_component/feature_buffer.v
 F../source/conv_component/feature_buffer.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
@@ -301,7 +426,7 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 vfeature_row_Cache
 R12
@@ -310,11 +435,11 @@ R12
 IXm38PS0mDWh@OSd`z=`X11
 R6
 R0
-R17
+R13
 8../source/conv_component/feature_row_Cache.v
 F../source/conv_component/feature_row_Cache.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
@@ -322,53 +447,53 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 nfeature_row_@cache
 vfifomem
-R18
+R23
 R12
 !i10b 1
 !s100 RV5=1ij82mV?>3XQ^i5[G0
 IcUN:G8@`Dh7;]=jZQQ=LD1
 R6
-R19
+R24
 S1
 R0
-R7
-R20
-R21
+R25
+R26
+R27
 L0 60
-R9
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
 R3
 vget_order
 R12
 !i10b 1
-!s100 W3@c^5=FkZgW]:heiBhM<3
-I>7jMW6DLiaLUW:Ghc?i>M2
+!s100 2O[ZYX5QgNj^D0PVY;;=43
+IP_0kY4fn[nc5Ao[H@WKgi3
 R6
 R0
-R7
+w1740995414
 8../source/order/get_order.v
 F../source/order/get_order.v
 L0 4
-R9
+R8
 r1
 !s85 0
 31
 R14
-R31
-R32
+Z35 !s107 ..\source\order\..\..\parameters.v|../source/order/set_accelerator_reg_axi.v|../source/order/get_order.v|../source/order/Cache_order.v|
+Z36 !s90 -reportprogress|300|../source/order/Cache_order.v|../source/order/get_order.v|../source/order/set_accelerator_reg_axi.v|
 !i113 0
-R11
+R10
 R3
 vMAC_PE
 R12
@@ -377,11 +502,11 @@ R12
 I25BUFko40zLd2zafTMdE>3
 R6
 R0
-R7
+R25
 8../source/conv_component/MAC_PE.v
 F../source/conv_component/MAC_PE.v
-Z33 L0 12
-R9
+Z37 L0 12
+R8
 r1
 !s85 0
 31
@@ -389,94 +514,92 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 n@m@a@c_@p@e
 vmake_order
-R18
-DXx4 work 18 make_order_sv_unit 0 22 CU`7U9kfMD:SMjz??Q=ZS2
+R23
+DXx4 work 18 make_order_sv_unit 0 22 @gWfTic=L1J[]TH0Hn^LL0
 R6
 r1
 !s85 0
 31
 !i10b 1
-!s100 SK`B@FiTfAcETnkD3h0ZW2
-IT>335OPaYK9A;V@8?Agz41
+!s100 OzYkNG9MO2oP_<7Kl?z>N0
+ICSc]zG=N[KB5i:dASVzlH2
 !s105 make_order_sv_unit
 S1
 R0
-R7
-Z34 8./tb/make_order.sv
-Z35 F./tb/make_order.sv
-R29
-R9
-R10
-R30
-R28
+w1740541502
+Z38 8./tb/make_order.sv
+Z39 F./tb/make_order.sv
+R33
+R8
+R20
+R21
+R22
 !i113 0
-R11
+R10
 R3
 Xmake_order_sv_unit
-R24
-R18
-VCU`7U9kfMD:SMjz??Q=ZS2
+R30
+R23
+V@gWfTic=L1J[]TH0Hn^LL0
 r1
 !s85 0
 31
 !i10b 1
-!s100 3@l6EejScj=3KfFjYVN`63
-ICU`7U9kfMD:SMjz??Q=ZS2
+!s100 ?=VzV?[iSPRmP`VDhleG[3
+I@gWfTic=L1J[]TH0Hn^LL0
 !i103 1
 S1
 R0
-R7
-R25
-R26
-R27
-R34
-R35
+R31
+R38
+R39
+R32
 F.\tb\axi_lite_BFM.sv
+R7
 R8
-R9
-R10
-R30
-R28
+R20
+R21
+R22
 !i113 0
-R11
+R10
 R3
 vorder_tb
-R5
+R17
 !i10b 1
 !s100 5d6<b4X:Vm7Ok^3loW0C>2
 I[8Fzd?0kYL]EH4S`F:m5L3
 R6
 R0
-R7
+R25
 8./tb/simulation_order_tb.v
 F./tb/simulation_order_tb.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
-R10
-R30
-R28
+R20
+R21
+R22
 !i113 0
-R11
+R10
 R3
 vOutput_buffer
 R12
 !i10b 1
-!s100 K^^oH=k=RH6Y78F3<7`O`1
-I?2A;ORTh[X0QSU@jZIlOY0
+!s100 Wd6Z<=Rj2UGP5n6VO:bZz2
+I?QhD<C>YDNg]2T^P4Wg9z0
 R6
 R0
-R7
+w1740647594
 8../source/conv_component/Output_buffer.v
 F../source/conv_component/Output_buffer.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
@@ -484,7 +607,7 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 n@output_buffer
 vPE_array
@@ -494,11 +617,11 @@ R12
 IX62XoeDDIjWCg:7]d=5NE3
 R6
 R0
-R7
+R25
 8../source/conv_component/PE_array.v
 F../source/conv_component/PE_array.v
-Z36 L0 14
-R9
+Z40 L0 14
+R8
 r1
 !s85 0
 31
@@ -506,7 +629,7 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 n@p@e_array
 vPE_core
@@ -516,11 +639,11 @@ R12
 IZ_45?G26d[3Bj4e3zn1^D3
 R6
 R0
-R7
+R25
 8../source/conv_component/PE_core.v
 F../source/conv_component/PE_core.v
-R33
-R9
+R37
+R8
 r1
 !s85 0
 31
@@ -528,7 +651,7 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 n@p@e_core
 vpool_array
@@ -541,16 +664,16 @@ R0
 w1735031804
 8../source/pool_component/pool_array.v
 F../source/pool_component/pool_array.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
 R14
-Z37 !s107 ..\source\pool_component\..\..\parameters.v|../source/pool_component/pool_core.v|../source/pool_component/pool_array.v|../source/pool_component/pool_PE.v|
-Z38 !s90 ../source/pool_component/pool_PE.v|../source/pool_component/pool_array.v|../source/pool_component/pool_core.v|
+Z41 !s107 ..\source\pool_component\..\..\parameters.v|../source/pool_component/pool_core.v|../source/pool_component/pool_array.v|../source/pool_component/pool_PE.v|
+Z42 !s90 -reportprogress|300|../source/pool_component/pool_PE.v|../source/pool_component/pool_array.v|../source/pool_component/pool_core.v|
 !i113 0
-R11
+R10
 R3
 vpool_core
 R12
@@ -559,19 +682,19 @@ R12
 IWRJG_Hlld0ZQUTfB1jZ1A3
 R6
 R0
-R17
+R13
 8../source/pool_component/pool_core.v
 F../source/pool_component/pool_core.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
 R14
-R37
-R38
+R41
+R42
 !i113 0
-R11
+R10
 R3
 vpool_PE
 R12
@@ -580,33 +703,54 @@ R12
 I53>fN;3Tc?Oo<@2d8:;d]0
 R6
 R0
-R17
+R13
 8../source/pool_component/pool_PE.v
 F../source/pool_component/pool_PE.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
 R14
-R37
-R38
+R41
+R42
 !i113 0
-R11
+R10
 R3
 npool_@p@e
+vpriority_encoder
+R17
+!i10b 1
+!s100 Z3edd2_10`YRLzU>VA;Ee2
+I6ZzW3^QNZGeGEm^9AIXX62
+R6
+R0
+R18
+8./tb/priority_encoder.v
+F./tb/priority_encoder.v
+R19
+R8
+r1
+!s85 0
+31
+R20
+R21
+R22
+!i113 0
+R10
+R3
 vram_base_shift_register_for_cache
 R12
 !i10b 1
-!s100 S_m]8KGXo87a<H9f?Udb50
-IcOUVPUH_ae^WEk2oSH;6M3
+!s100 RkPlIkRoae[o;`>I;Z:K42
+I:eEN773^60<A9[SfZcbGM1
 R6
 R0
-R7
+w1740647612
 8../source/conv_component/ram_base_shift_register_for_cache.v
 F../source/conv_component/ram_base_shift_register_for_cache.v
-R36
-R9
+R40
+R8
 r1
 !s85 0
 31
@@ -614,28 +758,28 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 vram_based_fifo
 R12
 !i10b 1
-!s100 jcJFM3H6imG:4M`g9`i7_2
-IKYCaP[Ko@oOZn``dI1A3>1
+!s100 HlS61je6?4BZ3HC3ljX>_0
+Inj0mcA7bfN^fZMcCLKO`j0
 R6
 R0
-R7
+w1740645740
 8../ipcore/simulation/Ram_based_fifo.v
 F../ipcore/simulation/Ram_based_fifo.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
 R3
 vram_based_fifo_tb
 R12
@@ -644,53 +788,53 @@ R12
 IGajKIG9:[h;3oSPj`U>BV3
 R6
 R0
-R7
+R25
 8../ipcore/simulation/Ram_based_fifo_tb.v
 F../ipcore/simulation/Ram_based_fifo_tb.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
 R3
 vram_based_upsample_fifo
-R5
+R12
 !i10b 1
-!s100 Kk@i8SFD7lRHmLU:O:OV81
-IMB1BZfl[UXzL9zVNCl;BM1
+!s100 R=NPYO_ReNc6DlF`f9i2D0
+Imb^PgjmFbeCJN?`MNXMgN3
 R6
 R0
-R7
+w1740647623
 8../source/upsample_component/upsample_fifo.v
 F../source/upsample_component/upsample_fifo.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
-R10
-Z39 !s107 ..\source\upsample_component\..\..\parameters.v|../source/upsample_component/upsample_fifo.v|../source/upsample_component/upsample.v|
-Z40 !s90 ../source/upsample_component/upsample.v|../source/upsample_component/upsample_fifo.v|
+R14
+Z43 !s107 ..\source\upsample_component\..\..\parameters.v|../source/upsample_component/upsample_fifo.v|../source/upsample_component/upsample.v|
+Z44 !s90 -reportprogress|300|../source/upsample_component/upsample.v|../source/upsample_component/upsample_fifo.v|
 !i113 0
-R11
+R10
 R3
 vread_ddr_control
 R12
 !i10b 1
-!s100 GbzV1jXbhdfDaZb4`^nL@3
-Ij802NG1CmQMOa1m_OmP@H3
+!s100 Uj;VLN`hPNReH7V;n@h3n1
+IW@c`2e45YMR3CZljNkSk?3
 R6
 R0
-R7
+w1740711791
 8../source/conv_component/read_ddr_control.v
 F../source/conv_component/read_ddr_control.v
-R33
-R9
+R37
+R8
 r1
 !s85 0
 31
@@ -698,28 +842,28 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 vrefresh_ddr_data
-R5
+R17
 !i10b 1
 !s100 >zBjLcK?ZUK5bb1;NlVN31
 ITn16OzERY]m94EoTkGWSi1
 R6
 R0
-R7
+R25
 8./tb/refresh_ddr_data.v
 F./tb/refresh_ddr_data.v
 L0 2
-R9
+R8
 r1
 !s85 0
 31
-R10
-R30
-R28
+R20
+R21
+R22
 !i113 0
-R11
+R10
 R3
 vreturn_buffer
 R12
@@ -728,11 +872,11 @@ R12
 Ik7nO=hOcKZ6:]5dKkc54m2
 R6
 R0
-R7
+R25
 8../source/conv_component/return_buffer.v
 F../source/conv_component/return_buffer.v
-R29
-R9
+R33
+R8
 r1
 !s85 0
 31
@@ -740,7 +884,7 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 vreturn_data_arbitra
 R12
@@ -749,11 +893,11 @@ R12
 I>lb>?J`EFjWP:=a5a_mG10
 R6
 R0
-R17
+R13
 8../source/conv_component/return_data_arbitra.v
 F../source/conv_component/return_data_arbitra.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
@@ -761,97 +905,97 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 vrptr_empty
-R18
+R23
 R12
 !i10b 1
 !s100 d_c?Jb6@gc`Dz>HVS78D33
 IK]<B9b`FfAN:dCzB0]O<13
 R6
-R19
+R24
 S1
 R0
-R7
-R20
-R21
+R25
+R26
+R27
 L0 139
-R9
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
 R3
 vset_accelerator_reg_axi
 R12
 !i10b 1
-!s100 F08lndA2^JDQ;9F<FIV1@1
-I]4lzAOXRalcT1DU^<=1=L1
+!s100 6lW88Bd8Ii:2c?Mn8LhRj0
+IAV9>E96_kiZd>TY3AQ_Ta1
 R6
 R0
-R7
+w1740987047
 8../source/order/set_accelerator_reg_axi.v
 F../source/order/set_accelerator_reg_axi.v
 L0 4
-R9
+R8
 r1
 !s85 0
 31
 R14
-R31
-R32
+R35
+R36
 !i113 0
-R11
+R10
 R3
 vsim_mul_tb
-R5
+R17
 !i10b 1
 !s100 [BejV:A>b=Z]?`PnRhNHS3
 IPd7zo`nZ:HD9;BVUV_?:L2
 R6
 R0
-R7
+R25
 8./tb/simulation_mul.v
 F./tb/simulation_mul.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
-R10
-R30
-R28
+R20
+R21
+R22
 !i113 0
-R11
+R10
 R3
 vsimulation_ram
 R12
 !i10b 1
-!s100 J>6zAA=@;B5oC`LACgz5i0
-ILof[V[W[c7:A766_<]Wke0
+!s100 Y0=WTD3Qc[oFGdde@]IDb3
+Ia:zV_b6VSPI]Kl5e`LJIa2
 R6
 R0
-R7
+w1740645713
 8../ipcore/simulation/simulation_ram.v
 F../ipcore/simulation/simulation_ram.v
 L0 8
-R9
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
 R3
 vsimulation_row_cache
-R5
+R17
 !i10b 1
 !s100 `A9XA:J^GMa>C<I1Gb2Q72
 I27zEENDGL_SYTTUfY^T:_2
@@ -860,98 +1004,119 @@ R0
 w1734272786
 8./tb/simulation_row_cache.v
 F./tb/simulation_row_cache.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
-R10
-R30
-R28
+R20
+R21
+R22
 !i113 0
-R11
+R10
 R3
 vsync_r2w
-R18
+R23
 R12
 !i10b 1
 !s100 Z1iEd3F]S?EfU7gSQVQ0`1
 IXl5I6N_c7XIX<D8gU7ENH1
 R6
-R19
+R24
 S1
 R0
-R7
-R20
-R21
+R25
+R26
+R27
 L0 91
-R9
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
 R3
 vsync_w2r
-R18
+R23
 R12
 !i10b 1
 !s100 19J:O[NUEc^ZG[@fabOm_1
 IDifUKdnJA58lcCAN4oY?73
 R6
-R19
+R24
 S1
 R0
-R7
-R20
-R21
+R25
+R26
+R27
 L0 115
-R9
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
+R3
+vtest_axi_tb
+R17
+!i10b 1
+!s100 GaPF[P`zCWCUdfEQ@HcX`1
+IYVY0<QB99jJ^>>TL4DaZ^0
+R6
+R0
+w1740644164
+8./tb/test_axi_tb.v
+F./tb/test_axi_tb.v
+L0 9
+R8
+r1
+!s85 0
+31
+R20
+R21
+R22
+!i113 0
+R10
 R3
 vupsample
-R5
+R12
 !i10b 1
 !s100 3_3bCec<9V;A0ai5[N<ci1
 I0Xa^DX6WGKD1T:Vo`nZV50
 R6
 R0
-R17
+R13
 8../source/upsample_component/upsample.v
 F../source/upsample_component/upsample.v
-R13
-R9
+R11
+R8
 r1
 !s85 0
 31
-R10
-R39
-R40
+R14
+R43
+R44
 !i113 0
-R11
+R10
 R3
 vWeight_buffer
 R12
 !i10b 1
-!s100 FgWTRNg[o4dE221KF0mXi0
-IZncXd7NOG31m>z;2mI3Zf3
+!s100 1>EABW6K8cTl6[NV>jPib3
+IJokZkG`WWlOYdZ3di0:;62
 R6
 R0
-R7
+w1740756433
 8../source/conv_component/Weight_buffer.v
 F../source/conv_component/Weight_buffer.v
-R29
-R9
+R33
+R8
 r1
 !s85 0
 31
@@ -959,30 +1124,30 @@ R14
 R15
 R16
 !i113 0
-R11
+R10
 R3
 n@weight_buffer
 vwptr_full
-R18
+R23
 R12
 !i10b 1
 !s100 A08EV?b`D@5dND]b2Yb8z1
 Ik]RRXPR@`a1z8Db`z@Jm91
 R6
-R19
+R24
 S1
 R0
-R7
-R20
-R21
+R25
+R26
+R27
 L0 185
-R9
+R8
 r1
 !s85 0
 31
 R14
-R22
-R23
+R28
+R29
 !i113 0
-R11
+R10
 R3

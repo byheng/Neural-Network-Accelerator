@@ -87,10 +87,11 @@ generate
                 .DELAY     	( 2       )
             )
             u_simulation_ram(
-                .clk     	( system_clk                                            ),
+                .w_clk     	( system_clk                                            ),
                 .i_wren  	( feature_valid                                         ),
                 .i_waddr 	( uram_write_addr                                       ),
                 .i_wdata 	( feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]  ),
+                .r_clk     	( system_clk                                            ),
                 .i_raddr 	( uram_read_addr                                        ),
                 .o_rdata 	( uram_read_data[i]                                     )   
             );

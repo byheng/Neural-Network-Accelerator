@@ -16,10 +16,11 @@ module simulation_ram #(
     parameter DELAY     = 0
 )
 (              
-    input  wire                  clk    ,      // Clock                    
+    input  wire                  w_clk  ,      // Clock                    
     input  wire                  i_wren ,      // Write Enable
     input  wire [DEPTH_W- 1 : 0] i_waddr,      // Write-address                    
     input  wire [DATA_W - 1 : 0] i_wdata,      // Write-data 
+    input  wire                  r_clk  ,
     input  wire [DEPTH_R- 1 : 0] i_raddr,      // Read-address                   
     output wire [DATA_R - 1 : 0] o_rdata      // Read-data                   
 );
@@ -67,14 +68,14 @@ generate
         for (genvar i = 0; i < times; i = i + 1) begin : write_ram
             wire [DEPTH_R-1:0] addr_w;
             assign addr_w = {i_waddr, {times_bit{1'b0}}} + i;
-            always @ (posedge clk) begin     
+            always @ (posedge w_clk) begin     
                 if (i_wren) begin                          
                     data_rg[addr_w] <= i_wdata[DATA_R*(i+1)-1 : DATA_R*i];      
                 end
             end
         end
 
-        always @ (posedge clk) begin
+        always @ (posedge r_clk) begin
             o_rdata_reg <= data_rg [i_raddr] ;  
         end
     end
@@ -107,7 +108,7 @@ generate
             end
         end
 
-        always @ (posedge clk) begin     
+        always @ (posedge w_clk) begin     
             if (i_wren) begin                          
                 data_rg[i_waddr] <= i_wdata;      
             end
@@ -116,7 +117,7 @@ generate
         for (genvar i = 0; i < times; i = i + 1) begin : read_ram
             wire [DEPTH_W-1:0] addr_r;
             assign addr_r = {i_raddr, {times_bit{1'b0}}} + i;
-            always @ (posedge clk) begin
+            always @ (posedge r_clk) begin
                 o_rdata_reg[DATA_W*(i+1)-1 : DATA_W*i] <= data_rg[addr_r];  
             end
         end
@@ -137,12 +138,12 @@ generate
         end
 
         
-        always @ (posedge clk) begin     
+        always @ (posedge w_clk) begin     
             if (i_wren) begin                          
                 data_rg[i_waddr] <= i_wdata;        
             end
         end
-        always @ (posedge clk) begin
+        always @ (posedge r_clk) begin
             o_rdata_reg <= data_rg[i_raddr];  
         end
     end
@@ -156,12 +157,12 @@ generate
     else begin
         for (genvar i = 0; i < DELAY; i = i + 1) begin
             if (i == 0) begin
-                always@(posedge clk) begin
+                always@(posedge r_clk) begin
                     o_rdata_delay_reg[i] <= o_rdata_reg;
                 end
             end
             else begin
-                always@(posedge clk) begin
+                always@(posedge r_clk) begin
                     o_rdata_delay_reg[i] <= o_rdata_delay_reg[i-1];
                 end
             end

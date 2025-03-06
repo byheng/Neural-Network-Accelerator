@@ -34,6 +34,7 @@ module read_ddr_control #(
     input   [MEM_ADDR_WIDTH-1:0]    feature_patch_num,           // 单批8通道数据大小
     input                           load_feature_begin,          // 开始读取一批数据
     input                           free_feature_read_addr,      // 释放当前批数据读取地址
+    output                          load_feature_finish,         // 读取一批数据结束
     // AXI-4 Only read
     output  reg[MEM_ADDR_WIDTH-1:0] m00_axi_araddr,     // 操控
     output  reg[7:0]                m00_axi_arlen,      // 操控
@@ -56,8 +57,8 @@ module read_ddr_control #(
 localparam [1:0] READ_IDLE = 2'b00, READ_REQ = 2'b01, READ_DATA = 2'b10;
 
 // signal declaration
-reg [1:0]                read_state;
-reg [1:0]                read_who;
+(* keep = "true" *)reg [1:0]                read_state;
+(* keep = "true" *)reg [1:0]                read_who;
 wire                     read_data_valid;
 wire[MEM_DATA_WIDTH-1:0] read_data;
 (* keep = "true" *)reg                      weight_read_req;    // 新计算开启拉高，直到加载完毕拉低
@@ -67,9 +68,15 @@ reg                      feature_read_req, feature_read_req_d1;
 wire                     feature_read_req_negedge;
 reg [MEM_ADDR_WIDTH-1:0] feature_patch_base_addr;
 wire[MEM_ADDR_WIDTH-1:0] feature_patch_addr;
-reg                      feature_read_patch;
+(* keep = "true" *)reg                      feature_read_patch;
 reg [MEM_ADDR_WIDTH-1:0] feature_read_addr;    
-reg [15:0]               feature_load_patch_num;
+(* keep = "true" *)reg [15:0]               feature_load_patch_num;
+
+(* keep = "true" *)reg [15:0]      buffer1_cnt;
+(* keep = "true" *)reg [15:0]      buffer2_cnt;
+
+(* keep = "true" *)reg [15:0]      x_buffer1_cnt;
+(* keep = "true" *)reg [15:0]      x_buffer2_cnt;
 
 // AXI-4 Only read assign signals
 assign m00_axi_arsize  = 3'b110;
@@ -80,7 +87,7 @@ assign m00_axi_arprot  = 3'b000;
 assign m00_axi_arqos   = 4'b0000;
 assign m00_axi_arvalid = (read_state == READ_REQ);
 assign m00_axi_rready  = (read_state == READ_DATA);
-assign read_data_valid = m00_axi_rvalid && m00_axi_rready;
+assign read_data_valid = m00_axi_rvalid & m00_axi_rready;
 assign read_data       = m00_axi_rdata;
 
 // AXI-4 读状态机
@@ -112,7 +119,7 @@ always @(posedge system_clk or negedge rst_n) begin
             end
 
             READ_DATA: begin
-                if (m00_axi_rlast & m00_axi_rvalid) begin
+                if (m00_axi_rlast & read_data_valid) begin
                     read_state <= READ_IDLE;
                     read_who   <= 2'b00;
                 end
@@ -229,8 +236,57 @@ end
 assign feature_patch_addr = (!feature_read_patch) ? feature_patch_base_addr : feature_patch_base_addr + (feature_patch_num<<12);
 
 assign feature_output_data  = read_data;
-assign feature_buffer_1_valid = (read_who == 2'b10) & read_data_valid & ~feature_read_patch;
+assign feature_buffer_1_valid = (read_who == 2'b10) & read_data_valid & (~feature_read_patch);
 assign feature_buffer_2_valid = (read_who == 2'b10) & read_data_valid & feature_read_patch;
 
+assign load_feature_finish = ~feature_read_req;
+
+always@(posedge system_clk or negedge rst_n) begin
+    if(~rst_n) begin
+        buffer1_cnt <= 0;
+    end
+    else if (load_feature_begin) begin
+        buffer1_cnt <= 0;
+    end
+    else if (feature_buffer_1_valid) begin
+        buffer1_cnt <= buffer1_cnt + 1;
+    end
+end
+
+always@(posedge system_clk or negedge rst_n) begin
+    if(~rst_n) begin
+        buffer2_cnt <= 0;
+    end
+    else if (load_feature_begin) begin
+        buffer2_cnt <= 0;
+    end
+    else if (feature_buffer_2_valid) begin
+        buffer2_cnt <= buffer2_cnt + 1;
+    end
+end
+
+always@(posedge system_clk or negedge rst_n) begin
+    if(~rst_n) begin
+        x_buffer1_cnt <= 0;
+    end
+    else if (load_feature_begin) begin
+        x_buffer1_cnt <= 0;
+    end
+    else if (read_data_valid & (~feature_read_patch)) begin
+        x_buffer1_cnt <= x_buffer1_cnt + 1;
+    end
+end
+
+always@(posedge system_clk or negedge rst_n) begin
+    if(~rst_n) begin
+        x_buffer2_cnt <= 0;
+    end
+    else if (load_feature_begin) begin
+        x_buffer2_cnt <= 0;
+    end
+    else if (read_data_valid & feature_read_patch) begin
+        x_buffer2_cnt <= x_buffer2_cnt + 1;
+    end
+end
 
 endmodule

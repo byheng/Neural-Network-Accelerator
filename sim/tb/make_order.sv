@@ -70,7 +70,8 @@ initial begin
     bfm = new(axi);
     instruction_finish = 0;
     // 打开文件
-    file = $fopen("../compile/compile_out/order_code.txt", "r");
+    // file = $fopen("../compile/compile_out/order_code.txt", "r");
+    file = $fopen("F:/FPGA/accelerator_core/compile/compile_out/order_code.txt", "r");
     if (file == 0) begin
           $display("Error: Cannot open file.");
           $finish;
@@ -83,14 +84,14 @@ initial begin
             $finish;
         end
         
-        // 判断是否可以写入
-        if (addr == 8'h48) begin
-            bfm.axi_read(8'h4c, rdata);
-            @ (posedge m00_axi_aclk);
-            while (rdata == 0) begin
-                bfm.axi_read(8'h4c, rdata);
-            end
-        end
+        // // 判断是否可以写入
+        // if (addr == 8'h48) begin
+        //     bfm.axi_read(8'h4c, rdata);
+        //     @ (posedge m00_axi_aclk);
+        //     while (rdata == 0) begin
+        //         bfm.axi_read(8'h4c, rdata);
+        //     end
+        // end
 
         bfm.axi_write(addr, wdata);
         $display("Sent: Address = 0x%08h, Data = 0x%08h", addr, wdata);

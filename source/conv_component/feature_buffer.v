@@ -46,10 +46,10 @@ module feature_buffer #(
 wire [FEATURE_WIDTH*8-1:0] feature_data_expand[3:0];
 wire [FEATURE_WIDTH*4-1:0] feature_buffer_1_data[7:0];
 wire [7:0]                 feature_buffer_1_almost_full;
-wire [7:0]                 feature_buffer_1_empty;
+(* keep = "true" *)wire [7:0]                 feature_buffer_1_empty;
 wire [FEATURE_WIDTH*4-1:0] feature_buffer_2_data[7:0];
 wire [7:0]                 feature_buffer_2_almost_full;
-wire [7:0]                 feature_buffer_2_empty;
+(* keep = "true" *)wire [7:0]                 feature_buffer_2_empty;
 (* keep = "true" *)reg  [9:0]                 row_cnt;
 (* keep = "true" *)reg  [9:0]                 col_cnt;
 (* keep = "true" *)reg                        calculate_keep, calculate_keep_r1;
