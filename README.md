@@ -4,6 +4,8 @@
 
 This project aims to implement an acceleration circuit for convolutional neural networks. The project uses yolov8 as the implementation object, and the goal is to complete an acceleration circuit with operator operations such as convolution, residual sum, upsampling, pooling, and concat. Since the overall circuit design idea is efficient reusability and instructional calling, in addition to deploying the yolov8 network, other neural networks composed of the above operator operations can also be compiled onto the accelerator.
 
+![image](./fig/加速器架构图.png)
+
 # Implementable operators
 
 | Operators      | Description |
@@ -22,6 +24,8 @@ using 100Mhz clk to simulate the accelerator on yolov8n, total use 114ms.
 # Working on xilinx 19EG
 
 The hardware deployment clock of the accelerator is 200Mhz, the single frame of yolov8n inference time is 60ms, and the post-processing time is 50ms. The inference and post-processing are carried out in parallel, so the total frame rate can reach 18-19FPS. 
+
+![image](./fig/yolov8框图.svg)
 
 https://github.com/user-attachments/assets/aae8cbe7-0244-45a3-a5b3-8fbd66b3d928
 
