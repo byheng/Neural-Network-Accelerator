@@ -23,6 +23,18 @@
 
 # 部署到xilinx 19EG上
 
+<figure class="half">
+    <img src="./fig/Utilization_percent.png" width="600", height="300" >
+    <img src="./fig/Utilization_table.png"  width="600", height="300" >
+</figure>
+
+
+<figure>
+    <img src="./fig/setup.png" >
+    <img src="./fig/hold.png"  >
+    <img src="./fig/pulse.png" >
+</figure>
+
 ![image](./fig/yolov8框图.svg)
 
 加速器的硬件部署时钟为200MHz，Yolov8n单帧推理时间为60ms，后处理时间为50ms。推理和后处理是并行进行的，因此总帧速率可以达到18-19fps。 
@@ -35,3 +47,4 @@ B站: https://www.bilibili.com/video/BV1YBwdeGEQL/?spm_id_from=333.1387.homepage
 
 ## 引用
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)
+- [Eyeriss: An Energy-Efficient Reconfigurable Accelerator for Deep Convolutional Neural Networks](https://ieeexplore.ieee.org/abstract/document/7738524)

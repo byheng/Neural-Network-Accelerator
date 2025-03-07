@@ -25,6 +25,19 @@ using 100Mhz clk to simulate the accelerator on yolov8n, total use 114ms.
 
 The hardware deployment clock of the accelerator is 200Mhz, the single frame of yolov8n inference time is 60ms, and the post-processing time is 50ms. The inference and post-processing are carried out in parallel, so the total frame rate can reach 18-19FPS. 
 
+<figure class="half">
+    <img src="./fig/Utilization_percent.png" width="600", height="300" >
+    <img src="./fig/Utilization_table.png"  width="600", height="300" >
+</figure>
+
+
+<figure>
+    <img src="./fig/setup.png" >
+    <img src="./fig/hold.png"  >
+    <img src="./fig/pulse.png" >
+</figure>
+
+
 ![image](./fig/yolov8框图.svg)
 
 https://github.com/user-attachments/assets/aae8cbe7-0244-45a3-a5b3-8fbd66b3d928
@@ -35,3 +48,4 @@ Bilibili: https://www.bilibili.com/video/BV1YBwdeGEQL/?spm_id_from=333.1387.home
 
 ## Reference
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)
+- [Eyeriss: An Energy-Efficient Reconfigurable Accelerator for Deep Convolutional Neural Networks](https://ieeexplore.ieee.org/abstract/document/7738524)
