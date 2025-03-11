@@ -48,6 +48,7 @@ class RegisterType(Enum):
     weight_data_length = 15
     activate = 16
     id = 17
+    output_to_video = 28
 
 
 def IdMapping(Id):
@@ -69,7 +70,8 @@ def IdMapping(Id):
                    "weight_data_length": 15,
                    "activate": 16,
                    "id": 17,
-                   "negedge_threshold": 26
+                   "negedge_threshold": 26,
+                   "output_to_video": 28
                    }
     if isinstance(Id, int):
         for key, value in MappingDict.items():

@@ -360,8 +360,8 @@ always @(posedge clk) begin
 end
 
 // 初始化内存中的数据
-// parameter memory_patch = "../compile/simulation_data/memory_patch.txt";
-parameter memory_patch = "F:/FPGA/accelerator_core/compile/simulation_data/memory_patch.txt";
+parameter memory_patch = "../compile/simulation_data/memory_patch.txt";
+// parameter memory_patch = "F:/FPGA/accelerator_core/compile/simulation_data/memory_patch.txt";
 
 // 读取权重文件
 integer file, o, addr, d, times;
@@ -369,8 +369,8 @@ reg [31:0]weight_first_addr, bias_first_addr, picture_first_addr;
 reg [7:0] byte_data[63:0];
 integer out_file, in_file;
 initial begin
-    // out_file = $fopen("../compile/simulation_data/output.txt", "w");
-    out_file = $fopen("F:/FPGA/accelerator_core/compile/simulation_data/output.txt", "w");
+    out_file = $fopen("../compile/simulation_data/output.txt", "w");
+    // out_file = $fopen("F:/FPGA/accelerator_core/compile/simulation_data/output.txt", "w");
     file = $fopen(memory_patch, "r");
     $readmemh(memory_patch, mem);
     d = 0;

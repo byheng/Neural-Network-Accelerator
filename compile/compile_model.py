@@ -37,7 +37,8 @@ class Order(object):
                           "padding_size": 0,
                           "activate": 0,
                           "id": 0,
-                          "negedge_threshold": 0
+                          "negedge_threshold": 0,
+                          "output_to_video": 0
                           }
 
     def ChangeParameter2Int(self):
@@ -123,7 +124,8 @@ class Order(object):
 
 
 class ConvOrder(Order):
-    def __init__(self, input_layer, out_channel: int, stride: int, activate: bool = True, negedge_threshold: int = 0):
+    def __init__(self, input_layer, out_channel: int, stride: int, activate: bool = True, negedge_threshold: int = 0,
+                 output_to_video: bool = False):
         super(ConvOrder, self).__init__()
         self.negedge_threshold = negedge_threshold
         padding = 1  # assert padding = 1
@@ -161,10 +163,22 @@ class ConvOrder(Order):
         self.parameter['feature_patch_num'] = input_layer.return_patch_num
         self.parameter['fea_in_quant_size'] = 7
 
+        # 如果要直接输出到video，确保feature_output_patch_num==1
+        self.parameter['output_to_video'] = output_to_video
+        self.output_to_video = output_to_video
+        if output_to_video:
+            assert self.parameter[
+                       'feature_output_patch_num'] == 1, "[Error] If use output to video, the total output channel should less than 8"
+
     def AllocateMemory(self, memory_point_input):
-        self.parameter['return_addr'] = memory_point_input
-        self.allocate_memory = self.using_space // 1024
-        return memory_point_input + self.using_space
+        if self.output_to_video:
+            self.parameter['return_addr'] = self.out_shape[1]
+            self.allocate_memory = 0
+            return memory_point_input
+        else:
+            self.parameter['return_addr'] = memory_point_input
+            self.allocate_memory = self.using_space // 1024
+            return memory_point_input + self.using_space
 
     def SetInputMemory(self):
         self.parameter['feature_input_base_addr'] = self.input_layer.parameter['return_addr']
@@ -185,13 +199,14 @@ class ConvOrder(Order):
         s_data = ReshapeData(simulation_data[data_index], self.out_shape)
         conv_out_ac_quant, correct, is_zero = CompareConvResult(s_data, self.input_layer.output_data,
                                                                 self.weight, self.bias, self.stride,
-                                                                self.GetOutputQuant(), self.activate, self.negedge_threshold)
+                                                                self.GetOutputQuant(), self.activate,
+                                                                self.negedge_threshold)
         print("%-30s%-20s%-20s" % (self.layer_name, ' compare ' + str(correct), 'is zeros ' + str(is_zero)))
         self.output_data = s_data
 
 
 class MaxPoolOrder(Order):
-    def __init__(self, input_layer, stride: int):
+    def __init__(self, input_layer, stride: int, output_to_video: bool = False):
         super(MaxPoolOrder, self).__init__()
         padding = 2  # assert padding = 2       // the max pool is for 5*5
         self.input_layer = input_layer
@@ -222,10 +237,23 @@ class MaxPoolOrder(Order):
         self.parameter['feature_patch_num'] = input_layer.return_patch_num
         self.parameter['fea_in_quant_size'] = 7
 
+        # 如果要直接输出到video，确保feature_output_patch_num==1
+        self.parameter['output_to_video'] = output_to_video
+        self.output_to_video = output_to_video
+        if output_to_video:
+            assert self.parameter[
+                       'feature_output_patch_num'] == 1, "[Error] If use output to video, the total output channel should less than 8"
+            self.parameter['return_addr'] = self.out_shape[1]
+
     def AllocateMemory(self, memory_point_input):
-        self.parameter['return_addr'] = memory_point_input
-        self.allocate_memory = self.using_space // 1024
-        return memory_point_input + self.using_space
+        if self.output_to_video:
+            self.parameter['return_addr'] = self.out_shape[1]
+            self.allocate_memory = 0
+            return memory_point_input
+        else:
+            self.parameter['return_addr'] = memory_point_input
+            self.allocate_memory = self.using_space // 1024
+            return memory_point_input + self.using_space
 
     def SetInputMemory(self):
         self.parameter['feature_input_base_addr'] = self.input_layer.parameter['return_addr']
@@ -239,7 +267,7 @@ class MaxPoolOrder(Order):
 
 
 class UpsampleOrder(Order):
-    def __init__(self, input_layer):
+    def __init__(self, input_layer, output_to_video: bool = False):
         super(UpsampleOrder, self).__init__()
         padding = 0  # assert padding = 0
         self.input_layer = input_layer
@@ -270,10 +298,23 @@ class UpsampleOrder(Order):
         self.parameter['feature_patch_num'] = input_layer.return_patch_num
         self.parameter['fea_in_quant_size'] = 7
 
+        # 如果要直接输出到video，确保feature_output_patch_num==1
+        self.parameter['output_to_video'] = output_to_video
+        self.output_to_video = output_to_video
+        if output_to_video:
+            assert self.parameter[
+                       'feature_output_patch_num'] == 1, "[Error] If use output to video, the total output channel should less than 8"
+            self.parameter['return_addr'] = self.out_shape[1]
+
     def AllocateMemory(self, memory_point_input):
-        self.parameter['return_addr'] = memory_point_input
-        self.allocate_memory = self.using_space // 1024
-        return memory_point_input + self.using_space
+        if self.output_to_video:
+            self.parameter['return_addr'] = self.out_shape[1]
+            self.allocate_memory = 0
+            return memory_point_input
+        else:
+            self.parameter['return_addr'] = memory_point_input
+            self.allocate_memory = self.using_space // 1024
+            return memory_point_input + self.using_space
 
     def SetInputMemory(self):
         self.parameter['feature_input_base_addr'] = self.input_layer.parameter['return_addr']
@@ -292,7 +333,7 @@ class AddOrder(Order):
                             if it is false, the adder result will replace the data in inputLayerX2
     '''
 
-    def __init__(self, inputLayerX1, inputLayerX2, independent_memory=False):
+    def __init__(self, inputLayerX1, inputLayerX2, independent_memory=False, output_to_video: bool = False):
         super(AddOrder, self).__init__()
         self.inputLayerX1 = inputLayerX1
         self.inputLayerX2 = inputLayerX2
@@ -316,8 +357,19 @@ class AddOrder(Order):
             'feature_output_patch_num']
         self.independent_memory = independent_memory
 
+        # 如果要直接输出到video，确保feature_output_patch_num==1
+        self.parameter['output_to_video'] = output_to_video
+        self.output_to_video = output_to_video
+        if output_to_video:
+            assert self.parameter[
+                       'feature_output_patch_num'] == 1, "[Error] If use output to video, the total output channel should less than 8"
+            self.parameter['return_addr'] = self.out_shape[1]
+
     def AllocateMemory(self, memory_point_input):
-        if self.independent_memory:
+        if self.output_to_video:
+            self.parameter['return_addr'] = self.out_shape[1]
+            return memory_point_input
+        elif self.independent_memory:
             self.parameter['return_addr'] = memory_point_input
             return memory_point_input + self.inputLayerX2.using_space
         else:
@@ -501,6 +553,7 @@ class DetectOrder(Order):
         for layer in self.ModuleList:
             layer.forward(simulation_data, simulation_id_list)
 
+
 class ChannelSumOrder(Order):
     def __init__(self, inLayer):
         super(ChannelSumOrder, self).__init__()
@@ -515,7 +568,6 @@ class ChannelSumOrder(Order):
 
     def forward(self, simulation_data, simulation_id_list):
         self.ModuleList[0].forward(simulation_data, simulation_id_list)
-
 
 
 class SpiltOrder(Order):
@@ -723,7 +775,9 @@ class Model(object):
         total_params = 0
         for index, layer in enumerate(flattenLayer):
             params = None if layer.weight is None else layer.weight.reshape(-1).shape[0]
-            print("ID:%-4d%-30s%20s%20s%20s" % (flattenLayer[index].parameter['id'], flattenName[index], str(layer.allocate_memory) + "KB", "0x" + hex(layer.parameter['return_addr'])[2:].zfill(8), params))
+            print("ID:%-4d%-30s%20s%20s%20s" % (
+                flattenLayer[index].parameter['id'], flattenName[index], str(layer.allocate_memory) + "KB",
+                "0x" + hex(layer.parameter['return_addr'])[2:].zfill(8), params))
             total_space += layer.allocate_memory
             total_params = total_params + params if params is not None else total_params
         print("%-30s%20s%20s%20s" % ("total", total_space, "-", total_params))

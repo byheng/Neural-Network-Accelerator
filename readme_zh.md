@@ -19,7 +19,7 @@
 # 仿真结果
 
 加速器的仿真时钟是100Mhz，yolov8n的单帧推理时间是113ms。
-![image](./fig/simulation_result.png)
+![image](./fig/simulation_result.png)                                                                                                                                                                                                                                                                                                                        
 
 # 部署到xilinx 19EG上
 

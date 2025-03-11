@@ -36,6 +36,7 @@ module get_order #
 	output                  activate   					,
 	output [7:0]            id							,
 	output [31:0]			negedge_threshold			,
+	output                  output_to_video				,
 	// User ports ends
 	// Do not modify the ports beyond this line
 	// Ports of Axi Slave Bus Interface S00_AXI
@@ -81,6 +82,7 @@ wire [31:0]			  x_weight_data_length		;
 wire                  x_activate   				;
 wire [7:0]			  x_id						;
 wire [31:0]			  x_negedge_threshold		;
+wire                  x_output_to_video			;
 wire                  push_order_en				;
 wire                  order_in_ready			;
 wire                  order_valid				;
@@ -165,6 +167,7 @@ set_accelerator_reg_axi # (
 	.push_layer					(push_layer					),
 	.valid_layer				(valid_layer				),
 	.task_free                  (task_free                  ),
+	.output_to_video            (x_output_to_video          ),
 	.S_AXI_ACLK					(s00_axi_aclk				),
 	.S_AXI_ARESETN				(s00_axi_aresetn			),
 	.S_AXI_AWADDR				(s00_axi_awaddr				),
@@ -217,6 +220,7 @@ Cache_order Cache_order_inst(
     .x_activate                 (x_activate   				),
 	.x_id						(x_id						),
 	.x_negedge_threshold		(x_negedge_threshold		),
+	.x_output_to_video			(x_output_to_video			),
     .order                      (order						),
     .feature_input_base_addr    (feature_input_base_addr	),
     .feature_input_patch_num    (feature_input_patch_num	),
@@ -234,7 +238,8 @@ Cache_order Cache_order_inst(
     .padding_size               (padding_size				),
     .activate                   (activate   				),
 	.id							(id							),
-    .negedge_threshold			(negedge_threshold			)
+    .negedge_threshold			(negedge_threshold			),
+	.output_to_video			(output_to_video			)
 );
 // User logic ends
 // 取finish的上升沿得到下一次计算的申请信号

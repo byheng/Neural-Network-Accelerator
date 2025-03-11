@@ -3,8 +3,8 @@ from compile_utils import ReshapeData
 import numpy as np
 
 
-def back_double(strs):
-    hex_values = [int(strs[i:i + 4], 16) for i in range(0, len(strs), 4)]
+def back_double(strs, byte_num):
+    hex_values = [int(strs[i:i + byte_num], 16) for i in range(0, len(strs), byte_num)]
     hex_values = hex_values[::-1]
     return np.array(hex_values).astype(np.int16)
 
@@ -19,7 +19,7 @@ def read_hex_file():
                 continue
             else:
                 hex_values = line.strip()
-                memory.append(back_double(hex_values))
+                memory.append(back_double(hex_values, 4))
         return memory
 
 
@@ -40,7 +40,7 @@ def read_output_file(file):
                 memory = []
             else:
                 hex_values = line.strip()
-                memory.append(back_double(hex_values))
+                memory.append(back_double(hex_values, 4))
         return id_list, output
 
 

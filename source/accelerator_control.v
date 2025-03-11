@@ -85,7 +85,15 @@ module accelerator_control #(
 	output 	[AXIL_DATA_WIDTH-1 : 0] s00_axi_rdata,
 	output 	[1 : 0] 				s00_axi_rresp,
 	output 	 						s00_axi_rvalid,
-	input 	 						s00_axi_rready
+	input 	 						s00_axi_rready,
+
+	// video stream
+	output          				axi_stream_tvalid, 
+    output [31:0]   				axi_stream_tdata,
+    output [3:0]    				axi_stream_tkeep,
+    output          				axi_stream_tlast,
+    input           				axi_stream_tready,
+    output          				axi_stream_tuser
 );
 
 // local parameter declaration
@@ -144,8 +152,8 @@ wire  [31:0] weight_data_length			;
 wire         activate					;
 
 // variables declaration
-reg  [2:0]                      task_state;
-reg  [2:0]                      convolution_state;
+(* keep = "true" *)reg  [2:0]                      task_state;
+(* keep = "true" *)reg  [2:0]                      convolution_state;
 reg  [1:0]	                    add_state;
 reg  [2:0]						single_operator_state;
 wire                            feature_buffer_1_valid;
@@ -171,6 +179,9 @@ wire [FEATURE_WIDTH*8-1:0]      act_data;
 wire                            act_data_valid;
 wire [FEATURE_WIDTH*8-1:0]      return_data;
 wire                            return_data_valid;
+wire [FEATURE_WIDTH*8-1:0]      arbitr_data;
+wire                            arbitr_data_valid;
+wire                            output_ready;
 wire                            return_buffer_ready;
 wire                            weight_and_bias_ready;
 reg  [1:0]						change_weight_bias;
@@ -178,7 +189,8 @@ reg  [7:0]						input_patch_cnt;
 reg  [7:0]						output_patch_cnt;
 reg                             compute_begin;	
 wire                            compute_finish;
-reg                             return_req;	
+reg                             output_req;
+wire                            return_req;	
 wire                            return_finish;
 reg                             load_feature_begin;
 reg                             free_feature_read_addr;
@@ -219,6 +231,12 @@ wire                            single_operator_buffer_done;
 (* keep = "true" *)reg                             compute_finish_lock;	// compute_finish锁存
 wire                            task_finish;
 wire [31:0]						negedge_threshold;
+wire                            output_to_video;
+
+wire 							video_valid;
+wire [47:0]						video_data;
+wire 							video_ready;
+wire                            video_output_req;
 
 integer i;
 
@@ -501,19 +519,19 @@ end
 
 always@(posedge system_clk or negedge rst_n) begin
 	if (!rst_n) begin
-        return_req <= 0;
+        output_req <= 0;
 	end
 	else if ((convolution_state == CHANGE_WEIGHT_BIAS) && (input_patch_cnt == feature_input_patch_num - 1)) begin
-		return_req <= 1;
+		output_req <= 1;
 	end
 	else if ((add_state == WAIT_ADD_BEGIN) & (task_state == WAIT_ADD_FINISH)) begin  // add begin
-		return_req <= 1;
+		output_req <= 1;
 	end
 	else if (single_operator_state == LOAD_FEATURE) begin
-		return_req <= 1;
+		output_req <= 1;
 	end
 	else begin
-		return_req <= 0;
+		output_req <= 0;
 	end
 end
 
@@ -521,7 +539,7 @@ always@(posedge system_clk or negedge rst_n) begin
 	if (!rst_n) begin
 		refresh_return_addr <= 0;
 	end
-	else if (return_req & output_patch_cnt == 0 & (convolution_state != WAIT_CONVOLUTION_BEGIN)) begin
+	else if (output_req & output_patch_cnt == 0 & (convolution_state != WAIT_CONVOLUTION_BEGIN)) begin
 		refresh_return_addr <= 1;
 	end
 	else if ((add_state == WAIT_ADD_BEGIN) & (task_state == WAIT_ADD_FINISH)) begin
@@ -607,7 +625,7 @@ assign bias_valid        = weight_bias_output_valid[8];
 
 assign calculate_finish = (task_state == WAIT_ORDER) | (task_state == WAIT_TASK_BEGIN);
 
-assign feature_output_ready = (direct_out & convolution_working) ? return_buffer_ready : 
+assign feature_output_ready = (direct_out & convolution_working) ? output_ready : 
 							  (upsample_working) ? upsample_ready : 1'b1;
 
 assign rebuild_structure = pool_layer_working ? 1'b1 : 1'b0;
@@ -638,6 +656,16 @@ assign kernel_size = pool_layer_working ? 5 : 3;
 assign single_operator_buffer_done = (upsample_working) ? upsample_buffer_empty : 1'b1;
 
 assign task_finish = (task_state == WAIT_ORDER) & (order == FINISH);
+
+assign video_valid		= output_to_video & arbitr_data_valid;
+assign video_data		= (output_to_video) ? arbitr_data[47:0] : 48'd0;
+assign video_output_req	= output_to_video & output_req;
+
+assign return_data      = (output_to_video) ? 128'd0 : arbitr_data;
+assign return_data_valid= (~output_to_video) & arbitr_data_valid;
+assign return_req       = (~output_to_video) & output_req;
+
+assign output_ready     = (output_to_video) ? video_ready : return_buffer_ready;
 
 // instantiate
 read_ddr_control u_read_ddr_control(
@@ -819,8 +847,8 @@ return_data_arbitra  u_return_data_arbitra(
 	.data3_valid		( pool_data_valid		),
 	.data4				( unsample_feature		),
 	.data4_valid		( unsample_feature_valid),
-	.return_data       	( return_data        	),
-	.return_data_valid 	( return_data_valid  	)
+	.return_data       	( arbitr_data        	),
+	.return_data_valid 	( arbitr_data_valid  	)
 );
 
 pool_array pool_array_u(
@@ -841,7 +869,7 @@ upsample u_upsample(
 	.row_size               	( row_size                ),
 	.unsample_feature       	( unsample_feature        ),
 	.unsample_feature_valid 	( unsample_feature_valid  ),
-	.output_ready           	( return_buffer_ready     ),
+	.output_ready           	( output_ready     		  ),
 	.upsample_buffer_empty  	( upsample_buffer_empty   )
 );
 
@@ -871,6 +899,7 @@ get_order get_order_inst(
 	.weight_data_length			( weight_data_length      ),
 	.activate   				( activate				  ),
 	.negedge_threshold			( negedge_threshold		  ),	
+	.output_to_video			( output_to_video		  ),
 	.s00_axi_aclk				( s00_axi_aclk			  ),
 	.s00_axi_aresetn			( s00_axi_aresetn		  ),
 	.s00_axi_awaddr				( s00_axi_awaddr		  ),
@@ -892,6 +921,23 @@ get_order get_order_inst(
 	.s00_axi_rresp				( s00_axi_rresp			  ),
 	.s00_axi_rvalid				( s00_axi_rvalid		  ),
 	.s00_axi_rready				( s00_axi_rready		  )
+);
+
+video_stream_out u_video_stream_out(
+	.system_clk        	( system_clk         ),
+	.rst_n             	( rst_n              ),
+	.video_output_req   ( video_output_req   ),
+	.fea_out_quant_size ( fea_out_quant_size ),
+	.video_col_size    	( return_addr[9:0]   ),	// when output_to_video, use return_addr[9:0] to get col_size
+	.video_valid       	( video_valid        ),
+	.video_data        	( video_data         ),
+	.video_ready       	( video_ready        ),
+	.axi_stream_tvalid 	( axi_stream_tvalid  ),
+	.axi_stream_tdata  	( axi_stream_tdata   ),
+	.axi_stream_tkeep  	( axi_stream_tkeep   ),
+	.axi_stream_tlast  	( axi_stream_tlast   ),
+	.axi_stream_tready 	( axi_stream_tready  ),
+	.axi_stream_tuser  	( axi_stream_tuser   )
 );
 
 

@@ -43,6 +43,7 @@
 		input  [31:0]			push_layer					,	
 		input  [31:0]			valid_layer					,
 		input                   task_free					,
+		output                  output_to_video				,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -1108,6 +1109,7 @@
 	assign refresh_order_ram        = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 21) & slv_reg_wren;
 	assign accelerator_restart      = (axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 25) & slv_reg_wren;
 	assign negedge_threshold		= slv_reg26;
+	assign output_to_video			= slv_reg28;
 	// User logic ends
 
 	endmodule

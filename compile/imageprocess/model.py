@@ -72,11 +72,11 @@ class SobelFilter(Model):
         inLayer = self.video
         kernel = np.zeros((3, 3, 3, 3))
         bias = np.zeros(3)
-        kernel[0, 0, :, :] = [[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]]
-        kernel[1, 1, :, :] = [[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]]
-        kernel[2, 2, :, :] = [[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]]
+        kernel[0, 0, :, :] = [[-1, 0, 1], [-3, 0, 3], [-1, 0, 1]]
+        kernel[1, 1, :, :] = [[-1, 0, 1], [-3, 0, 3], [-1, 0, 1]]
+        kernel[2, 2, :, :] = [[-1, 0, 1], [-3, 0, 3], [-1, 0, 1]]
         name = "SobelFilter"
-        self.model[name] = ConvOrder(inLayer, 3, 1, activate=False)
+        self.model[name] = ConvOrder(inLayer, 3, 1, activate=False, output_to_video=True)
         kernel = Quant(kernel, 8)
         self.model[name].SetWeightAndBias(8, kernel, bias)
 
@@ -106,13 +106,10 @@ class SobelFilter(Model):
 
 if __name__ == "__main__":
     image = Make_picture_bin()
-    model = SobelFilter(0, (640, 480), 0x2800000)
+    # model = SobelFilter(0, (640, 480), 0x2800000)
+    model = SobelFilter(0x81000000, (640, 480), 0x83800000)
     model.Build()
     refresh_ddr_patch(s_Folder)
-    Run_simulation()
-    model.Compare()
-    with open("model.pkl", 'wb') as f:
-        pickle.dump(model, f)
-    # with open("model.pkl", 'rb') as f:
-    #     model = pickle.load(f)
-    model.ShowPicture(image)
+    # Run_simulation()
+    # model.Compare()
+    # model.ShowPicture(image)

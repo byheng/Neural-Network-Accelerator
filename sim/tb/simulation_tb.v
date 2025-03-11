@@ -136,6 +136,12 @@ wire            task_start;
 wire            task_finish;
 wire            calculate_start;
 wire            calculate_finish;
+wire            axi_stream_tvalid;
+wire  [31:0]    axi_stream_tdata ;
+wire  [3:0]     axi_stream_tkeep ;
+wire            axi_stream_tlast ;
+reg             axi_stream_tready;
+wire            axi_stream_tuser ;
 
 accelerator_control u_accelerator_control(
     .system_clk                   ( system_clk      ),
@@ -193,8 +199,24 @@ accelerator_control u_accelerator_control(
     .s00_axi_rdata                ( m_axi_rdata     ),
     .s00_axi_rresp                ( m_axi_rresp     ),
     .s00_axi_rvalid               ( m_axi_rvalid    ),
-    .s00_axi_rready               ( m_axi_rready    )
+    .s00_axi_rready               ( m_axi_rready    ),
+
+    .axi_stream_tvalid            ( axi_stream_tvalid ), 
+    .axi_stream_tdata             ( axi_stream_tdata  ),
+    .axi_stream_tkeep             ( axi_stream_tkeep  ),
+    .axi_stream_tlast             ( axi_stream_tlast  ),
+    .axi_stream_tready            (axi_stream_tready  ),
+    .axi_stream_tuser             ( axi_stream_tuser  )
 );
+
+always @(posedge system_clk) begin
+    if ($random % (100 + 1) < 50) begin
+        axi_stream_tready <= 1;
+    end
+    else begin
+        axi_stream_tready <= 0;
+    end
+end
 
 make_order make_order_inst(
     .m00_axi_aclk       ( m_axi_aclk    ),
@@ -250,9 +272,26 @@ always @(posedge system_clk) begin
             $writememh(u_axi_ram.memory_patch, u_axi_ram.mem);
             $fclose(u_axi_ram.file);
             $fclose(u_axi_ram.out_file);
+            $fclose(video_file);
             u_axi_ram.file = 0;
             $stop;
         end
+    end
+end
+
+
+integer video_file;
+initial begin
+    video_file = $fopen("../compile/simulation_data/video.txt", "w");
+end
+
+always@(posedge system_clk) begin
+    if (axi_stream_tvalid & axi_stream_tready & axi_stream_tlast) begin
+        $fwrite(video_file, "%h\n", axi_stream_tdata);
+        $fwrite(video_file, "enter\n");
+    end
+    else if (axi_stream_tvalid & axi_stream_tready) begin
+        $fwrite(video_file, "%h\n", axi_stream_tdata);
     end
 end
 
