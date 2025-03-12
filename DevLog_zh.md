@@ -67,5 +67,9 @@
 
   完成了循环指令执行的逻辑编写，实现了摄像头输入实时检测的效果，目前单帧推理60ms，帧率在18-19帧左右。
 
+- **2025-3-12**
+  
+  添加了output_stream功能，现在可以将每一层的输出结果配置为回传到DDR或以Video_Stream模式直接输出。从而可以使用加速器去执行实时图像处理任务。
+
 ## 引用
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)

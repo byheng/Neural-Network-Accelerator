@@ -66,6 +66,10 @@ This project aims to implement an acceleration circuit for convolutional neural 
 
   The logical writing of loop instruction execution has been completed, real-time detection of camera input has been realized. Currently, single-frame inference is 60ms, and the frame rate is around 18-19 FPS.
 
+- **2025-3-12**
+
+  The output_stream function has been added, so that the output results of each layer can be configured to pass back DDR or directly output in the video_stream mode. This allows real-time image processing tasks to be performed.
+
 
 
 ## Reference
