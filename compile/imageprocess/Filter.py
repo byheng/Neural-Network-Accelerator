@@ -93,6 +93,7 @@ class SobelFilter(Model):
         self.SetWeightLength()
         self.GenerateCode(self.c_Folder)  # for axi write instruction ----> just simulation
         self.GenerateInstruction(self.c_Folder)  # for axi write instruction -----> for hardware
+        self.GenerateVisualInstruction(self.c_Folder)
 
     def Compare(self):
         output_id_list, output_data = read_output_file(self.s_Folder + "/output.txt")

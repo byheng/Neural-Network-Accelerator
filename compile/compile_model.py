@@ -73,6 +73,18 @@ class Order(object):
         OrderInstruction.append(np.uint8(18).tobytes() + np.uint32(0).tobytes())
         return OrderInstruction
 
+    def VisualInstruction(self):
+        visualInstruction = []
+        for key, value in self.parameter.items():
+            if key == "negedge_threshold":
+                visualInstruction.append(
+                    "%-10s" % "SET" + "%-10s" % (VisualMap[key]) + "%-10s" % (signed_dec2hex(value, 8)))
+            else:
+                visualInstruction.append(
+                    "%-10s" % "SET" + "%-10s" % (VisualMap[key]) + "%-10s" % ("0x" + hex(value)[2:].zfill(8)))
+        visualInstruction.append("%-10s" % VisualRegisterType.push_order_en.value)
+        return visualInstruction
+
     def AllocateMemory(self, memory_point_input):
         return memory_point_input
 
@@ -861,6 +873,27 @@ class Model(object):
         f = open(c_Folder + "/instruction.bin", 'wb')
         for o in instruction:
             f.write(o)
+        f.close()
+
+    def GenerateVisualInstruction(self, c_Folder):
+        VisualInstruction = []
+        flattenName, flattenLayer = self.FlattenLayer(self.model)
+        index = 0
+        VisualInstruction.append("%-10s" % VisualRegisterType.refresh_order_ram.value)
+        VisualInstruction.append("%-10s" % "SET" + "%-10s" % "WLEN" + "%-10s" % "0x011B0000")
+        for layer in flattenLayer:
+            if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
+                layer.id = index
+                layer.parameter['id'] = index
+                VisualInstruction += layer.VisualInstruction()
+                index += 1
+        VisualInstruction.append(
+            "%-10s" % "SET" + "%-10s" % "ORDER" + "%-10s" % ("0x" + hex(OrderType.FINISH.value)[2:].zfill(8)))
+        VisualInstruction.append("%-10s" % VisualRegisterType.push_order_en.value)
+        f = open(c_Folder + "/instruction_visual.txt", 'w')
+        for o in VisualInstruction:
+            f.write(o)
+            f.write("\n")
         f.close()
 
     def SetWeightLength(self):

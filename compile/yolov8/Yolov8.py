@@ -80,6 +80,7 @@ class MyYolov8Model(Model):
         self.SetWeightLength()
         self.GenerateCode(self.c_Folder)  # for axi write instruction ----> just simulation
         self.GenerateInstruction(self.c_Folder)  # for axi write instruction -----> for hardware
+        self.GenerateVisualInstruction(self.c_Folder)
         self.PrintModelMemoryUsing()
 
     def ReturnNetworkOutput(self):

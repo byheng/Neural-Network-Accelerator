@@ -15,6 +15,27 @@ label_dict = ["人", "自行车", "汽车", "摩托车", "飞机", "巴士", "�
               "手机", "微波炉", "烤箱", "面包机", "水槽", "冰箱", "书", "时钟", "花瓶", "剪刀",
               "泰迪熊", "吹风机", "牙刷"]
 
+VisualMap = {"order": "ORDER",
+             "feature_input_base_addr": "FIBA",
+             "feature_input_patch_num": "FIPN",
+             "feature_output_patch_num": "FOPN",
+             "feature_double_patch": "FDP",
+             "feature_patch_num": "FPN",
+             "row_size": "ROWS",
+             "col_size": "COLS",
+             "weight_quant_size": "WQS",
+             "fea_in_quant_size": "FIQS",
+             "fea_out_quant_size": "FOQS",
+             "stride": "MS",
+             "return_addr": "RETAD",
+             "return_patch_num": "RETPN",
+             "padding_size": "PADS",
+             "activate": "ACT",
+             "id": "ID",
+             "negedge_threshold": "NEGTH",
+             "output_to_video": "OPTV"
+             }
+
 
 class OrderType(Enum):
     IDLE = 0
@@ -49,6 +70,13 @@ class RegisterType(Enum):
     activate = 16
     id = 17
     output_to_video = 28
+
+
+class VisualRegisterType(Enum):
+    push_order_en = "PUSH_ORDER"
+    task_start = "TASK_START"
+    refresh_order_ram = "REFRESH_ORDER"
+    accelerator_restart = "ACCELERATOR_RESTART"
 
 
 def IdMapping(Id):
