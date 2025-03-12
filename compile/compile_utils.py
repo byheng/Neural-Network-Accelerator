@@ -583,7 +583,13 @@ def refresh_ddr_patch(s_Folder):
     os.system(r"chcp 65001 && cd ../../sim && refresh.bat")
 
 
-def Run_simulation():
+def Run_simulation(s_Folder):
+    if not os.path.exists(s_Folder + "/output.txt"):
+        with open(s_Folder + "/output.txt", 'a') as file:
+            file.close()
+    if not os.path.exists(s_Folder + "/video.txt"):
+        with open(s_Folder + "/video.txt", 'a') as file:
+            file.close()
     os.system(r"chcp 65001 && cd ../../sim && sim.bat")
 
 

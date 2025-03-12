@@ -1,10 +1,13 @@
+import sys
+sys.path.append("..")
 import numpy as np
-
 from read_ddr_data import *
 from compile_model import *
+from show_video_out import show_video_out
 import os
 import pickle
 import cv2
+import argparse
 
 s_Folder = "../simulation_data"
 c_Folder = "../compile_out"
@@ -105,11 +108,18 @@ class SobelFilter(Model):
 
 
 if __name__ == "__main__":
-    image = Make_picture_bin()
-    model = SobelFilter(0, (640, 480), 0x2800000)
-    # model = SobelFilter(0x81000000, (640, 480), 0x83800000)
-    model.Build()
-    refresh_ddr_patch(s_Folder)
-    # Run_simulation()
-    # model.Compare()
-    # model.ShowPicture(image)
+    parser = argparse.ArgumentParser(description='Simulation or Build hardware code')
+    parser.add_argument('--Operator', type=int, help='0 is Simulation, 1 is Build hardware code')
+    args = parser.parse_args()
+
+    if args.Operator == 0:
+        image = Make_picture_bin()
+        model = SobelFilter(0, (640, 480), 0x2800000)
+        model.Build()
+        refresh_ddr_patch(s_Folder)
+        Run_simulation(s_Folder)
+        show_video_out(s_Folder)
+    elif args.Operator == 1:
+        # for hardware
+        model = SobelFilter(0x81000000, (640, 480), 0x83800000)  # for actual hardware
+        model.Build()
