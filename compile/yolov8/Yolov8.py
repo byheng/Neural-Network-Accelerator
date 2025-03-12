@@ -1,3 +1,5 @@
+import sys
+sys.path.append("..")
 import numpy as np
 import pickle
 import torch
@@ -7,6 +9,7 @@ from compile_model import *
 import os
 import pickle
 import copy
+import argparse
 
 s_Folder = "../simulation_data"
 c_Folder = "../compile_out"
@@ -196,15 +199,16 @@ class Yolov8MemoryChecker(object):
 
 
 if __name__ == '__main__':
-    # model = Build("./modelList_dirct.pkl", 0, 0x2800000)  # for simulation
-    # refresh_ddr_patch(s_Folder)
-    # Run_simulation()
-    # model = CheckSimulationOutput(model, hard_ware=False)
-    # model = Load()
-    # model.PostProcessing()
+    parser = argparse.ArgumentParser(description='Simulation or Build hardware code')
+    parser.add_argument('--Operator', type=int, help='0 is Simulation, 1 is Build hardware code')
+    args = parser.parse_args()
 
-    # for hardware
-    model = Build("./modelList_dirct.pkl", 0x81000000, 0x83800000)  # for actual hardware
-    # model.saveImage2Bin()
-    # model = CheckSimulationOutput(model, hard_ware=True)
-    # model.PostProcessing()
+    if args.Operator == 0:
+        model = Build("./modelList_dirct.pkl", 0, 0x2800000)  # for simulation
+        refresh_ddr_patch(s_Folder)
+        Run_simulation(s_Folder)
+        model = CheckSimulationOutput(model, hard_ware=False)
+        model.PostProcessing()
+    elif args.Operator == 1:
+        # for hardware
+        model = Build("./modelList_dirct.pkl", 0x81000000, 0x83800000)  # for actual hardware
