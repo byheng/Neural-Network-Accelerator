@@ -1,3 +1,10 @@
+<style>
+pre {
+  overflow-y: auto;
+  max-height: 300px;
+}
+</style>
+
 # Open Source Accelerator on FPGA
 **Read this in other languages: [english](README.md), [chinese](readme_zh.md)**
 **Development Log: [english](DevLog.md), [chinese](DevLog_zh.md)**

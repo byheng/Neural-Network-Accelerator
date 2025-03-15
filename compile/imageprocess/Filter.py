@@ -3,10 +3,10 @@ sys.path.append("..")
 import numpy as np
 from read_ddr_data import *
 from compile_model import *
+from show_video_out import show_video_out
 import os
 import pickle
 import cv2
-from show_video_out import show_video_out
 import argparse
 
 s_Folder = "../simulation_data"
@@ -93,6 +93,7 @@ class SobelFilter(Model):
         self.SetWeightLength()
         self.GenerateCode(self.c_Folder)  # for axi write instruction ----> just simulation
         self.GenerateInstruction(self.c_Folder)  # for axi write instruction -----> for hardware
+        self.GenerateVisualInstruction(self.c_Folder)
 
     def Compare(self):
         output_id_list, output_data = read_output_file(self.s_Folder + "/output.txt")
