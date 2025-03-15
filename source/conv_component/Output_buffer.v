@@ -79,21 +79,36 @@ generate
             );
         end
         else if (`device == "simulation") begin
-            simulation_ram #(
-                .DATA_W    	( 72      ),
-                .DATA_R    	( 72      ),
-                .DEPTH_W   	( 15      ),
-                .DEPTH_R   	( 15      ),
-                .DELAY     	( 2       )
-            )
-            u_simulation_ram(
-                .w_clk     	( system_clk                                            ),
-                .i_wren  	( feature_valid                                         ),
-                .i_waddr 	( uram_write_addr                                       ),
-                .i_wdata 	( feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]  ),
-                .r_clk     	( system_clk                                            ),
-                .i_raddr 	( uram_read_addr                                        ),
-                .o_rdata 	( uram_read_data[i]                                     )   
+            // simulation_ram #(
+            //     .DATA_W    	( 72      ),
+            //     .DATA_R    	( 72      ),
+            //     .DEPTH_W   	( 15      ),
+            //     .DEPTH_R   	( 15      ),
+            //     .DELAY     	( 2       )
+            // )
+            // u_simulation_ram(
+            //     .w_clk     	( system_clk                                            ),
+            //     .i_wren  	( feature_valid                                         ),
+            //     .i_waddr 	( uram_write_addr                                       ),
+            //     .i_wdata 	( feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]  ),
+            //     .r_clk     	( system_clk                                            ),
+            //     .i_raddr 	( uram_read_addr                                        ),
+            //     .o_rdata 	( uram_read_data[i]                                     )   
+            // );
+
+            SDPRAM #(
+                .DEPTH 	( 2**15 ),
+                .WIDTH 	( 72    ),
+                .DELAY  ( 2     ))
+            u_SDPRAM(
+                .clock 	( system_clk                                            ),
+                .reset 	( ~rst_n                                                ),
+                .wen   	( feature_valid                                         ),
+                .ren   	( 1'b1                                                  ),
+                .waddr 	( uram_write_addr                                       ),
+                .raddr 	( uram_read_addr                                        ),
+                .din   	( feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]  ),
+                .dout  	( uram_read_data[i]                                     )
             );
         end
     end

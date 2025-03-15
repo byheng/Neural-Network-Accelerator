@@ -15,6 +15,27 @@ label_dict = ["人", "自行车", "汽车", "摩托车", "飞机", "巴士", "�
               "手机", "微波炉", "烤箱", "面包机", "水槽", "冰箱", "书", "时钟", "花瓶", "剪刀",
               "泰迪熊", "吹风机", "牙刷"]
 
+VisualMap = {"order": "ORDER",
+             "feature_input_base_addr": "FIBA",
+             "feature_input_patch_num": "FIPN",
+             "feature_output_patch_num": "FOPN",
+             "feature_double_patch": "FDP",
+             "feature_patch_num": "FPN",
+             "row_size": "ROWS",
+             "col_size": "COLS",
+             "weight_quant_size": "WQS",
+             "fea_in_quant_size": "FIQS",
+             "fea_out_quant_size": "FOQS",
+             "stride": "MS",
+             "return_addr": "RETAD",
+             "return_patch_num": "RETPN",
+             "padding_size": "PADS",
+             "activate": "ACT",
+             "id": "ID",
+             "negedge_threshold": "NEGTH",
+             "output_to_video": "OPTV"
+             }
+
 
 class OrderType(Enum):
     IDLE = 0
@@ -23,6 +44,13 @@ class OrderType(Enum):
     MAXPOOL = 3
     UPSAMPLE = 4
     FINISH = 5
+
+
+class VisualRegisterType(Enum):
+    push_order_en = "PUSH_ORDER"
+    task_start = "TASK_START"
+    refresh_order_ram = "REFRESH_ORDER"
+    accelerator_restart = "ACCELERATOR_RESTART"
 
 
 class RegisterType(Enum):
@@ -41,7 +69,7 @@ class RegisterType(Enum):
     weight_quant_size = 8
     fea_in_quant_size = 9
     fea_out_quant_size = 10
-    stride = 11
+    mask_stride = 11
     return_addr = 12
     return_patch_num = 13
     padding_size = 14
@@ -49,6 +77,13 @@ class RegisterType(Enum):
     activate = 16
     id = 17
     output_to_video = 28
+
+
+class VisualRegisterType(Enum):
+    push_order_en = "PUSH_ORDER"
+    task_start = "TASK_START"
+    refresh_order_ram = "REFRESH_ORDER"
+    accelerator_restart = "ACCELERATOR_RESTART"
 
 
 def IdMapping(Id):
@@ -63,7 +98,7 @@ def IdMapping(Id):
                    "weight_quant_size": 8,
                    "fea_in_quant_size": 9,
                    "fea_out_quant_size": 10,
-                   "stride": 11,
+                   "mask_stride": 11,
                    "return_addr": 12,
                    "return_patch_num": 13,
                    "padding_size": 14,
@@ -202,7 +237,7 @@ def CompareConvResult(simulation_result, input_data, w, b, stride, quant, activa
     w = torch.from_numpy(w.astype(np.int64))
     b = torch.from_numpy(b.astype(np.int64))
 
-    out = conv2d(input_data, weight=w, bias=b, stride=stride + 1, padding=1)
+    out = conv2d(input_data, weight=w, bias=b, stride=stride, padding=1)
     out = out - torch.tensor(negedge_threshold)
     conv_out_ac = torch.relu(out).detach().cpu().numpy() if activate else out.detach().cpu().numpy()
     conv_out_ac_quant = conv_out_ac // pow(2, quant)
@@ -218,7 +253,7 @@ def CompareConvResult(simulation_result, input_data, w, b, stride, quant, activa
 def ComparePoolResult(simulation_result, input_data, stride):
     input_data = torch.from_numpy(input_data.astype(np.int64))
 
-    out = max_pool2d(input_data, kernel_size=5, stride=stride + 1, padding=2)
+    out = max_pool2d(input_data, kernel_size=5, stride=stride, padding=2)
     pool_out = out.detach().cpu().numpy()
 
     correct = np.array_equal(pool_out, simulation_result)
@@ -583,9 +618,28 @@ def refresh_ddr_patch(s_Folder):
     os.system(r"chcp 65001 && cd ../../sim && refresh.bat")
 
 
-def Run_simulation():
+def Run_simulation(s_Folder):
+    if not os.path.exists(s_Folder + "/output.txt"):
+        with open(s_Folder + "/output.txt", 'a') as file:
+            file.close()
+    if not os.path.exists(s_Folder + "/video.txt"):
+        with open(s_Folder + "/video.txt", 'a') as file:
+            file.close()
     os.system(r"chcp 65001 && cd ../../sim && sim.bat")
 
 
+def count_equal_a_b(x, stride):
+    a, b = 0, 64  # 初始化 a 和 b
+    output = 0  # 计数器
+    for _ in range(x + 2):
+        if a == int(b // 32):  # 当 a 和 b 的整数部分相等时
+            output += 1
+            b += stride
+        a += 1
+
+    return output
+
+
 if __name__ == "__main__":
-    print(label_dict[56])
+    result = count_equal_a_b(640, 1.78125)
+    print(result)

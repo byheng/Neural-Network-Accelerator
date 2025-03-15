@@ -55,20 +55,34 @@ generate
         );
     end
     else if (`device == "simulation") begin
-        simulation_ram #(
-            .DATA_W    	( 32      ),
-            .DATA_R    	( 32      ),
-            .DEPTH_W   	( 10      ),
-            .DEPTH_R   	( 10      )
-        )
-        u_simulation_ram(
-            .w_clk     	( system_clk    ),
-            .i_wren  	( wr_en         ),
-            .i_waddr 	( wr_addr       ),
-            .i_wdata 	( wr_data       ),
-            .r_clk      ( system_clk    ),
-            .i_raddr 	( rd_addr       ),
-            .o_rdata 	( rd_data_wire  )
+        // simulation_ram #(
+        //     .DATA_W    	( 32      ),
+        //     .DATA_R    	( 32      ),
+        //     .DEPTH_W   	( 10      ),
+        //     .DEPTH_R   	( 10      )
+        // )
+        // u_simulation_ram(
+        //     .w_clk     	( system_clk    ),
+        //     .i_wren  	( wr_en         ),
+        //     .i_waddr 	( wr_addr       ),
+        //     .i_wdata 	( wr_data       ),
+        //     .r_clk      ( system_clk    ),
+        //     .i_raddr 	( rd_addr       ),
+        //     .o_rdata 	( rd_data_wire  )
+        // );
+
+        SDPRAM #(
+            .DEPTH 	( 2**10 ),
+            .WIDTH 	( 32    ))
+        u_SDPRAM(
+            .clock 	( system_clk    ),
+            .reset 	( ~rst_n        ),
+            .wen   	( wr_en         ),
+            .ren   	( 1'b1          ),
+            .waddr 	( wr_addr       ),
+            .raddr 	( rd_addr       ),
+            .din   	( wr_data       ),
+            .dout  	( rd_data_wire  )
         );
     end
 endgenerate

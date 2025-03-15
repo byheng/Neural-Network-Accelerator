@@ -10,7 +10,7 @@ parameter VALID_ADDR_WIDTH = ADDR_WIDTH - $clog2(STRB_WIDTH);
 parameter WORD_WIDTH       = STRB_WIDTH;
 parameter WORD_SIZE        = DATA_WIDTH/WORD_WIDTH;
 parameter memory_patch     = "../compile/simulation_data/memory_patch.txt";
-parameter weight_data_path = "../compile/compile_out/WeightAndBias.bin";
+parameter weight_data_path = "../compile/compile_out/weight.bin";
 parameter picture_data_path= "../compile/compile_out/picture.bin";
 
 reg [DATA_WIDTH-1:0] mem[1310719:0];  // 80 MB

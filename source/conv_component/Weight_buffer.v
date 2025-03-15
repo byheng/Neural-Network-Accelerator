@@ -76,26 +76,47 @@ generate
         );
     end
     else if (`device == "simulation") begin
-        ram_based_fifo #(
-            .DATA_W                  	( 512      ),
-            .DEPTH_W                 	( 9        ),
-            .DATA_R                  	( 256      ),
-            .DEPTH_R                 	( 10       ),
-            .ALMOST_FULL_THRESHOLD   	( 256      ),
-            .ALMOST_EMPTY_THRESHOLD  	( 2        ),
-            .FIRST_WORD_FALL_THROUGH 	( 0        )
-        )
-        u_ram_based_fifo(
-            .system_clk     	( system_clk                ),
-            .rst_n          	( ~weight_rst               ),
-            .i_wren         	( weight_and_bias_valid     ),
-            .i_wrdata       	( fifo_in_data              ),
-            .o_full         	(                           ),
-            .o_almost_full  	( weight_buffer_almost_full ),
-            .i_rden         	( weight_buffer_rd_en       ),
-            .o_rddata       	( weight_bias_output_data   ),
-            .o_empty        	( weight_buffer_empty       ),
-            .o_almost_empty 	(                           )  
+        // ram_based_fifo #(
+        //     .DATA_W                  	( 512      ),
+        //     .DEPTH_W                 	( 9        ),
+        //     .DATA_R                  	( 256      ),
+        //     .DEPTH_R                 	( 10       ),
+        //     .ALMOST_FULL_THRESHOLD   	( 256      ),
+        //     .ALMOST_EMPTY_THRESHOLD  	( 2        ),
+        //     .FIRST_WORD_FALL_THROUGH 	( 0        )
+        // )
+        // u_ram_based_fifo(
+        //     .system_clk     	( system_clk                ),
+        //     .rst_n          	( ~weight_rst               ),
+        //     .i_wren         	( weight_and_bias_valid     ),
+        //     .i_wrdata       	( fifo_in_data              ),
+        //     .o_full         	(                           ),
+        //     .o_almost_full  	( weight_buffer_almost_full ),
+        //     .i_rden         	( weight_buffer_rd_en       ),
+        //     .o_rddata       	( weight_bias_output_data   ),
+        //     .o_empty        	( weight_buffer_empty       ),
+        //     .o_almost_empty 	(                           )  
+        // );
+        sync_fifo #(
+            .INPUT_WIDTH       	( 512       ),
+            .OUTPUT_WIDTH      	( 256       ),
+            .WR_DEPTH          	( 2**9      ),
+            .RD_DEPTH          	( 2**10     ),
+            .MODE              	( "Standard"),
+            .DIRECTION         	( "LSB"     ),
+            .ECC_MODE          	( "no_ecc"  ),
+            .PROG_EMPTY_THRESH 	( 2         ),
+            .PROG_FULL_THRESH  	( 256       ))
+        u_sync_fifo(
+            .clock         	( system_clk                ),
+            .reset         	( weight_rst                ),
+            .wr_en         	( weight_and_bias_valid     ),
+            .din           	( fifo_in_data              ),
+            .rd_en         	( weight_buffer_rd_en       ),
+            .dout          	( weight_bias_output_data   ),
+            .empty         	( weight_buffer_empty       ),
+            .prog_full     	( weight_buffer_almost_full ),
+            .prog_empty    	(                           )    
         );
     end
 endgenerate

@@ -22,7 +22,6 @@ module feature_buffer #(
     input                           load_feature_begin    ,
     input [9:0]                     row_size              ,
     input [9:0]                     col_size              ,
-    (* keep = "true" *)input                           stride                ,
     (* keep = "true" *)input [2:0]                     padding_size          ,
     // data path      
     input [MEM_DATA_WIDTH-1:0]      feature_data          ,
@@ -40,7 +39,8 @@ module feature_buffer #(
     (* keep = "true" *)output                          pool_data_valid       ,
     (* keep = "true" *)output                          adder_pulse           ,
     (* keep = "true" *)output [9:0]                    col_size_for_cache    ,
-    (* keep = "true" *)input [2:0]                     kernel_size
+    (* keep = "true" *)input [2:0]                     kernel_size           ,        
+    input [7:0]                                        mask_stride
 );
 
 wire [FEATURE_WIDTH*8-1:0] feature_data_expand[3:0];
@@ -52,6 +52,8 @@ wire [7:0]                 feature_buffer_2_almost_full;
 (* keep = "true" *)wire [7:0]                 feature_buffer_2_empty;
 (* keep = "true" *)reg  [9:0]                 row_cnt;
 (* keep = "true" *)reg  [9:0]                 col_cnt;
+reg [15:0]                 row_mask;
+reg [15:0]                 col_mask;
 (* keep = "true" *)reg                        calculate_keep, calculate_keep_r1;
 (* keep = "true" *)wire                       padding_en;
 (* keep = "true" *)reg                        padding_en_reg;
@@ -69,6 +71,10 @@ wire                       buffer2_rst_busy;
 (* keep = "true" *)reg  [9:0]                 col_plus_padding;
 (* keep = "true" *)reg  [3:0]                 padding_size_double;    
 (* keep = "true" *)reg  [2:0]                 kernel_size_miner;
+
+wire                       convolution_valid_wire;
+reg                        convolution_valid_reg;
+reg                        convolution_valid_flag;
 
 always@(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
@@ -140,29 +146,53 @@ generate
             );
         end
         else if (`device == "simulation") begin
-            ram_based_fifo #(
-                .DATA_W                  	( 64       ),
-                .DEPTH_W                 	( 9        ),
-                .DATA_R                  	( 16       ),
-                .DEPTH_R                 	( 11       ),
-                .ALMOST_FULL_THRESHOLD   	( 256      ),
-                .ALMOST_EMPTY_THRESHOLD  	( 2        ),
-                .FIRST_WORD_FALL_THROUGH 	( 0        )
-            )
-            u_ram_based_fifo(
-                .system_clk     	( system_clk                      ),
-                .rst_n          	( ~fifo_rst                       ),
-                .i_wren         	( feature_buffer_1_valid          ),
-                .i_wrdata       	( feature_buffer_1_data[i]        ),
-                .o_full         	(                                 ),
-                .o_almost_full  	( feature_buffer_1_almost_full[i] ),
-                .i_rden         	( fifo_rd_en                      ),
-                .o_rddata       	( fifo_output_data[i]             ),
-                .o_empty        	( feature_buffer_1_empty[i]       ),
-                .o_almost_empty 	(                                 )  
-            );
+            // ram_based_fifo #(
+            //     .DATA_W                  	( 64       ),
+            //     .DEPTH_W                 	( 9        ),
+            //     .DATA_R                  	( 16       ),
+            //     .DEPTH_R                 	( 11       ),
+            //     .ALMOST_FULL_THRESHOLD   	( 256      ),
+            //     .ALMOST_EMPTY_THRESHOLD  	( 2        ),
+            //     .FIRST_WORD_FALL_THROUGH 	( 0        )
+            // )
+            // u_ram_based_fifo(
+            //     .system_clk     	( system_clk                      ),
+            //     .rst_n          	( ~fifo_rst                       ),
+            //     .i_wren         	( feature_buffer_1_valid          ),
+            //     .i_wrdata       	( feature_buffer_1_data[i]        ),
+            //     .o_full         	(                                 ),
+            //     .o_almost_full  	( feature_buffer_1_almost_full[i] ),
+            //     .i_rden         	( fifo_rd_en                      ),
+            //     .o_rddata       	( fifo_output_data[i]             ),
+            //     .o_empty        	( feature_buffer_1_empty[i]       ),
+            //     .o_almost_empty 	(                                 )  
+            // );
             assign wr_rst_busy[i] = 0;
             assign rd_rst_busy[i] = 0;
+
+            sync_fifo #(
+                .INPUT_WIDTH       	( 64        ),
+                .OUTPUT_WIDTH      	( 16        ),
+                .WR_DEPTH          	( 512       ),
+                .RD_DEPTH          	( 2048      ),
+                .MODE              	( "Standard"),
+                .DIRECTION         	( "LSB"     ),
+                .ECC_MODE          	( "no_ecc"  ),
+                .PROG_EMPTY_THRESH 	( 2         ),
+                .PROG_FULL_THRESH  	( 256       ),
+                .USE_ADV_FEATURES  	( 16'h1F1F  ))
+            u_sync_fifo(
+                .clock         	( system_clk                      ),
+                .reset         	( fifo_rst                        ),
+                .wr_en         	( feature_buffer_1_valid          ),
+                .din           	( feature_buffer_1_data[i]        ),
+                .rd_en         	( fifo_rd_en                      ),
+                .dout          	( fifo_output_data[i]             ),
+                .full          	(                                 ),
+                .empty         	( feature_buffer_1_empty[i]       ),
+                .prog_full     	( feature_buffer_1_almost_full[i] ),
+                .prog_empty    	(                                 )
+            );
         end
     end
 endgenerate
@@ -187,30 +217,53 @@ generate
                 .rd_rst_busy       (rd_rst_busy[8+i])
             );     
         end
-        else if (`device == "simulation") begin
-            ram_based_fifo #(
-                .DATA_W                  	( 64       ),
-                .DEPTH_W                 	( 9        ),
-                .DATA_R                  	( 16       ),
-                .DEPTH_R                 	( 11       ),
-                .ALMOST_FULL_THRESHOLD   	( 256      ),
-                .ALMOST_EMPTY_THRESHOLD  	( 2        ),
-                .FIRST_WORD_FALL_THROUGH 	( 0        )
-            )
-            u_ram_based_fifo(
-                .system_clk     	( system_clk                      ),
-                .rst_n          	( ~fifo_rst                       ),
-                .i_wren         	( feature_buffer_2_valid          ),
-                .i_wrdata       	( feature_buffer_2_data[i]        ),
-                .o_full         	(                                 ),
-                .o_almost_full  	( feature_buffer_2_almost_full[i] ),
-                .i_rden         	( fifo_rd_en                      ),
-                .o_rddata       	( fifo_output_data[8+i]             ),
-                .o_empty        	( feature_buffer_2_empty[i]       ),
-                .o_almost_empty 	(                                 )  
+        else if (`device == "simulation") begin   
+            // ram_based_fifo #(
+            //     .DATA_W                  	( 64       ),
+            //     .DEPTH_W                 	( 9        ),
+            //     .DATA_R                  	( 16       ),
+            //     .DEPTH_R                 	( 11       ),
+            //     .ALMOST_FULL_THRESHOLD   	( 256      ),
+            //     .ALMOST_EMPTY_THRESHOLD  	( 2        ),
+            //     .FIRST_WORD_FALL_THROUGH 	( 0        )
+            // )
+            // u_ram_based_fifo(
+            //     .system_clk     	( system_clk                      ),
+            //     .rst_n          	( ~fifo_rst                       ),
+            //     .i_wren         	( feature_buffer_2_valid          ),
+            //     .i_wrdata       	( feature_buffer_2_data[i]        ),
+            //     .o_full         	(                                 ),
+            //     .o_almost_full  	( feature_buffer_2_almost_full[i] ),
+            //     .i_rden         	( fifo_rd_en                      ),
+            //     .o_rddata       	( fifo_output_data[8+i]             ),
+            //     .o_empty        	( feature_buffer_2_empty[i]       ),
+            //     .o_almost_empty 	(                                 )  
+            // );
+            sync_fifo #(
+                .INPUT_WIDTH       	( 64        ),
+                .OUTPUT_WIDTH      	( 16        ),
+                .WR_DEPTH          	( 512       ),
+                .RD_DEPTH          	( 2048      ),
+                .MODE              	( "Standard"),
+                .DIRECTION         	( "LSB"     ),
+                .ECC_MODE          	( "no_ecc"  ),
+                .PROG_EMPTY_THRESH 	( 2         ),
+                .PROG_FULL_THRESH  	( 256       ),
+                .USE_ADV_FEATURES  	( 16'h1F1F  ))
+            u_sync_fifo(
+                .clock         	( system_clk                      ),
+                .reset         	( fifo_rst                        ),
+                .wr_en         	( feature_buffer_2_valid          ),
+                .din           	( feature_buffer_2_data[i]        ),
+                .rd_en         	( fifo_rd_en                      ),
+                .dout          	( fifo_output_data[8+i]           ),
+                .full          	(                                 ),
+                .empty         	( feature_buffer_2_empty[i]       ),
+                .prog_full     	( feature_buffer_2_almost_full[i] ),
+                .prog_empty    	(                                 )
             );
             assign wr_rst_busy[8+i] = 0;
-            assign rd_rst_busy[8+i] = 0;
+            assign rd_rst_busy[8+i] = 0; 
         end
     end
 endgenerate
@@ -255,6 +308,26 @@ always@(posedge system_clk or negedge rst_n) begin
         end
     end
 end
+
+always@(posedge system_clk or negedge rst_n) begin
+    if (~rst_n) begin
+        col_mask <= 0;
+        row_mask <= 0;
+    end
+    else if (compute_begin) begin
+        col_mask <= {kernel_size_miner, 5'b0};
+        row_mask <= {kernel_size_miner, 5'b0};
+    end
+    else if ((col_cnt == col_size + padding_size_double - 1) & (fifo_rd_en | padding_en)) begin
+        col_mask <= {kernel_size_miner, 5'b0};
+        if (row_mask[15:5] == row_cnt) begin
+            row_mask <= row_mask + mask_stride;
+        end
+    end
+    else if ((col_cnt == col_mask[15:5]) & (fifo_rd_en | padding_en)) begin
+        col_mask <= col_mask + mask_stride;
+    end
+end
 // 对calculate_keep打拍，得到计算完成信号
 always@(posedge system_clk) begin
     calculate_keep_r1 <= calculate_keep;
@@ -280,15 +353,12 @@ end
 assign feature_output_valid = fifo_rd_en_reg | padding_en_reg;
 
 // 计算何时数据为有效数据，对于卷积而言，一般是从(kernel_size-1, kernel_size-1)开始为有效数据
-wire        convolution_valid_wire;
-reg         convolution_valid_reg;
-reg         convolution_valid_flag;
 always@(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
         convolution_valid_flag <= 0;
     end
     else if (row_cnt >= kernel_size_miner && col_cnt >= kernel_size_miner) begin
-            convolution_valid_flag <= (stride) ? (~row_cnt[0] & ~col_cnt[0]) : 1'b1;
+        convolution_valid_flag <= (row_cnt == row_mask[15:5] && col_cnt == col_mask[15:5]);
     end
     else begin
         convolution_valid_flag <= 1'b0;

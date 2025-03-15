@@ -144,7 +144,6 @@ wire  [31:0] feature_patch_num			;
 wire  [3:0]  weight_quant_size			;
 wire  [3:0]  fea_in_quant_size			;
 wire  [3:0]  fea_out_quant_size			;
-wire         stride						;
 wire  [31:0] return_addr				;
 wire  [15:0] return_patch_num			;		
 wire  [2:0]  padding_size				;
@@ -237,6 +236,7 @@ wire 							video_valid;
 wire [47:0]						video_data;
 wire 							video_ready;
 wire                            video_output_req;
+wire [7:0]						mask_stride;
 
 integer i;
 
@@ -712,7 +712,6 @@ feature_buffer u_feature_buffer(
 	.load_feature_begin			( load_feature_begin			),
 	.row_size               	( row_size                		),
 	.col_size               	( col_size                		),
-	.stride                 	( stride                  		),
 	.padding_size           	( padding_size            		),
 	.feature_data           	( feature_data            		),
 	.feature_buffer_1_valid 	( feature_buffer_1_valid  		),
@@ -727,7 +726,8 @@ feature_buffer u_feature_buffer(
 	.pool_data_valid			( pool_data_valid				),
 	.adder_pulse				( adder_pulse					),
 	.col_size_for_cache			( col_size_for_cache			),
-	.kernel_size				( kernel_size					)
+	.kernel_size				( kernel_size					),
+	.mask_stride				( mask_stride					)
 );
 
 feature_row_Cache u_feature_row_Cache(
@@ -892,7 +892,6 @@ get_order get_order_inst(
 	.weight_quant_size			( weight_quant_size		  ),
 	.fea_in_quant_size			( fea_in_quant_size		  ),
 	.fea_out_quant_size			( fea_out_quant_size	  ),
-	.stride						( stride				  ),
 	.return_addr				( return_addr			  ),
 	.return_patch_num			( return_patch_num		  ),
 	.padding_size				( padding_size			  ),
@@ -900,6 +899,7 @@ get_order get_order_inst(
 	.activate   				( activate				  ),
 	.negedge_threshold			( negedge_threshold		  ),	
 	.output_to_video			( output_to_video		  ),
+	.mask_stride				( mask_stride			  ),
 	.s00_axi_aclk				( s00_axi_aclk			  ),
 	.s00_axi_aresetn			( s00_axi_aresetn		  ),
 	.s00_axi_awaddr				( s00_axi_awaddr		  ),

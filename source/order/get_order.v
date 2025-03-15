@@ -28,7 +28,6 @@ module get_order #
 	output [3:0]            weight_quant_size			,
 	output [3:0]            fea_in_quant_size			,
 	output [3:0]            fea_out_quant_size			,
-	output                  stride						,
 	output [31:0]           return_addr					,
 	output [15:0]           return_patch_num			,
 	output [2:0]            padding_size				,
@@ -37,6 +36,7 @@ module get_order #
 	output [7:0]            id							,
 	output [31:0]			negedge_threshold			,
 	output                  output_to_video				,
+	output [7:0]			mask_stride					,
 	// User ports ends
 	// Do not modify the ports beyond this line
 	// Ports of Axi Slave Bus Interface S00_AXI
@@ -74,7 +74,6 @@ wire [9:0]            x_col_size				;
 wire [3:0]            x_weight_quant_size		;
 wire [3:0]            x_fea_in_quant_size		;
 wire [3:0]            x_fea_out_quant_size		;
-wire                  x_stride					;
 wire [31:0]           x_return_addr				;
 wire [15:0]           x_return_patch_num		;
 wire [2:0]            x_padding_size			;
@@ -83,6 +82,7 @@ wire                  x_activate   				;
 wire [7:0]			  x_id						;
 wire [31:0]			  x_negedge_threshold		;
 wire                  x_output_to_video			;
+wire [7:0]			  x_mask_stride				;
 wire                  push_order_en				;
 wire                  order_in_ready			;
 wire                  order_valid				;
@@ -150,7 +150,6 @@ set_accelerator_reg_axi # (
 	.weight_quant_size			(x_weight_quant_size		),
 	.fea_in_quant_size			(x_fea_in_quant_size		),
 	.fea_out_quant_size			(x_fea_out_quant_size		),
-	.stride						(x_stride					),
 	.return_addr				(x_return_addr				),
 	.return_patch_num			(x_return_patch_num			),
 	.padding_size				(x_padding_size				),
@@ -168,6 +167,7 @@ set_accelerator_reg_axi # (
 	.valid_layer				(valid_layer				),
 	.task_free                  (task_free                  ),
 	.output_to_video            (x_output_to_video          ),
+	.mask_stride				(x_mask_stride				),
 	.S_AXI_ACLK					(s00_axi_aclk				),
 	.S_AXI_ARESETN				(s00_axi_aresetn			),
 	.S_AXI_AWADDR				(s00_axi_awaddr				),
@@ -213,7 +213,6 @@ Cache_order Cache_order_inst(
     .x_weight_quant_size        (x_weight_quant_size		),
     .x_fea_in_quant_size        (x_fea_in_quant_size		),
     .x_fea_out_quant_size       (x_fea_out_quant_size		),
-    .x_stride                   (x_stride					),
     .x_return_addr              (x_return_addr				),
     .x_return_patch_num         (x_return_patch_num			),
     .x_padding_size             (x_padding_size				),
@@ -221,6 +220,7 @@ Cache_order Cache_order_inst(
 	.x_id						(x_id						),
 	.x_negedge_threshold		(x_negedge_threshold		),
 	.x_output_to_video			(x_output_to_video			),
+	.x_mask_stride				(x_mask_stride				),	
     .order                      (order						),
     .feature_input_base_addr    (feature_input_base_addr	),
     .feature_input_patch_num    (feature_input_patch_num	),
@@ -232,14 +232,14 @@ Cache_order Cache_order_inst(
     .weight_quant_size          (weight_quant_size			),
     .fea_in_quant_size          (fea_in_quant_size			),
     .fea_out_quant_size         (fea_out_quant_size			),
-    .stride                     (stride						),
     .return_addr                (return_addr				),
     .return_patch_num           (return_patch_num			),
     .padding_size               (padding_size				),
     .activate                   (activate   				),
 	.id							(id							),
     .negedge_threshold			(negedge_threshold			),
-	.output_to_video			(output_to_video			)
+	.output_to_video			(output_to_video			),
+	.mask_stride				(mask_stride				)
 );
 // User logic ends
 // 取finish的上升沿得到下一次计算的申请信号

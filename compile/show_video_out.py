@@ -25,9 +25,13 @@ def read_video(video_file, size):
     return image
 
 
-if __name__ == '__main__':
-    image = read_video('./simulation_data/video.txt', (480, 640, 4))
+def show_video_out(s_Folder):
+    image = read_video(s_Folder + '/video.txt', (480, 640, 4))
     image = image[:, :, :3]
     image = image[:, :, ::-1]
     cv2.imshow("image", image)
     cv2.waitKey(0)
+
+
+if __name__ == '__main__':
+    pass

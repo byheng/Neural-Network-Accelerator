@@ -6,18 +6,27 @@
 	"soc": {
 		"core": "none"
 	},
-	"arch" : {                         
-		"prjPath": "",                     
-		"hardware" : {                     
-			"src"  : "./",               
-			"sim"  : "./",               
-			"data" : "./"                
-		},                                 
-		"software" : {                     
-			"src"  : "",                   
-			"data" : ""                    
-		}                                  
-	},                                  
+	"arch": {
+		"prjPath": "",
+		"hardware": {
+			"src": "./",
+			"sim": "./",
+			"data": "./"
+		},
+		"software": {
+			"src": "",
+			"data": ""
+		}
+	},
 	"enableShowLog": false,
-	"device": "none"
+	"device": "none",
+	"library": {
+		"state": "remote",
+		"hardware": {
+			"common": [
+
+			],
+			"custom": []
+		}
+	}
 }

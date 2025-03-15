@@ -2,7 +2,6 @@ vlib work
 vmap work ./work
 
 vlog ../parameters.v
-vlog ../ipcore/simulation/*
 vlog ../source/conv_component/*
 vlog ../source/order/*
 vlog ../source/pool_component/*

@@ -26,7 +26,6 @@
 		output [3:0]            weight_quant_size			,
 		output [3:0]            fea_in_quant_size			,
 		output [3:0]            fea_out_quant_size			,
-		output                  stride						,
 		output [31:0]           return_addr					,
 		output [15:0]           return_patch_num			,
 		output [2:0]            padding_size				,
@@ -44,6 +43,7 @@
 		input  [31:0]			valid_layer					,
 		input                   task_free					,
 		output                  output_to_video				,
+		output [7:0]			mask_stride					,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -1097,7 +1097,7 @@
 	assign weight_quant_size		= slv_reg8 ;
 	assign fea_in_quant_size		= slv_reg9 ;
 	assign fea_out_quant_size		= slv_reg10;
-	assign stride					= slv_reg11;
+	assign mask_stride				= slv_reg11;
 	assign return_addr				= slv_reg12;
 	assign return_patch_num		   	= slv_reg13;
 	assign padding_size				= slv_reg14;          

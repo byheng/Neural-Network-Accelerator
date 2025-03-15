@@ -31,7 +31,7 @@ class Order(object):
                           "weight_quant_size": 0,
                           "fea_in_quant_size": 0,
                           "fea_out_quant_size": 0,
-                          "stride": 0,
+                          "mask_stride": 0,
                           "return_addr": 0,
                           "return_patch_num": 0,
                           "padding_size": 0,
@@ -72,6 +72,18 @@ class Order(object):
         """ command 2 define Run Order"""
         OrderInstruction.append(np.uint8(18).tobytes() + np.uint32(0).tobytes())
         return OrderInstruction
+
+    def VisualInstruction(self):
+        visualInstruction = []
+        for key, value in self.parameter.items():
+            if key == "negedge_threshold":
+                visualInstruction.append(
+                    "%-10s" % "SET" + "%-10s" % (VisualMap[key]) + "%-10s" % (signed_dec2hex(value, 8)))
+            else:
+                visualInstruction.append(
+                    "%-10s" % "SET" + "%-10s" % (VisualMap[key]) + "%-10s" % ("0x" + hex(value)[2:].zfill(8)))
+        visualInstruction.append("%-10s" % VisualRegisterType.push_order_en.value)
+        return visualInstruction
 
     def AllocateMemory(self, memory_point_input):
         return memory_point_input
@@ -124,15 +136,15 @@ class Order(object):
 
 
 class ConvOrder(Order):
-    def __init__(self, input_layer, out_channel: int, stride: int, activate: bool = True, negedge_threshold: int = 0,
+    def __init__(self, input_layer, out_channel: int, stride: float, activate: bool = True, negedge_threshold: int = 0,
                  output_to_video: bool = False):
         super(ConvOrder, self).__init__()
         self.negedge_threshold = negedge_threshold
         padding = 1  # assert padding = 1
         self.input_layer = input_layer
         self.in_shape = input_layer.out_shape
-        self.stride = stride - 1
-        self.parameter['stride'] = self.stride
+        self.stride = stride
+        self.parameter['mask_stride'] = Quant(self.stride, 5)
         self.padding = padding
         self.parameter['order'] = OrderType.CONVOLUTION.value
         self.parameter['padding_size'] = padding
@@ -151,8 +163,8 @@ class ConvOrder(Order):
         else:
             self.parameter['feature_double_patch'] = 1
 
-        output_w = w // 2 if stride == 2 else w
-        output_h = h // 2 if stride == 2 else h
+        output_w = int(count_equal_a_b(w, self.parameter['mask_stride']))
+        output_h = int(count_equal_a_b(h, self.parameter['mask_stride']))
         self.out_shape = (out_channel, output_w, output_h)
 
         self.parameter['return_patch_num'] = StandardizedStorageSpace(output_w, output_h)
@@ -206,13 +218,13 @@ class ConvOrder(Order):
 
 
 class MaxPoolOrder(Order):
-    def __init__(self, input_layer, stride: int, output_to_video: bool = False):
+    def __init__(self, input_layer, stride: float, output_to_video: bool = False):
         super(MaxPoolOrder, self).__init__()
         padding = 2  # assert padding = 2       // the max pool is for 5*5
         self.input_layer = input_layer
         self.in_shape = input_layer.out_shape
-        self.stride = stride - 1
-        self.parameter['stride'] = self.stride
+        self.stride = stride
+        self.parameter['mask_stride'] = Quant(self.stride, 5)
         self.padding = padding
         self.parameter['order'] = OrderType.MAXPOOL.value
         self.parameter['padding_size'] = padding
@@ -225,8 +237,8 @@ class MaxPoolOrder(Order):
         self.parameter['feature_output_patch_num'] = np.ceil(c / 8)
         self.parameter['feature_double_patch'] = 0
 
-        output_w = w // 2 if stride == 2 else w
-        output_h = h // 2 if stride == 2 else h
+        output_w = int(count_equal_a_b(w, self.parameter['mask_stride']))
+        output_h = int(count_equal_a_b(h, self.parameter['mask_stride']))
         self.out_shape = (c, output_w, output_h)
 
         self.parameter['return_patch_num'] = StandardizedStorageSpace(output_w, output_h)
@@ -272,8 +284,8 @@ class UpsampleOrder(Order):
         padding = 0  # assert padding = 0
         self.input_layer = input_layer
         self.in_shape = input_layer.out_shape
-        self.stride = 0
-        self.parameter['stride'] = self.stride
+        self.stride = 1
+        self.parameter['mask_stride'] = Quant(self.stride, 5)
         self.padding = padding
         self.parameter['order'] = OrderType.UPSAMPLE.value
         self.parameter['padding_size'] = padding
@@ -816,7 +828,7 @@ class Model(object):
                         WeightAndBias.append(patch_b.reshape(-1).astype(np.int32).tobytes())
         if not os.path.exists(c_Folder):
             os.makedirs(c_Folder)
-        with open(c_Folder + "/WeightAndBias.bin", "wb") as f:
+        with open(c_Folder + "/weight.bin", "wb") as f:
             for by in WeightAndBias:
                 f.write(by)
         return WeightAndBias
@@ -858,9 +870,30 @@ class Model(object):
         instruction.append(np.uint8(RegisterType.order.value).tobytes() + np.uint32(OrderType.FINISH.value).tobytes())
         instruction.append(np.uint8(RegisterType.push_order_en.value).tobytes() + np.uint32(0).tobytes())
         instruction.append(np.uint8(255).tobytes() + np.uint32(255).tobytes())
-        f = open(c_Folder + "/instruction.bin", 'wb')
+        f = open(c_Folder + "/instruc.bin", 'wb')
         for o in instruction:
             f.write(o)
+        f.close()
+
+    def GenerateVisualInstruction(self, c_Folder):
+        VisualInstruction = []
+        flattenName, flattenLayer = self.FlattenLayer(self.model)
+        index = 0
+        VisualInstruction.append("%-10s" % VisualRegisterType.refresh_order_ram.value)
+        VisualInstruction.append("%-10s" % "SET" + "%-10s" % "WLEN" + "%-10s" % "0x011B0000")
+        for layer in flattenLayer:
+            if isinstance(layer, (ConvOrder, AddOrder, MemcpyOrder, MaxPoolOrder, UpsampleOrder)):
+                layer.id = index
+                layer.parameter['id'] = index
+                VisualInstruction += layer.VisualInstruction()
+                index += 1
+        VisualInstruction.append(
+            "%-10s" % "SET" + "%-10s" % "ORDER" + "%-10s" % ("0x" + hex(OrderType.FINISH.value)[2:].zfill(8)))
+        VisualInstruction.append("%-10s" % VisualRegisterType.push_order_en.value)
+        f = open(c_Folder + "/instruction_visual.txt", 'w')
+        for o in VisualInstruction:
+            f.write(o)
+            f.write("\n")
         f.close()
 
     def SetWeightLength(self):

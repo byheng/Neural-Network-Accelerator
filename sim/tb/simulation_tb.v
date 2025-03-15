@@ -210,12 +210,12 @@ accelerator_control u_accelerator_control(
 );
 
 always @(posedge system_clk) begin
-    if ($random % (100 + 1) < 50) begin
+    // if ($random % (100 + 1) < 50) begin
         axi_stream_tready <= 1;
-    end
-    else begin
-        axi_stream_tready <= 0;
-    end
+    // end
+    // else begin
+    //     axi_stream_tready <= 0;
+    // end
 end
 
 make_order make_order_inst(
@@ -294,47 +294,6 @@ always@(posedge system_clk) begin
         $fwrite(video_file, "%h\n", axi_stream_tdata);
     end
 end
-
-// wire empty;
-// ram_based_fifo #(
-// 	.DATA_W                  	( 514      ),
-// 	.DEPTH_W                 	( 10       ),
-// 	.DATA_R                  	( 514      ),
-// 	.DEPTH_R                 	( 10       ),
-//     .FIRST_WORD_FALL_THROUGH    ( 1        ))
-// u_ram_based_fifo(
-// 	.system_clk     	( system_clk      ),
-// 	.rst_n          	( rst_n           ),
-// 	.i_wren         	( s_axi_rvalid    ),
-// 	.i_wrdata       	( {s_axi_rvalid, s_axi_rlast, s_axi_rdata}),
-// 	.o_full         	( ),
-// 	.o_almost_full  	( ),
-// 	.i_rden         	( rden            ),
-// 	.o_rddata       	( {s_axi_rvalid_copy, s_axi_rlast_copy, s_axi_rdata_copy} ),
-// 	.o_empty        	( empty           ),
-// 	.o_almost_empty 	( )
-// );
-
-// always@(posedge system_clk or negedge rst_n)begin
-//     if (!rst_n) begin
-//         rden <= 0;
-//     end
-//     else if (($random % (100 + 1)) < 80) begin
-//         rden <= 1;
-//     end
-//     else begin
-//         rden <= 0;
-//     end
-// end
-
-// always@(posedge system_clk)begin
-//     if (rden & ~empty) begin
-//         {s_axi_rvalid_reg, s_axi_rlast_reg, s_axi_rdata_reg} <= {s_axi_rvalid_copy, s_axi_rlast_copy, s_axi_rdata_copy};
-//     end
-//     else begin
-//         {s_axi_rvalid_reg, s_axi_rlast_reg, s_axi_rdata_reg} <= {1'b0, 1'b0, 512'b0};
-//     end
-// end
 
 
 endmodule

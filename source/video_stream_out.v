@@ -19,7 +19,7 @@ module video_stream_out(
     input  [47:0]   video_data,
     output          video_ready,
 
-    output          axi_stream_tvalid, 
+    output reg      axi_stream_tvalid, 
     output [31:0]   axi_stream_tdata,
     output [3:0]    axi_stream_tkeep,
     output          axi_stream_tlast,
@@ -84,7 +84,7 @@ always@(posedge system_clk) begin
     dequant_valid <= video_valid;
 end
 
-assign dequant_data = {8'hff, pic_data[2], pic_data[1], pic_data[0]};
+assign dequant_data = {8'hff, pic_data[0], pic_data[1], pic_data[2]};   // BGR TO RGB
 
 wire video_last;
 wire video_user;
@@ -94,37 +94,61 @@ wire buffer_empty;
 generate
     if (`device == "xilinx") begin
         stream_buffer stream_buffer_inst(
-            .clk            ( system_clk        ), 
-            .srst           ( ~rst_n            ), 
-            .din            ( {dequant_data, video_last, video_user} ), 
-            .wr_en          ( dequant_valid       ), 
-            .rd_en          ( axi_stream_tready & ~buffer_empty ), 
+            .clk            ( system_clk                                            ), 
+            .srst           ( ~rst_n                                                ), 
+            .din            ( {dequant_data, video_last, video_user}                ), 
+            .wr_en          ( dequant_valid                                         ), 
+            .rd_en          ( axi_stream_tvalid                     ), 
             .dout           ( {axi_stream_tdata, axi_stream_tlast, axi_stream_tuser}), 
-            .prog_full      ( buffer_almost_full), 
-            .almost_full    ( ), 
-            .empty          ( buffer_empty      )
+            .prog_full      ( buffer_almost_full                                    ), 
+            .almost_full    (                                                       ), 
+            .empty          ( buffer_empty                                          )   
         );
     end
     else if (`device == "simulation") begin
-        ram_based_fifo #(
-            .DATA_W                  	( 34       ),
-            .DEPTH_W                 	( 10       ),
-            .DATA_R                  	( 34       ),
-            .DEPTH_R                 	( 10       ),
-            .ALMOST_FULL_THRESHOLD   	( 1000     ),
-            .ALMOST_EMPTY_THRESHOLD  	( 2        ),
-            .FIRST_WORD_FALL_THROUGH 	( 1        ))
-        u_ram_based_fifo(
-            .system_clk     	( system_clk         ),
-            .rst_n          	( rst_n              ),
-            .i_wren         	( dequant_valid        ),
-            .i_wrdata       	( {dequant_data, video_last, video_user}        ),
-            .o_full         	(                    ),
-            .o_almost_full  	( buffer_almost_full ),
-            .i_rden         	( axi_stream_tready & ~buffer_empty  ),
-            .o_rddata       	( {axi_stream_tdata, axi_stream_tlast, axi_stream_tuser}),
-            .o_empty        	( buffer_empty       ),
-            .o_almost_empty 	(                    )
+        // sync_fifo #(
+        //     .INPUT_WIDTH       	( 34        ),
+        //     .OUTPUT_WIDTH      	( 34        ),
+        //     .WR_DEPTH          	( 1024      ),
+        //     .RD_DEPTH          	( 1024      ),
+        //     .MODE              	( "FWFT"    ),
+        //     .DIRECTION         	( "MSB"     ),
+        //     .ECC_MODE          	( "no_ecc"  ),
+        //     .PROG_EMPTY_THRESH 	( 2         ),
+        //     .PROG_FULL_THRESH  	( 1000      ),
+        //     .USE_ADV_FEATURES  	( 16'h1F1F  ))
+        // u_sync_fifo(
+        //     .clock         	( system_clk                                            ),
+        //     .reset         	( ~rst_n                                                ),
+        //     .wr_en         	( dequant_valid                                         ),
+        //     .din           	( {dequant_data, video_last, video_user}                ),
+        //     .rd_en         	( axi_stream_tready & ~buffer_empty                     ),
+        //     .dout          	( {axi_stream_tdata, axi_stream_tlast, axi_stream_tuser}),
+        //     .empty         	( buffer_empty                                          ),
+        //     .prog_full     	( buffer_almost_full                                    )
+        // );
+
+        async_fifo #(
+            .INPUT_WIDTH       	( 34        ),
+            .OUTPUT_WIDTH      	( 34        ),
+            .WR_DEPTH          	( 1024      ),
+            .RD_DEPTH          	( 1024      ),
+            .MODE              	( "FWFT"    ),
+            .DIRECTION         	( "MSB"     ),
+            .ECC_MODE          	( "no_ecc"  ),
+            .PROG_EMPTY_THRESH 	( 2         ),
+            .PROG_FULL_THRESH  	( 1000      ))
+        u_async_fifo(
+            .reset         	( ~rst_n                ),
+            .wr_clock      	( system_clk            ),
+            .wr_en         	( dequant_valid          ),
+            .din           	( {dequant_data, video_last, video_user}            ),
+            .rd_clock      	( system_clk       ),
+            .rd_en         	( axi_stream_tvalid          ),
+            .valid         	(                     ),
+            .dout          	( {axi_stream_tdata, axi_stream_tlast, axi_stream_tuser}           ),
+            .empty         	( buffer_empty          ),
+            .prog_full     	( buffer_almost_full      )
         );
     end
 endgenerate
@@ -165,9 +189,12 @@ always @(posedge system_clk or negedge rst_n) begin
     end
 end
 
+always@(posedge system_clk or negedge rst_n) begin
+    axi_stream_tvalid <= (~buffer_empty) & axi_stream_tready;
+end
+
 assign video_last = (col_counter == video_col_size-1) & dequant_valid;
 assign video_ready = ~buffer_almost_full;
-assign axi_stream_tvalid = (~buffer_empty) & axi_stream_tready;
 assign axi_stream_tkeep = 4'b1111;
 
 endmodule
