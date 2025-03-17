@@ -1677,9 +1677,13 @@ SET       ORDER     0x00000005
 PUSH_ORDER
 ```
 
+# TODO
+- 拓展通用性，尝试在阵列拓扑不变的情况下通过调度实现不同尺寸的卷积核卷积。
+- 在加速器上部署其它神经网络任务，如图像压缩、图像去噪等。
+
 # 我的频道
 
-B站: https://www.bilibili.com/video/BV1YBwdeGEQL/?spm_id_from=333.1387.homepage.video_card.click&vd_source=adcb6ca5248fa9aa53c8041deee6707b
+B站: https://space.bilibili.com/288251497?spm_id_from=333.788.0.0
 
 ## 引用
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)

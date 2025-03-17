@@ -1669,9 +1669,13 @@ SET       ORDER     0x00000005
 PUSH_ORDER
 ```
 
+# TODO
+- Expand the versatility and attempt to achieve convolution with convolutional kernels of different sizes through scheduling while keeping the array topology unchanged.
+- Deploy other Convolutional Neural Network tasks on the accelerator, such as image compression, image denoising, etc.
+
 # My channel
 
-Bilibili: https://www.bilibili.com/video/BV1YBwdeGEQL/?spm_id_from=333.1387.homepage.video_card.click&vd_source=adcb6ca5248fa9aa53c8041deee6707b
+Bilibili: https://space.bilibili.com/288251497?spm_id_from=333.788.0.0
 
 ## Reference
 - [yolov8-prune-network](https://github.com/ybai789/yolov8-prune-network-slimming)
