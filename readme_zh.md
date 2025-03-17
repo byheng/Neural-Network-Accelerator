@@ -1,3 +1,5 @@
+# 也许有企业需要数字IC或者FPGA的实习生--23011210651@stu.xidian.edu.cn
+
 # Open Source Accelerator on FPGA
 **切换语言: [英语](README.md), [中文](readme_zh.md)**
 **开发日志: [英语](DevLog.md), [中文](DevLog_zh.md)**
