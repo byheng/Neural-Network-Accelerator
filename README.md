@@ -12,7 +12,8 @@ This project aims to implement an acceleration circuit for convolutional neural 
 
 | Operators      | Description |
 | :-----------: | :-----------: |
-| Convolution      | 3*3 convolution with stride (1 or 2) and padding (Whatever). You can choose whether to activate it (dynamically controlled by parameter instructions).       |
+| Convolution      | 3*3 convolution with stride (whatever you want, int
+or float) and padding (Whatever). You can choose whether to activate it (dynamically controlled by parameter instructions).       |
 | Residual sum   | Residual sum of two feature maps.        |
 | Upsampling | upsampling of feature maps by a factor of 2. Only support simplest nearest. |
 | Pooling | pooling of feature maps with max pooling. |
