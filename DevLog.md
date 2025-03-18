@@ -56,7 +56,7 @@ This project aims to implement an acceleration circuit for convolutional neural 
 
 - **2025-01-01**
 
-  The deployment on xilinx 19EG has been completed, and the inference of static images in ddr has been completed. But the circuit design can only reach 200Mhz. Very sad, but, not bad.
+  The deployment on xilinx (xczu7ev-ffvc1156-2-i) has been completed, and the inference of static images in ddr has been completed. But the circuit design can only reach 200Mhz. Very sad, but, not bad.
 
 - **2025-02-11**
   All dependent IP cores are written, so they can not depend on xilinx's IP core library. Set device=simulation in parameters.v file.

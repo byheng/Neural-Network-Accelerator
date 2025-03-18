@@ -23,7 +23,7 @@ This project aims to implement an acceleration circuit for convolutional neural 
 using 100Mhz clk to simulate the accelerator on yolov8n, total use 114ms.
 ![image](./fig/simulation_result.png)
 
-# Working on xilinx 19EG
+# Working on xilinx (xczu7ev-ffvc1156-2-i)
 
 The hardware deployment clock of the accelerator is 200Mhz, the single frame of yolov8n inference time is 60ms, and the post-processing time is 50ms. The inference and post-processing are carried out in parallel, so the total frame rate can reach 18-19FPS. 
 
