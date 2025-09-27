@@ -10,9 +10,9 @@
 `define SIGNED_FEATURE      1   // 特征是否有符号
 `define WEIGHT_WIDTH        16  // 权重位宽
 `define SIGNED_WEIGHT       1   // 权重是否有符号
-`define MAC_WIDTH           `FEATURE_WIDTH + `WEIGHT_WIDTH // MAC位宽
+`define MAC_WIDTH           `FEATURE_WIDTH + `WEIGHT_WIDTH // MAC位宽，32 = 16 + 16
 `define MAC_OVERFLOW_WIDTH  4   // 预留8位防止溢出
-`define MAC_OUTPUT_WIDTH    `MAC_WIDTH + `MAC_OVERFLOW_WIDTH   
+`define MAC_OUTPUT_WIDTH    `MAC_WIDTH + `MAC_OVERFLOW_WIDTH   // 32 + 4, 4位宽作为溢出预留
 
 `define PE_CORE_NUM         16
 `define PE_NUM_PRE_CORE     3
