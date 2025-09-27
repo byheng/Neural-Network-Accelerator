@@ -282,7 +282,8 @@ end
 
 integer video_file;
 initial begin
-    video_file = $fopen("../compile/simulation_data/video.txt", "w");
+    // video_file = $fopen("../compile/simulation_data/video.txt", "w");
+    video_file = $fopen("D:\\Prj\\Neural-Network-Accelerator\\compile\\simulation_data\\video.txt", "w");
 end
 
 always@(posedge system_clk) begin

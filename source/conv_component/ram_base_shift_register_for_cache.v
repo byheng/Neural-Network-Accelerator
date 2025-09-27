@@ -18,9 +18,9 @@ module ram_base_shift_register_for_cache #(
     input                        system_clk,
     input                        rst_n,
     input                        wr_en,
-    input  [FEATURE_WIDTH*2-1:0] wr_data,
-    output [FEATURE_WIDTH*2-1:0] rd_data,
-    input  [9:0]                 shift_size
+    input  [FEATURE_WIDTH*2-1:0] wr_data, // 输入数据，2倍特征位宽
+    output [FEATURE_WIDTH*2-1:0] rd_data, // 输出数据，2倍特征位宽
+    input  [9:0]                 shift_size // 移位寄存器的深度，决定了移位的行数
 );
 
 reg [9:0]   wr_addr;
@@ -35,8 +35,8 @@ always @(posedge system_clk or negedge rst_n) begin
         rd_addr <= 10'd0;
     end 
     else if(wr_en) begin
-        wr_addr <= wr_addr + 10'd1;
-        rd_addr <= wr_addr - shift_size;
+        wr_addr <= wr_addr + 10'd1; // 写使能时，更新写地址
+        rd_addr <= wr_addr - shift_size; // 读地址为写地址减去移位深度，每次读取 shift_size 行之前的数据
     end
 end
 
@@ -89,7 +89,7 @@ endgenerate
 
 
 always @(posedge system_clk) begin
-    wr_en_reg <= wr_en;
+    wr_en_reg <= wr_en; // 记录上一个时钟周期的写使能状态
 end
 
 always @(posedge system_clk or negedge rst_n) begin
@@ -101,6 +101,7 @@ always @(posedge system_clk or negedge rst_n) begin
     end
 end
 
-assign rd_data = (~wr_en_reg & wr_en) ? rd_data_reg : rd_data_wire; 
+assign rd_data = (~wr_en_reg & wr_en) ? rd_data_reg : rd_data_wire; // 当写使能信号由低变高时，输出上一个时钟周期的读数据，否则输出当前读数据
+// 确保在写操作的边沿时刻使用寄存的数据，其他时候使用 RAM 的直接输出, 避免在写操作时读取到未更新的数据
 
 endmodule 

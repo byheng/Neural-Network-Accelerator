@@ -94,7 +94,7 @@ end
 /*------------------------分配输入数据---------------------*/
 genvar i;
 generate
-    for(i=0;i<4;i=i+1) begin: feature_expand
+    for(i=0;i<4;i=i+1) begin: feature_expand // 将从DDR读取的特征数据分割为4组，每组8个特征数据
         assign feature_data_expand[i] = feature_data[(i+1)*FEATURE_WIDTH*8-1:i*FEATURE_WIDTH*8];
     end
     // because the xilinx fifo is big-endian, we need to swap the data when using xilinx device

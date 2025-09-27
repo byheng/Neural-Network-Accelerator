@@ -673,10 +673,10 @@ read_ddr_control u_read_ddr_control(
 	.rst_n                   	( rst_n                    ),
 	.task_start              	( task_start               ),
 	.weight_data_length      	( weight_data_length       ),
-	.weight_and_bias_data    	( weight_and_bias_data     ),
+	.weight_and_bias_data    	( weight_and_bias_data     ), // --> Weight_buffer
 	.weight_and_bias_valid   	( weight_and_bias_valid    ),
 	.weight_buffer_ready     	( weight_buffer_ready      ),
-	.feature_output_data     	( feature_data      	   ),
+	.feature_output_data     	( feature_data      	   ), // --> feature_buffer
 	.feature_buffer_1_valid  	( feature_buffer_1_valid   ),
 	.feature_buffer_2_valid  	( feature_buffer_2_valid   ),
 	.feature_buffer_1_ready  	( feature_buffer_1_ready   ),
@@ -713,13 +713,13 @@ feature_buffer u_feature_buffer(
 	.row_size               	( row_size                		),
 	.col_size               	( col_size                		),
 	.padding_size           	( padding_size            		),
-	.feature_data           	( feature_data            		),
+	.feature_data           	( feature_data            		), // <-- read_ddr_control
 	.feature_buffer_1_valid 	( feature_buffer_1_valid  		),
 	.feature_buffer_2_valid 	( feature_buffer_2_valid  		),
 	.feature_buffer_1_ready 	( feature_buffer_1_ready  		),
 	.feature_buffer_2_ready 	( feature_buffer_2_ready  		),
 	.feature_double_patch   	( feature_double_patch    		),
-	.feature_output_data    	( feature_output_data     		),
+	.feature_output_data    	( feature_output_data     		), // --> feature_row_Cache
 	.feature_output_valid   	( feature_output_valid    		),
 	.feature_output_ready   	( feature_output_ready    		),
 	.convolution_valid			( convolution_valid				),
@@ -733,11 +733,11 @@ feature_buffer u_feature_buffer(
 feature_row_Cache u_feature_row_Cache(
 	.system_clk           	( system_clk            					  ),
 	.rst_n                	( rst_n                 					  ),
-	.feature_output_data  	( feature_output_data   					  ),
+	.feature_output_data  	( feature_output_data   					  ), // <-- feature_buffer
 	.feature_output_valid 	( feature_output_valid & (convolution_working | pool_layer_working)  ),
-	.feature_cache_data   	( feature_cache_data    					  ),
+	.feature_cache_data   	( feature_cache_data    					  ), // --> convolution_core
 	.pool_cache_data		( pool_cache_data       					  ),
-	.feature_cache_valid  	( feature_cache_valid   					  ),
+	.feature_cache_valid  	( feature_cache_valid   					  ), // --> convolution_core
 	.rebuild_structure    	( rebuild_structure     					  ),
 	.col_size             	( col_size_for_cache              			  )
 );
@@ -745,12 +745,12 @@ feature_row_Cache u_feature_row_Cache(
 Weight_buffer u_Weight_buffer(
 	.system_clk               	( system_clk                ),
 	.rst_n                    	( rst_n                     ),
-	.weight_and_bias_data     	( weight_and_bias_data      ),
+	.weight_and_bias_data     	( weight_and_bias_data      ), // <-- read_ddr_control
 	.weight_and_bias_valid    	( weight_and_bias_valid     ),
 	.weight_buffer_ready        ( weight_buffer_ready       ),
 	.weight_and_bias_ready    	( weight_and_bias_ready     ),
 	.change_weight_bias       	( change_weight_bias        ),
-	.weight_bias_output_data  	( weight_bias_output_data   ),
+	.weight_bias_output_data  	( weight_bias_output_data   ), // --> weight, bias <convolution_core>
 	.weight_bias_output_valid 	( weight_bias_output_valid  ),
 	.task_finish              	( task_finish               )
 );
@@ -758,15 +758,15 @@ Weight_buffer u_Weight_buffer(
 convolution_core u_convolution_core(
 	.DSP_clk               	( system_clk             ),
 	.rst_n                 	( rst_n                  ),
-	.weight                	( weight                 ),
+	.weight                	( weight                 ), // <-- Weight_buffer
 	.weight_valid          	( weight_valid           ),
-	.feature_in            	( feature_cache_data     ),
-	.bias                  	( bias                   ),
+	.feature_in            	( feature_cache_data     ), // <-- feature_row_Cache
+	.bias                  	( bias                   ), // <-- Weight_buffer
 	.bias_valid            	( bias_valid             ),
-	.adder_feature         	( adder_feature          ),
+	.adder_feature         	( adder_feature          ), // <-- Output_buffer
 	.bias_or_adder_feature 	( bias_or_adder_feature  ),
 	.pulse                 	( feature_cache_valid & convolution_working ),
-	.feature_out           	( feature_out            )
+	.feature_out           	( feature_out            )  // --> Output_buffer
 );
 
 Output_buffer u_Output_buffer(
@@ -774,8 +774,8 @@ Output_buffer u_Output_buffer(
 	.rst_n              	( rst_n               ),
 	.refresh_req        	( refresh_req         ),
 	.adder_pulse        	( adder_pulse         ),
-	.adder_feature      	( adder_feature       ),
-	.feature_in         	( feature_out         ),
+	.adder_feature      	( adder_feature       ), // --> convolution_core
+	.feature_in         	( feature_out         ), // <-- Output_buffer
 	.feature_valid      	( feature_valid       )
 );
 

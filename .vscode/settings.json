@@ -1,10 +1,10 @@
 {
-    "editor.fontSize": 30,
+    // "editor.fontSize": 14,
     "digital-ide.function.lsp.linter.vlog.diagnostor": "modelsim",
     "digital-ide.function.lsp.linter.svlog.diagnostor": "modelsim",
     "digital-ide.function.lsp.linter.systemverilog.diagnostor": "modelsim",
     "digital-ide.function.lsp.linter.vhdl.diagnostor": "modelsim",
-    "digital-ide.prj.modelsim.install.path": "D:\\modelsim\\modelsim\\win64",
-    "digital-ide.prj.vivado.install.path": "D:\\vivado\\Vivado\\2022.1\\bin",
+    // "digital-ide.prj.modelsim.install.path": "D:\\modelsim\\modelsim\\win64",
+    // "digital-ide.prj.vivado.install.path": "D:\\vivado\\Vivado\\2022.1\\bin",
     
 }

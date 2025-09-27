@@ -44,7 +44,7 @@ module SDPRAM #(
         // Delay output
         parameter DELAY = 0,
         // do not set by user
-        parameter STEP  = ($clog2(DEPTH) == 0) ? 0 : ($clog2(DEPTH) - 1)
+        parameter STEP  = ($clog2(DEPTH) == 0) ? 0 : ($clog2(DEPTH) - 1) // 确定 RAM 地址的位宽
     ) (
         // Clock input
         input      clock,
@@ -72,11 +72,11 @@ module SDPRAM #(
     reg [WIDTH-1:0] o_rdata_delay_reg[DELAY:0];
 
     // define ram as array or ip
-    reg [WIDTH-1:0] ram [DEPTH-1:0];
+    reg [WIDTH-1:0] ram [DEPTH-1:0]; // 定义 RAM 存储器
     integer i;
     initial begin
         for(i=0; i<DEPTH; i=i+1) begin
-            ram[i] = 0;
+            ram[i] = 0; // 初始化 RAM 存储器
         end
     end
     
@@ -86,10 +86,10 @@ module SDPRAM #(
         end
         else begin
             if (wen) begin
-                ram[waddr] <= din;
+                ram[waddr] <= din; // 写入数据到 RAM
             end
             if (ren) begin
-                rdout <= ram[raddr];
+                rdout <= ram[raddr]; // 从 RAM 读取数据
             end
         end
     end
@@ -98,9 +98,9 @@ module SDPRAM #(
     // delay read data
     generate
         if (DELAY == 0) begin
-            assign dout = rdout;
+            assign dout = rdout; // 不需要延迟输出时，直接输出当前读数据
         end
-        else begin
+        else begin // 需要延迟输出时，打拍
             for (genvar i = 0; i < DELAY; i = i + 1) begin
                 if (i == 0) begin
                     always@(posedge clock) begin
