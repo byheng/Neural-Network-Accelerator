@@ -51,7 +51,7 @@ weight_valid[i]信号控制每个PE_array在不同时刻加载权重：
 */
 genvar i;
 generate
-    for(i=0;i<8;i=i+1) begin: PE_core_gen
+    for(i = 0; i < 8; i = i + 1) begin: PE_core_gen
         PE_array u_PE_array(
             .DSP_clk      	        ( DSP_clk                                               ),
             .rst_n        	        ( rst_n                                                 ),

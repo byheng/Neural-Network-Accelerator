@@ -9,10 +9,10 @@
 `include "../../parameters.v"
 
 module Weight_buffer #(
-    parameter WEIGHT_WIDTH      = `WEIGHT_WIDTH, // 权重宽度
-    parameter PE_CORE_NUM       = `PE_CORE_NUM,  // PE核心数
-    parameter MEM_DATA_WIDTH    = `MEM_DATA_WIDTH, // 内存数据宽度
-    parameter WEIGHT_DATA_WIDTH = `PE_CORE_NUM * WEIGHT_WIDTH // 权重数据宽度 = PE核心数 * 权重宽度
+    parameter WEIGHT_WIDTH      = `WEIGHT_WIDTH, // 权重宽度 16
+    parameter PE_CORE_NUM       = `PE_CORE_NUM,  // PE核心数 16
+    parameter MEM_DATA_WIDTH    = `MEM_DATA_WIDTH, // 内存数据宽度 512
+    parameter WEIGHT_DATA_WIDTH = `PE_CORE_NUM * WEIGHT_WIDTH // 权重数据宽度 = PE核心数 * 权重宽度 = 256 = 16*16
 )
 (
     input                           system_clk             ,
@@ -161,13 +161,13 @@ always @(posedge system_clk or negedge rst_n) begin
         case(state)
             IDLE: begin
                 state <= change_weight_bias; 
-                if (change_weight_bias == 2'b10) begin
+                if (change_weight_bias == 2'b10) begin // CHANGE_BIAS 
                     weight_bias_output_addr[8] <= 1;
                 end
-                else if (change_weight_bias == 2'b00) begin
+                else if (change_weight_bias == 2'b00) begin // IDLE
                     weight_bias_output_addr <= 0;
                 end
-                else begin
+                else begin // CHANGE_WEIGHT or CHANGE_WEIGHT_AND_BIAS
                     weight_bias_output_addr <= 9'd1;
                 end
                 cnt2 <= 0; // 初始化计数器
@@ -175,18 +175,18 @@ always @(posedge system_clk or negedge rst_n) begin
 
             CHANGE_WEIGHT: begin
                 if (weight_buffer_rd_en) begin
-                    if (cnt2 == 4'd8) begin // 当计数器达到 8 时，表示当前 PE 核心已接收完整的权重数据, 可以开始操作下一个 PE 核心
+                    if (cnt2 == 4'd8) begin // 等待 cnt2 计数器延迟8个周期后才开始从FIFO中依次读取八个权重数据
                         if (weight_bias_output_addr == 9'b010000000) begin // 如果是最后一个权重, 表示所有 PE 核心的权重都已接收完毕
                             state <= IDLE;                                 // 则进入空闲状态
                             weight_bias_output_addr <= 0;
                         end
                         else begin
-                            weight_bias_output_addr <= weight_bias_output_addr << 1; // 左移一位, 下一个 PE 核心
+                            weight_bias_output_addr <= weight_bias_output_addr << 1; // 左移一位, 下一个 PEcore
                         end
                         cnt2 <= 0; // 重置计数器
                     end
                     else begin
-                        cnt2 <= cnt2 + 1; // 计数器加1
+                        cnt2 <= cnt2 + 1; // 计数器加1，等待8个周期
                     end
                 end
             end
@@ -197,12 +197,12 @@ always @(posedge system_clk or negedge rst_n) begin
                         state <= IDLE; // 此时状态机直接返回 IDLE 状态
                         weight_bias_output_addr <= 0;
                     end
-                    else if (cnt2 == 4'd8) begin // 当计数器达到 8 时，表示当前 PE 核心已接收完整的权重数据, 可以开始操作下一个 PE 核心
-                        weight_bias_output_addr <= weight_bias_output_addr << 1; // 左移一位, 下一个 PE 核心
+                    else if (cnt2 == 4'd8) begin // 等待 cnt2 计数器延迟8个周期后才开始从FIFO中依次读取八个权重数据和一个偏置数据
+                        weight_bias_output_addr <= weight_bias_output_addr << 1; // 左移一位, 下一个 PEcore
                         cnt2 <= 0; // 重置计数器
                     end
                     else begin
-                        cnt2 <= cnt2 + 1; // 计数器加1
+                        cnt2 <= cnt2 + 1; // 计数器加1，等待8个周期
                     end
                 end
             end
