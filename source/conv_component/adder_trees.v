@@ -13,14 +13,15 @@ module add_tree #(
 )(
     input                               system_clk ,       
     input                               rst_n      ,       
-    input  [16*MAC_OUTPUT_WIDTH-1 : 0]  in_data    ,       
-    output [MAC_OUTPUT_WIDTH-1 : 0]     data_out   
+    input  [16*MAC_OUTPUT_WIDTH-1 : 0]  in_data    , // 16 个 MAC_OUTPUT_WIDTH 位宽数据输入
+    output [MAC_OUTPUT_WIDTH-1 : 0]     data_out     // 最终输出 MAC_OUTPUT_WIDTH 位宽数据
 );
 
 // 缓存数据
 reg  signed[MAC_OUTPUT_WIDTH-1:0] data_reg   [15:0];
 wire [MAC_OUTPUT_WIDTH-1:0]       data_spilt [15:0];
 
+// 分格输入数据，并延迟一拍
 generate
     genvar i;
     for (i = 0; i < 16; i=i+1) begin : stage1_gen
@@ -36,7 +37,7 @@ generate
     end
 endgenerate
 
-// stage 1
+// stage 1 相邻两两相加 16 -> 8
 reg signed[MAC_OUTPUT_WIDTH-1:0] data_stage1 [7:0];
 
 generate
@@ -52,7 +53,7 @@ generate
     end
 endgenerate
 
-// stage 2
+// stage 2 相邻两两相加 8 -> 4
 reg signed[MAC_OUTPUT_WIDTH-1:0] data_stage2 [3:0];
 
 generate
@@ -68,7 +69,7 @@ generate
     end
 endgenerate
 
-// stage 3
+// stage 3 相邻两两相加 4 -> 2
 reg signed[MAC_OUTPUT_WIDTH-1:0] data_stage3 [1:0];
 
 generate
@@ -84,7 +85,7 @@ generate
     end
 endgenerate
 
-// stage 3
+// stage 3 相加 2 -> 1
 reg signed[MAC_OUTPUT_WIDTH-1:0] data_stage4;
 
 always @(posedge system_clk or negedge rst_n) begin
