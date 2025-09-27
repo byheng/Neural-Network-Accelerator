@@ -1,4 +1,6 @@
-# Are there any enterprises that need interns for digital IC or FPGA? -- 23011210651@stu.xidian.edu.cn
+
+https://github.com/user-attachments/assets/8335d1ec-1887-406b-8871-6fd62e5cad1e
+
 
 # Open Source Accelerator on FPGA
 **Read this in other languages: [english](README.md), [chinese](readme_zh.md)**
