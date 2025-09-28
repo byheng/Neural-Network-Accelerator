@@ -8,18 +8,18 @@
 `include "../../parameters.v"
 
 module upsample #(
-    parameter FEATURE_WIDTH = `FEATURE_WIDTH,
-    parameter PE_ARRAY_SIZE = `PE_ARRAY_SIZE,
-    parameter FEATURE_TOTAL_WIDTH = FEATURE_WIDTH*PE_ARRAY_SIZE
+    parameter FEATURE_WIDTH = `FEATURE_WIDTH, // 16
+    parameter PE_ARRAY_SIZE = `PE_ARRAY_SIZE, // 8
+    parameter FEATURE_TOTAL_WIDTH = FEATURE_WIDTH*PE_ARRAY_SIZE // 128 = 16*8
 )(
     input                           system_clk,
     input                           rst_n,
-    input [FEATURE_TOTAL_WIDTH-1:0] feature,
+    input [FEATURE_TOTAL_WIDTH-1:0] feature, // <-- feature buffer
     input                           feature_valid,
     output                          feature_ready,
     input [9:0]                     col_size,
     input [9:0]                     row_size,
-    output[FEATURE_TOTAL_WIDTH-1:0] unsample_feature,
+    output[FEATURE_TOTAL_WIDTH-1:0] unsample_feature, // --> return_data_arbitra
     output reg                      unsample_feature_valid,
     input                           output_ready,
     output                          upsample_buffer_empty
@@ -41,7 +41,7 @@ always @(posedge system_clk or negedge rst_n) begin
         double_col_size <= 0;
     end
     else begin
-        double_col_size <= col_size << 1;
+        double_col_size <= col_size << 1; // 放大后的列数，输出一行需要的拍数
     end
 end
 
@@ -69,13 +69,13 @@ always @(posedge system_clk or negedge rst_n) begin
     end 
     else if (!ready_for_output & output_ready & ~o_empty) begin
         if (cnt == (double_col_size - 1)) begin
-            change_point <= 1'b1;
+            change_point <= 1'b1; // 一行输出完，产生 change_point 信号，打一拍空档
         end
         else begin
             change_point <= 1'b0;
         end
 
-        if (change_point) begin
+        if (change_point) begin // 打一拍空档
             unsample_feature_valid <= 0;
             cnt <= cnt;
         end
@@ -99,8 +99,8 @@ always @(posedge system_clk or negedge rst_n) begin
     if (!rst_n) begin
         row_cnt <= 0;
     end
-    else if (change_point) begin
-        if (row_cnt == ((row_size<<1) - 1)) begin
+    else if (change_point) begin // 一行输出完，产生 change_point 信号，切换下一行
+        if (row_cnt == ((row_size<<1) - 1)) begin // 两倍行数
             row_cnt <= 0;
         end
         else begin

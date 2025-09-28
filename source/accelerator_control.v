@@ -862,13 +862,13 @@ pool_array pool_array_u(
 upsample u_upsample(
 	.system_clk             	( system_clk              ),
 	.rst_n                  	( rst_n                   ),
-	.feature                	( feature_upsample        ),
+	.feature                	( feature_upsample        ), // <-- feature buffer
 	.feature_valid          	( feature_output_valid & upsample_working ),
 	.feature_ready          	( upsample_ready          ),
 	.col_size               	( col_size                ),
 	.row_size               	( row_size                ),
 	.unsample_feature       	( unsample_feature        ),
-	.unsample_feature_valid 	( unsample_feature_valid  ),
+	.unsample_feature_valid 	( unsample_feature_valid  ), // --> return_data_arbitra
 	.output_ready           	( output_ready     		  ),
 	.upsample_buffer_empty  	( upsample_buffer_empty   )
 );
