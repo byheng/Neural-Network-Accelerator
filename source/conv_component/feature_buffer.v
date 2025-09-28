@@ -67,15 +67,16 @@ wire [15:0]                wr_rst_busy;
 wire [15:0]                rd_rst_busy;
 wire                       buffer1_rst_busy;
 wire                       buffer2_rst_busy;
-(* keep = "true" *)reg  [9:0]                 row_plus_padding;
-(* keep = "true" *)reg  [9:0]                 col_plus_padding;
-(* keep = "true" *)reg  [3:0]                 padding_size_double;    
-(* keep = "true" *)reg  [2:0]                 kernel_size_miner;
+(* keep = "true" *)reg  [9:0]                 row_plus_padding; // 行数加上padding
+(* keep = "true" *)reg  [9:0]                 col_plus_padding; // 列数加上padding
+(* keep = "true" *)reg  [3:0]                 padding_size_double; // padding_size * 2
+(* keep = "true" *)reg  [2:0]                 kernel_size_miner; // kernel_size - 1
 
 wire                       convolution_valid_wire;
 reg                        convolution_valid_reg;
 reg                        convolution_valid_flag;
 
+// 
 always@(posedge system_clk or negedge rst_n) begin
     if(~rst_n) begin
         row_plus_padding <= 0;
@@ -100,11 +101,11 @@ generate
     // because the xilinx fifo is big-endian, we need to swap the data when using xilinx device
     if (`device == "xilinx") begin
         for(i=0;i<8;i=i+1) begin: feature_buffer_1_assign
-            assign feature_buffer_1_data[i] = {feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+            assign feature_buffer_1_data[i] = { feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
-            assign feature_buffer_2_data[i] = {feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+            assign feature_buffer_2_data[i] = { feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
@@ -112,11 +113,11 @@ generate
     end
     else if (`device == "simulation") begin
         for(i=0;i<8;i=i+1) begin: feature_buffer_1_assign
-            assign feature_buffer_1_data[i] = {feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+            assign feature_buffer_1_data[i] = { feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
-            assign feature_buffer_2_data[i] = {feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
+            assign feature_buffer_2_data[i] = { feature_data_expand[3][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[2][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[1][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH],
                                                 feature_data_expand[0][(i+1)*FEATURE_WIDTH-1:i*FEATURE_WIDTH]};
@@ -309,6 +310,7 @@ always@(posedge system_clk or negedge rst_n) begin
     end
 end
 
+
 always@(posedge system_clk or negedge rst_n) begin
     if (~rst_n) begin
         col_mask <= 0;
@@ -328,6 +330,8 @@ always@(posedge system_clk or negedge rst_n) begin
         col_mask <= col_mask + mask_stride;
     end
 end
+
+
 // 对calculate_keep打拍，得到计算完成信号
 always@(posedge system_clk) begin
     calculate_keep_r1 <= calculate_keep;

@@ -8,9 +8,9 @@
 `include "../../parameters.v"
 
 module feature_row_Cache #(
-    parameter FEATURE_WIDTH     = `FEATURE_WIDTH,     // 单个特征的位宽
-    parameter PE_CORE_NUM       = `PE_CORE_NUM,      // PE核心数量（16个）
-    parameter FETURE_DATA_WIDTH = `PE_CORE_NUM * `FEATURE_WIDTH, // 总特征数据位宽
+    parameter FEATURE_WIDTH     = `FEATURE_WIDTH,       // 特征的位宽 16
+    parameter PE_CORE_NUM       = `PE_CORE_NUM,         // PE核心数量（16个）
+    parameter FETURE_DATA_WIDTH = `PE_CORE_NUM * `FEATURE_WIDTH, // 总特征数据位宽 = 16 * 16
     parameter POOL_DATA_WIDTH   = 5 * `FEATURE_WIDTH // 池化数据位宽（5行特征）
 )(
     input                           system_clk            ,
@@ -32,7 +32,7 @@ wire [FEATURE_WIDTH*2-1:0]  feature_data_cache_in[PE_CORE_NUM-1:0];
 wire [FEATURE_WIDTH*2-1:0]  feature_data_cache_out[PE_CORE_NUM-1:0];
 
 // depack input data
-// 将 feature_output_data 分解为每个 PE 核的特征数据
+// 将 feature_output_data 分解为16个 PEcore 的特征数据
 genvar i;
 generate
     for (i=0; i<PE_CORE_NUM; i=i+1) begin : gen_depack
@@ -62,7 +62,7 @@ generate
                 {feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_cache_out[i-8][2*FEATURE_WIDTH-1:FEATURE_WIDTH]} : // 重构结构时复用前8个PE的数据
                 {feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_depacked[i]}; // 正常情况下使用当前行数据
         end
-        assign feature_cache_data[(i+1)*FEATURE_WIDTH*3-1:i*FEATURE_WIDTH*3] = // 为每个PE分配三个特征数据
+        assign feature_cache_data[(i+1)*FEATURE_WIDTH*3-1:i*FEATURE_WIDTH*3] = // 为每个 PEcore 分配三个特征数据
             {feature_data_depacked[i], 
             feature_data_cache_out[i][FEATURE_WIDTH-1:0], 
             feature_data_cache_out[i][2*FEATURE_WIDTH-1:FEATURE_WIDTH]};

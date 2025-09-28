@@ -731,15 +731,15 @@ feature_buffer u_feature_buffer(
 );
 
 feature_row_Cache u_feature_row_Cache(
-	.system_clk           	( system_clk            					  ),
-	.rst_n                	( rst_n                 					  ),
-	.feature_output_data  	( feature_output_data   					  ), // <-- feature_buffer
+	.system_clk           	( system_clk         	  	),
+	.rst_n                	( rst_n              	  	),
+	.feature_output_data  	( feature_output_data	  	), // <-- feature_buffer
 	.feature_output_valid 	( feature_output_valid & (convolution_working | pool_layer_working)  ),
-	.feature_cache_data   	( feature_cache_data    					  ), // --> convolution_core
-	.pool_cache_data		( pool_cache_data       					  ),
-	.feature_cache_valid  	( feature_cache_valid   					  ), // --> convolution_core
-	.rebuild_structure    	( rebuild_structure     					  ),
-	.col_size             	( col_size_for_cache              			  )
+	.feature_cache_data   	( feature_cache_data   		), // --> convolution_core
+	.pool_cache_data		( pool_cache_data      		),
+	.feature_cache_valid  	( feature_cache_valid  		), // --> convolution_core
+	.rebuild_structure    	( rebuild_structure    		),
+	.col_size             	( col_size_for_cache   		)
 );
 
 Weight_buffer u_Weight_buffer(
