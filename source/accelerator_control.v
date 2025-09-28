@@ -828,10 +828,10 @@ return_buffer u_return_buffer(
 feature_add u_feature_add(
 	.system_clk             	( system_clk              ),
 	.rst_n                  	( rst_n                   ),
-	.feature_x1_in          	( feature_x1_in			  ),
-	.feature_x2_in          	( feature_x2_in			  ),
+	.feature_x1_in          	( feature_x1_in			  ), // <-- feature buffer
+	.feature_x2_in          	( feature_x2_in			  ), // <-- feature buffer	
 	.feature_x_valid_in     	( feature_output_valid    ),
-	.feature_data_out       	( feature_add_data_out    ),
+	.feature_data_out       	( feature_add_data_out    ), // --> return_data_arbitra 相加后的特征图
 	.feature_data_valid_out 	( feature_add_data_valid  )
 );
 
