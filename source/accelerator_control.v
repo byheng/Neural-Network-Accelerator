@@ -782,15 +782,15 @@ Output_buffer u_Output_buffer(
 activate_function u_activate_function(
 	.system_clk         	( system_clk          	),
 	.rst_n              	( rst_n               	),
-	.data_for_act       	( data_for_act    		),
+	.data_for_act       	( data_for_act    		), // <-- convolution_core
 	.data_for_act_valid 	( data_for_act_valid	),
-	.act_data           	( act_data            	),
+	.act_data           	( act_data            	), // --> return_data_arbitra
 	.act_data_valid     	( act_data_valid      	),
 	.fea_in_quant_size  	( fea_in_quant_size   	),
 	.fea_out_quant_size 	( fea_out_quant_size  	),
 	.weight_quant_size  	( weight_quant_size   	),
 	.activate				( activate				),
-	.negedge_threshold		( {{(MAC_OUTPUT_WIDTH-32){negedge_threshold[31]}}, negedge_threshold})
+	.negedge_threshold		( {{(MAC_OUTPUT_WIDTH-32){negedge_threshold[31]}}, negedge_threshold}) // <-- get_order 符号位extend to MAC_OUTPUT_WIDTH
 );
 
 return_buffer u_return_buffer(
