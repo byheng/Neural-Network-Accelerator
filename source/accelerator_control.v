@@ -775,7 +775,7 @@ Output_buffer u_Output_buffer(
 	.refresh_req        	( refresh_req         ),
 	.adder_pulse        	( adder_pulse         ),
 	.adder_feature      	( adder_feature       ), // --> convolution_core
-	.feature_in         	( feature_out         ), // <-- Output_buffer
+	.feature_in         	( feature_out         ), // <-- convolution_core
 	.feature_valid      	( feature_valid       )
 );
 

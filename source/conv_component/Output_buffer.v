@@ -8,7 +8,7 @@
 `include "../../parameters.v"
 
 module Output_buffer #(
-    parameter MAC_OUTPUT_WIDTH = `MAC_OUTPUT_WIDTH
+    parameter MAC_OUTPUT_WIDTH = `MAC_OUTPUT_WIDTH // 36
 )
 (
     input                                  system_clk   ,
@@ -17,9 +17,9 @@ module Output_buffer #(
     input                                  refresh_req  ,
 
     input                                  adder_pulse  ,
-    output[MAC_OUTPUT_WIDTH*8-1:0]         adder_feature,
+    output[MAC_OUTPUT_WIDTH*8-1:0]         adder_feature, // --> convolution_core
 
-    input [MAC_OUTPUT_WIDTH*8-1:0]         feature_in   ,
+    input [MAC_OUTPUT_WIDTH*8-1:0]         feature_in   , // <-- convolution_core, 8个通道的卷积结果
     input                                  feature_valid
 );
 
@@ -64,7 +64,7 @@ generate
                 .sbiterrb       (),
                 .clka           (system_clk),                     
                 .clkb           (system_clk),     
-                .dina           (feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]),  
+                .dina           (feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]),  // 每个通道包含2个MAC的结果
                 .addra          (uram_write_addr),               
                 .doutb          (uram_read_data[i]),           
                 .addrb          (uram_read_addr),          
@@ -107,7 +107,7 @@ generate
                 .ren   	( 1'b1                                                  ),
                 .waddr 	( uram_write_addr                                       ),
                 .raddr 	( uram_read_addr                                        ),
-                .din   	( feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]  ),
+                .din   	( feature_in[i*MAC_OUTPUT_WIDTH*2+:MAC_OUTPUT_WIDTH*2]  ), // 每个通道包含2个MAC的结果
                 .dout  	( uram_read_data[i]                                     )
             );
         end
@@ -138,6 +138,7 @@ always @(posedge system_clk or negedge rst_n) begin
     end
 end
 
+// 合并4个通道的输出，每个通道包含2个MAC的结果
 assign adder_feature = {uram_read_data[3], uram_read_data[2], uram_read_data[1], uram_read_data[0]};
 
 endmodule
