@@ -799,9 +799,9 @@ return_buffer u_return_buffer(
 	.refresh_return_addr 	( refresh_return_addr  ),
 	.return_req          	( return_req           ),
 	.return_finish       	( return_finish        ),
-	.return_patch_num    	( return_patch_num     ),
-	.return_addr         	( return_addr          ),
-	.return_data         	( return_data          ),
+	.return_patch_num    	( return_patch_num     ), // <-- get_order
+	.return_addr         	( return_addr          ), // <-- get_order 返回数据的起始地址
+	.return_data         	( return_data          ), // <-- return_data_arbitra
 	.return_data_valid   	( return_data_valid    ),
 	.return_buffer_ready 	( return_buffer_ready  ),
 	.output_buffer_done  	( output_buffer_done   ),
@@ -839,15 +839,15 @@ return_data_arbitra  u_return_data_arbitra(
 	.system_clk        	( system_clk         	),
 	.rst_n             	( rst_n              	),
 	.select            	( return_select         ),
-	.data1             	( act_data           	),
+	.data1             	( act_data           	), // <-- activate_function
 	.data1_valid       	( act_data_valid     	),
-	.data2             	( feature_add_data_out	),
+	.data2             	( feature_add_data_out	), // <-- feature_add
 	.data2_valid       	( feature_add_data_valid),
-	.data3				( pool_data_out			),
+	.data3				( pool_data_out			), // <-- pool_array
 	.data3_valid		( pool_data_valid		),
-	.data4				( unsample_feature		),
+	.data4				( unsample_feature		), // <-- upsample
 	.data4_valid		( unsample_feature_valid),
-	.return_data       	( arbitr_data        	),
+	.return_data       	( arbitr_data        	), // --> return_buffer or video_stream_out
 	.return_data_valid 	( arbitr_data_valid  	)
 );
 
@@ -930,7 +930,7 @@ video_stream_out u_video_stream_out(
 	.fea_out_quant_size ( fea_out_quant_size ),
 	.video_col_size    	( return_addr[9:0]   ),	// when output_to_video, use return_addr[9:0] to get col_size
 	.video_valid       	( video_valid        ),
-	.video_data        	( video_data         ),
+	.video_data        	( video_data         ), // <-- return_data_arbitra
 	.video_ready       	( video_ready        ),
 	.axi_stream_tvalid 	( axi_stream_tvalid  ),
 	.axi_stream_tdata  	( axi_stream_tdata   ),

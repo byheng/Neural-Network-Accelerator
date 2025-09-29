@@ -90,7 +90,10 @@ endgenerate
 wire [POOL_DATA_WIDTH-1:0] pool_cache_data_depacked[7:0];
 generate
     for (i=0; i<8; i=i+1) begin : gen_depack_pool_data
-        assign pool_cache_data_depacked[i] = {feature_data_cache_out[8+i][2*FEATURE_WIDTH-1:FEATURE_WIDTH], feature_data_cache_out[8+i][FEATURE_WIDTH-1:0], feature_data_cache_out[i][2*FEATURE_WIDTH-1:FEATURE_WIDTH], feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_depacked[i]};
+        assign pool_cache_data_depacked[i] = {feature_data_cache_out[8+i][2*FEATURE_WIDTH-1:FEATURE_WIDTH], 
+                                                feature_data_cache_out[8+i][FEATURE_WIDTH-1:0], 
+                                                feature_data_cache_out[i][2*FEATURE_WIDTH-1:FEATURE_WIDTH], 
+                                                feature_data_cache_out[i][FEATURE_WIDTH-1:0], feature_data_depacked[i]};
         assign pool_cache_data[i*POOL_DATA_WIDTH+:POOL_DATA_WIDTH] = pool_cache_data_depacked[i];
     end
 endgenerate
