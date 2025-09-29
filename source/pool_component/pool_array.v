@@ -8,21 +8,21 @@
 `include "../../parameters.v"
 
 module pool_array #(
-    parameter FEATURE_WIDTH = `FEATURE_WIDTH,
-    parameter MAXPOOL_SIZE  = `MAXPOOL_SIZE,
-    parameter PE_ARRAY_SIZE = `PE_ARRAY_SIZE,
-    parameter FEATURE_TOTAL_WIDTH = FEATURE_WIDTH*MAXPOOL_SIZE*PE_ARRAY_SIZE
+    parameter FEATURE_WIDTH = `FEATURE_WIDTH, // 16
+    parameter MAXPOOL_SIZE  = `MAXPOOL_SIZE,  // 5
+    parameter PE_ARRAY_SIZE = `PE_ARRAY_SIZE,  // 8
+    parameter FEATURE_TOTAL_WIDTH = FEATURE_WIDTH*MAXPOOL_SIZE*PE_ARRAY_SIZE // 16*5*8=640
 )(
     input                                   DSP_clk,
     input                                   rst_n, 
-    input [FEATURE_TOTAL_WIDTH-1:0]         feature,      
+    input [FEATURE_TOTAL_WIDTH-1:0]         feature, // 8个 pool_core 的输入，每个core 在列方向上并行5个行计算，每个feature 16 bit
     input                                   pulse,
-    output[FEATURE_WIDTH*PE_ARRAY_SIZE-1:0] feature_out
+    output[FEATURE_WIDTH*PE_ARRAY_SIZE-1:0] feature_out // 8 个 pool_core 的输出，每个输出 1 个 feature
 );
 
 genvar i;
-wire [FEATURE_WIDTH*MAXPOOL_SIZE-1:0] feature_depacked[PE_ARRAY_SIZE-1:0];
-wire [FEATURE_WIDTH-1:0]              feature_out_packed[PE_ARRAY_SIZE-1:0];
+wire [FEATURE_WIDTH*MAXPOOL_SIZE-1:0] feature_depacked[PE_ARRAY_SIZE-1:0]; // 8 个 pool_core 的输入，每个 core 在列方向上并行5个行计算
+wire [FEATURE_WIDTH-1:0]              feature_out_packed[PE_ARRAY_SIZE-1:0]; // 8 个 pool_core 的输出，每个输出 1 个 feature
 generate
     for(i=0;i<PE_ARRAY_SIZE;i=i+1) begin:feature_depack
         assign feature_depacked[i] = feature[i*FEATURE_WIDTH*MAXPOOL_SIZE+:FEATURE_WIDTH*MAXPOOL_SIZE];

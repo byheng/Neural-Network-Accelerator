@@ -8,7 +8,7 @@
 `include "../../parameters.v"
 
 module pool_PE #(
-    parameter FEATURE_WIDTH    = `FEATURE_WIDTH
+    parameter FEATURE_WIDTH    = `FEATURE_WIDTH // 16
 )
 (
     input                           DSP_clk,
