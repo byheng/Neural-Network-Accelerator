@@ -672,7 +672,7 @@ read_ddr_control u_read_ddr_control(
 	.system_clk              	( system_clk               ),
 	.rst_n                   	( rst_n                    ),
 	.task_start              	( task_start               ),
-	.weight_data_length      	( weight_data_length       ),
+	.weight_data_length      	( weight_data_length       ), // <-- get_order
 	.weight_and_bias_data    	( weight_and_bias_data     ), // --> Weight_buffer
 	.weight_and_bias_valid   	( weight_and_bias_valid    ),
 	.weight_buffer_ready     	( weight_buffer_ready      ),
@@ -682,8 +682,8 @@ read_ddr_control u_read_ddr_control(
 	.feature_buffer_1_ready  	( feature_buffer_1_ready   ),
 	.feature_buffer_2_ready  	( feature_buffer_2_ready   ),
 	.feature_double_patch    	( feature_double_patch     ),
-	.feature_input_base_addr 	( feature_input_base_addr  ),
-	.feature_patch_num      	( feature_patch_num        ),
+	.feature_input_base_addr 	( feature_input_base_addr  ), // <-- get_order
+	.feature_patch_num      	( feature_patch_num        ), // <-- get_order
 	.load_feature_begin      	( load_feature_begin       ),
 	.free_feature_read_addr  	( free_feature_read_addr   ),
 	.load_feature_finish		( load_feature_finish	   ),
@@ -710,9 +710,9 @@ feature_buffer u_feature_buffer(
 	.compute_begin        	    ( compute_begin           		),
 	.compute_finish       	    ( compute_finish				),
 	.load_feature_begin			( load_feature_begin			),
-	.row_size               	( row_size                		),
-	.col_size               	( col_size                		),
-	.padding_size           	( padding_size            		),
+	.row_size               	( row_size                		), // <-- get_order
+	.col_size               	( col_size                		), // <-- get_order
+	.padding_size           	( padding_size            		), // <-- get_order
 	.feature_data           	( feature_data            		), // <-- read_ddr_control
 	.feature_buffer_1_valid 	( feature_buffer_1_valid  		),
 	.feature_buffer_2_valid 	( feature_buffer_2_valid  		),
@@ -786,10 +786,10 @@ activate_function u_activate_function(
 	.data_for_act_valid 	( data_for_act_valid	),
 	.act_data           	( act_data            	), // --> return_data_arbitra
 	.act_data_valid     	( act_data_valid      	),
-	.fea_in_quant_size  	( fea_in_quant_size   	),
+	.fea_in_quant_size  	( fea_in_quant_size   	), // <-- get_order
 	.fea_out_quant_size 	( fea_out_quant_size  	),
-	.weight_quant_size  	( weight_quant_size   	),
-	.activate				( activate				),
+	.weight_quant_size  	( weight_quant_size   	), // <-- get_order
+	.activate				( activate				), // <-- get_order
 	.negedge_threshold		( {{(MAC_OUTPUT_WIDTH-32){negedge_threshold[31]}}, negedge_threshold}) // <-- get_order 符号位extend to MAC_OUTPUT_WIDTH
 );
 
@@ -865,10 +865,10 @@ upsample u_upsample(
 	.feature                	( feature_upsample        ), // <-- feature buffer
 	.feature_valid          	( feature_output_valid & upsample_working ),
 	.feature_ready          	( upsample_ready          ),
-	.col_size               	( col_size                ),
-	.row_size               	( row_size                ),
-	.unsample_feature       	( unsample_feature        ),
-	.unsample_feature_valid 	( unsample_feature_valid  ), // --> return_data_arbitra
+	.col_size               	( col_size                ), // <-- get_order
+	.row_size               	( row_size                ), // <-- get_order
+	.unsample_feature       	( unsample_feature        ), // --> return_data_arbitra
+	.unsample_feature_valid 	( unsample_feature_valid  ),
 	.output_ready           	( output_ready     		  ),
 	.upsample_buffer_empty  	( upsample_buffer_empty   )
 );
@@ -882,22 +882,22 @@ get_order get_order_inst(
 	.calculate_finish			( calculate_finish		  ),
 	.calculate_start			( calculate_start		  ),
 	.order						( order					  ),
-	.feature_input_base_addr	( feature_input_base_addr ),
+	.feature_input_base_addr	( feature_input_base_addr ), // --> read_ddr_control
 	.feature_input_patch_num	( feature_input_patch_num ),
 	.feature_output_patch_num	( feature_output_patch_num),
 	.feature_double_patch		( feature_double_patch	  ),
-	.feature_patch_num			( feature_patch_num		  ),
-	.row_size					( row_size				  ),
-	.col_size					( col_size				  ),
-	.weight_quant_size			( weight_quant_size		  ),
-	.fea_in_quant_size			( fea_in_quant_size		  ),
+	.feature_patch_num			( feature_patch_num		  ), // --> read_ddr_control
+	.row_size					( row_size				  ), // --> feature_buffer or upsample
+	.col_size					( col_size				  ), // --> feature_buffer or upsample
+	.weight_quant_size			( weight_quant_size		  ), // --> activate_function
+	.fea_in_quant_size			( fea_in_quant_size		  ), // --> activate_function
 	.fea_out_quant_size			( fea_out_quant_size	  ),
 	.return_addr				( return_addr			  ),
 	.return_patch_num			( return_patch_num		  ),
-	.padding_size				( padding_size			  ),
-	.weight_data_length			( weight_data_length      ),
-	.activate   				( activate				  ),
-	.negedge_threshold			( negedge_threshold		  ),	
+	.padding_size				( padding_size			  ), // --> feature_buffer
+	.weight_data_length			( weight_data_length      ), // --> read_ddr_control
+	.activate   				( activate				  ), // --> activate_function
+	.negedge_threshold			( negedge_threshold		  ), // --> activate_function
 	.output_to_video			( output_to_video		  ),
 	.mask_stride				( mask_stride			  ),
 	.s00_axi_aclk				( s00_axi_aclk			  ),
