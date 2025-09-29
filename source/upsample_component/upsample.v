@@ -3,6 +3,18 @@
     created date: 2024-09-24
     author      : <zhiquan huang>
 */
+/*
+该模块实现的是 2× 最近邻上采样（像素复制），不做真正“插值”计算（没有新像素值内插，仅复制行与列）。
+
+核心机制：
+水平放大：写 FIFO 时用 {feature, feature} 将一拍输入的并行特征向量复制并拼接成双倍宽度，后续按拍输出等效为每列重复两次。
+垂直放大：一行（放大后 double_col_size 个输出节拍）结束时产生 change_point；row_cnt 在 change_point 时加一。
+在FIFO内部通过真实读指针和虚拟读指针，来实现同一原始行对应的数据在两次行输出阶段复用，等效为行复制两遍。
+ready_for_output 通过 almost_empty_threshold（= double_col_size）保证 FIFO 里先缓存够一行放大所需数据再开始流出，避免读空。
+unsample_feature_valid 在行内部保持高；行尾打一拍气泡（change_point=1）作为行边界翻转信号，同时也是行复制节奏控制。
+row_cnt 计满 2*row_size 后回绕，完成整幅图的 2× 放大。
+*/
+
 `timescale 1ns/100fs
 
 `include "../../parameters.v"
